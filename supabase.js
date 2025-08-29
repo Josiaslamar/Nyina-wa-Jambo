@@ -5,7 +5,90 @@ const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
 
 const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-// Medicines CRUD
+// ========================================
+// AUTHENTICATION & USER MANAGEMENT
+// ========================================
+
+// Get current user session
+function getCurrentUser() {
+    const session = localStorage.getItem('userSession');
+    return session ? JSON.parse(session) : null;
+}
+
+// Check if user is authenticated
+function isAuthenticated() {
+    const user = getCurrentUser();
+    return user !== null;
+}
+
+// Check user role
+function hasRole(role) {
+    const user = getCurrentUser();
+    return user && user.role === role;
+}
+
+// Check if user has admin privileges
+function isAdmin() {
+    return hasRole('admin');
+}
+
+// Check if user has receptionist privileges
+function isReceptionist() {
+    return hasRole('receptionist') || isAdmin();
+}
+
+// Check if user is customer
+function isCustomer() {
+    return hasRole('customer');
+}
+
+// Logout function
+function logout() {
+    localStorage.removeItem('userSession');
+    localStorage.removeItem('rememberUser');
+    window.location.href = 'login.html';
+}
+
+// Users CRUD
+async function fetchUsers() {
+    const { data, error } = await supabase.from('users').select('*').order('created_at', { ascending: false });
+    if (error) {
+        console.error('Supabase fetch error:', error);
+        return [];
+    }
+    return data;
+}
+
+async function addUser(user) {
+    const { data, error } = await supabase.from('users').insert([user]);
+    if (error) {
+        console.error('Supabase insert error:', error);
+        return null;
+    }
+    return data;
+}
+
+async function updateUser(id, updates) {
+    const { data, error } = await supabase.from('users').update(updates).eq('id', id);
+    if (error) {
+        console.error('Supabase update error:', error);
+        return null;
+    }
+    return data;
+}
+
+async function deleteUser(id) {
+    const { data, error } = await supabase.from('users').delete().eq('id', id);
+    if (error) {
+        console.error('Supabase delete error:', error);
+        return null;
+    }
+    return data;
+}
+
+// ========================================
+// MEDICINES CRUD
+// ========================================
 async function fetchMedicines() {
   const { data, error } = await supabase.from('medicines').select('*');
   if (error) {

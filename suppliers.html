@@ -261,7 +261,7 @@
                             <button onclick="editSupplier(${supplier.id})" class="text-indigo-600 hover:text-indigo-900 mr-3">
                                 <i class="fas fa-edit"></i>
                             </button>
-                            <button onclick="deleteSupplier(${supplier.id})" class="text-red-600 hover:text-red-900">
+                            <button onclick="deleteSupplierLocal(${supplier.id})" class="text-red-600 hover:text-red-900">
                                 <i class="fas fa-trash"></i>
                             </button>
                         </td>
@@ -347,7 +347,7 @@
             openSupplierModal(id);
         }
 
-        async function deleteSupplier(id) {
+        async function deleteSupplierLocal(id) {
             if (confirm("Are you sure you want to delete this supplier?")) {
                 try {
                     await deleteSupplier(id);

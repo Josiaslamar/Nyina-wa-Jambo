@@ -247,7 +247,8 @@
                 const orders = await fetchOrders();
                 
                 let filteredOrders = orders.filter((order) => {
-                    const matchesSearch = order.customerName.toLowerCase().includes(searchTerm);
+                    const customerName = order.customer_name || '';
+                    const matchesSearch = customerName.toLowerCase().includes(searchTerm);
                     const matchesStatus = !statusFilter || order.status === statusFilter;
                     return matchesSearch && matchesStatus;
                 });
@@ -265,8 +266,8 @@
                         'cancelled': 'bg-red-100 text-red-800'
                     }[order.status] || 'bg-gray-100 text-gray-800';
 
-                    const medicines = Array.isArray(order.medicines) ? order.medicines : [];
-                    const itemCount = medicines.length;
+                    // Calculate item count - for now assume 1 item per order
+                    const itemCount = order.quantity || 1;
 
                     return `
                         <tr class="hover:bg-gray-50">
@@ -274,13 +275,13 @@
                                 #${order.id}
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap text-gray-900">
-                                ${order.customerName}
+                                ${order.customer_name || 'N/A'}
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap text-gray-900">
-                                ${order.date}
+                                ${order.order_date || 'N/A'}
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap text-gray-900">
-                                ${Math.round(order.total).toLocaleString()} RWF
+                                ${Math.round(order.total || 0).toLocaleString()} RWF
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap">
                                 <span class="px-2 py-1 text-xs font-semibold rounded-full ${statusClass}">
@@ -294,7 +295,7 @@
                                 <button onclick="viewOrder(${order.id})" class="text-indigo-600 hover:text-indigo-900 mr-3">
                                     <i class="fas fa-eye"></i>
                                 </button>
-                                <button onclick="deleteOrder(${order.id})" class="text-red-600 hover:text-red-900">
+                                <button onclick="deleteOrderLocal(${order.id})" class="text-red-600 hover:text-red-900">
                                     <i class="fas fa-trash"></i>
                                 </button>
                             </td>
@@ -429,15 +430,60 @@
             }
         }
 
-        function viewOrder(id) {
-            // View order details functionality
-            showNotification("Order details view coming soon!", "info");
+        async function viewOrder(id) {
+            try {
+                const orders = await fetchOrders();
+                const order = orders.find(o => o.id === id);
+                
+                if (!order) {
+                    showNotification("Order not found!", "error");
+                    return;
+                }
+
+                // Create and show order details modal
+                const modalHtml = `
+                    <div id="orderViewModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
+                        <div class="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
+                            <div class="mt-3 text-center">
+                                <h3 class="text-lg font-medium text-gray-900 mb-4">Order Details</h3>
+                                <div class="text-left space-y-3">
+                                    <div><strong>Order ID:</strong> #${order.id}</div>
+                                    <div><strong>Customer:</strong> ${order.customer_name || 'N/A'}</div>
+                                    <div><strong>Medicine:</strong> ${order.medicine_name || 'N/A'}</div>
+                                    <div><strong>Quantity:</strong> ${order.quantity || 'N/A'}</div>
+                                    <div><strong>Unit Price:</strong> ${Math.round(order.unit_price || 0).toLocaleString()} RWF</div>
+                                    <div><strong>Total:</strong> ${Math.round(order.total || 0).toLocaleString()} RWF</div>
+                                    <div><strong>Status:</strong> ${order.status || 'N/A'}</div>
+                                    <div><strong>Date:</strong> ${order.order_date || 'N/A'}</div>
+                                </div>
+                                <div class="items-center px-4 py-3">
+                                    <button onclick="closeOrderViewModal()" class="px-4 py-2 bg-gray-500 text-white text-base font-medium rounded-md w-full shadow-sm hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-300">
+                                        Close
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                
+                document.body.insertAdjacentHTML('beforeend', modalHtml);
+            } catch (error) {
+                console.error('Error viewing order:', error);
+                showNotification("Error loading order details. Please try again.", "error");
+            }
         }
 
-        async function deleteOrder(id) {
+        function closeOrderViewModal() {
+            const modal = document.getElementById('orderViewModal');
+            if (modal) {
+                modal.remove();
+            }
+        }
+
+        async function deleteOrderLocal(id) {
             if (confirm("Are you sure you want to delete this order?")) {
                 try {
-                    await deleteOrderById(id);
+                    await deleteOrder(id);
                     renderOrders();
                     showNotification("Order deleted successfully!", "success");
                 } catch (error) {

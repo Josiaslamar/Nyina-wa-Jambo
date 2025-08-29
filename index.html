@@ -8,8 +8,40 @@
     <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
     <script src="supabase.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        .primary { color: #16a34a; }
+        .bg-primary { background-color: #16a34a; }
+        .bg-primary-dark { background-color: #15803d; }
+        
+        /* Role-based visibility */
+        .admin-only { display: none; }
+        .receptionist-only { display: none; }
+        .customer-only { display: none; }
+        
+        /* Notification styles */
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 12px 20px;
+            border-radius: 8px;
+            color: white;
+            font-weight: 500;
+            z-index: 1000;
+            transform: translateX(400px);
+            transition: transform 0.3s ease;
+        }
+        .notification.show { transform: translateX(0); }
+        .notification.success { background-color: #10b981; }
+        .notification.error { background-color: #ef4444; }
+        .notification.warning { background-color: #f59e0b; }
+        .notification.info { background-color: #3b82f6; }
+    </style>
 </head>
 <body class="bg-gray-50">
+    <!-- Notification Container -->
+    <div id="notificationContainer"></div>
+    
     <!-- Landing Page -->
     <div id="landingPage" class="min-h-screen">
         <!-- Header -->
@@ -22,6 +54,9 @@
                     </div>
                     <div class="flex space-x-4">
                         <button id="homeBtn" class="text-gray-700 hover:text-primary px-3 py-2 rounded-md">Home</button>
+                        <button id="loginBtn" class="text-gray-700 hover:text-primary px-3 py-2 rounded-md border border-gray-300 hover:border-primary">
+                            <i class="fas fa-sign-in-alt mr-2"></i>Login
+                        </button>
                         <button id="dashboardBtn" class="bg-primary text-white px-6 py-2 rounded-md hover:bg-primary-dark">Dashboard</button>
                     </div>
                 </div>
@@ -40,32 +75,68 @@
                 </p>
                 <div class="mt-5 max-w-md mx-auto sm:flex sm:justify-center md:mt-8">
                     <div class="rounded-md shadow">
-                        <button id="getStartedBtn" class="w-full flex items-center justify-center px-8 py-3 border border-transparent text-base font-medium rounded-md text-white bg-primary hover:bg-primary-dark md:py-4 md:text-lg md:px-10">
+                        <button id="getStartedBtn" class="w-full flex items-center justify-center px-8 py-3 border border-transparent text-base font-medium rounded-md text-white bg-primary hover:bg-primary-dark md:py-4 md:text-lg md:px-10 transition-colors">
                             Get Started
                         </button>
+                    </div>
+                    <div class="mt-3 rounded-md shadow sm:mt-0 sm:ml-3">
+                        <a href="#features" class="w-full flex items-center justify-center px-8 py-3 border border-transparent text-base font-medium rounded-md text-primary bg-white hover:bg-gray-50 md:py-4 md:text-lg md:px-10 transition-colors">
+                            Learn More
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Stats Section -->
+            <div class="mt-20">
+                <div class="grid grid-cols-1 gap-8 sm:grid-cols-3">
+                    <div class="text-center">
+                        <div class="text-4xl font-bold text-primary">99.9%</div>
+                        <div class="mt-2 text-lg text-gray-600">Uptime</div>
+                        <div class="mt-1 text-sm text-gray-500">Reliable system availability</div>
+                    </div>
+                    <div class="text-center">
+                        <div class="text-4xl font-bold text-primary">500+</div>
+                        <div class="mt-2 text-lg text-gray-600">Pharmacies</div>
+                        <div class="mt-1 text-sm text-gray-500">Trust our platform</div>
+                    </div>
+                    <div class="text-center">
+                        <div class="text-4xl font-bold text-primary">24/7</div>
+                        <div class="mt-2 text-lg text-gray-600">Support</div>
+                        <div class="mt-1 text-sm text-gray-500">Always here to help</div>
                     </div>
                 </div>
             </div>
 
             <!-- Features Grid -->
-            <div class="mt-20">
+            <div id="features" class="mt-20">
+                <div class="text-center mb-16">
+                    <h2 class="text-3xl font-bold text-gray-900">Everything you need to manage your pharmacy</h2>
+                    <p class="mt-4 text-lg text-gray-600">Comprehensive tools designed specifically for modern pharmacy operations</p>
+                </div>
                 <div class="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-4">
                     <div class="pt-6">
-                        <div class="flow-root bg-white rounded-lg px-6 pb-8">
+                        <div class="flow-root bg-white rounded-lg px-6 pb-8 shadow-lg hover:shadow-xl transition-shadow">
                             <div class="-mt-6">
                                 <div class="inline-flex items-center justify-center p-3 bg-primary rounded-md shadow-lg">
                                     <i class="fas fa-pills text-white text-xl"></i>
                                 </div>
                                 <h3 class="mt-8 text-lg font-medium text-gray-900 tracking-tight">Medicine Management</h3>
                                 <p class="mt-5 text-base text-gray-500">
-                                    Track inventory, expiration dates, and stock levels with real-time updates.
+                                    Track inventory, expiration dates, and stock levels with real-time updates and automated alerts.
                                 </p>
+                                <ul class="mt-4 text-sm text-gray-500 space-y-1">
+                                    <li>• Inventory tracking</li>
+                                    <li>• Expiry monitoring</li>
+                                    <li>• Stock alerts</li>
+                                    <li>• Category management</li>
+                                </ul>
                             </div>
                         </div>
                     </div>
 
                     <div class="pt-6">
-                        <div class="flow-root bg-white rounded-lg px-6 pb-8">
+                        <div class="flow-root bg-white rounded-lg px-6 pb-8 shadow-lg hover:shadow-xl transition-shadow">
                             <div class="-mt-6">
                                 <div class="inline-flex items-center justify-center p-3 bg-primary rounded-md shadow-lg">
                                     <i class="fas fa-truck text-white text-xl"></i>
@@ -74,12 +145,18 @@
                                 <p class="mt-5 text-base text-gray-500">
                                     Manage supplier contacts, orders, and maintain strong business relationships.
                                 </p>
+                                <ul class="mt-4 text-sm text-gray-500 space-y-1">
+                                    <li>• Contact management</li>
+                                    <li>• Order tracking</li>
+                                    <li>• Performance metrics</li>
+                                    <li>• Communication tools</li>
+                                </ul>
                             </div>
                         </div>
                     </div>
 
                     <div class="pt-6">
-                        <div class="flow-root bg-white rounded-lg px-6 pb-8">
+                        <div class="flow-root bg-white rounded-lg px-6 pb-8 shadow-lg hover:shadow-xl transition-shadow">
                             <div class="-mt-6">
                                 <div class="inline-flex items-center justify-center p-3 bg-primary rounded-md shadow-lg">
                                     <i class="fas fa-users text-white text-xl"></i>
@@ -88,12 +165,18 @@
                                 <p class="mt-5 text-base text-gray-500">
                                     Keep detailed customer records and track their purchase history.
                                 </p>
+                                <ul class="mt-4 text-sm text-gray-500 space-y-1">
+                                    <li>• Customer profiles</li>
+                                    <li>• Purchase history</li>
+                                    <li>• Visit tracking</li>
+                                    <li>• Loyalty programs</li>
+                                </ul>
                             </div>
                         </div>
                     </div>
 
                     <div class="pt-6">
-                        <div class="flow-root bg-white rounded-lg px-6 pb-8">
+                        <div class="flow-root bg-white rounded-lg px-6 pb-8 shadow-lg hover:shadow-xl transition-shadow">
                             <div class="-mt-6">
                                 <div class="inline-flex items-center justify-center p-3 bg-primary rounded-md shadow-lg">
                                     <i class="fas fa-chart-bar text-white text-xl"></i>
@@ -102,12 +185,193 @@
                                 <p class="mt-5 text-base text-gray-500">
                                     Generate comprehensive reports and gain insights into your business performance.
                                 </p>
+                                <ul class="mt-4 text-sm text-gray-500 space-y-1">
+                                    <li>• Sales analytics</li>
+                                    <li>• Stock reports</li>
+                                    <li>• Performance metrics</li>
+                                    <li>• Export capabilities</li>
+                                </ul>
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
+
+            <!-- Benefits Section -->
+            <div class="mt-32">
+                <div class="bg-primary rounded-2xl">
+                    <div class="max-w-7xl mx-auto py-16 px-4 sm:px-6 lg:px-8">
+                        <div class="text-center">
+                            <h2 class="text-3xl font-bold text-white">Why Choose Nyina wa Jambo?</h2>
+                            <p class="mt-4 text-lg text-blue-100">Built specifically for Rwandan pharmacies with local expertise</p>
+                        </div>
+                        <div class="mt-12 grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-3">
+                            <div class="text-center">
+                                <div class="inline-flex items-center justify-center w-12 h-12 bg-white rounded-full">
+                                    <i class="fas fa-shield-alt text-primary text-xl"></i>
+                                </div>
+                                <h3 class="mt-4 text-lg font-medium text-white">Secure & Reliable</h3>
+                                <p class="mt-2 text-blue-100">Enterprise-grade security with regular backups and 99.9% uptime guarantee.</p>
+                            </div>
+                            <div class="text-center">
+                                <div class="inline-flex items-center justify-center w-12 h-12 bg-white rounded-full">
+                                    <i class="fas fa-mobile-alt text-primary text-xl"></i>
+                                </div>
+                                <h3 class="mt-4 text-lg font-medium text-white">Mobile Friendly</h3>
+                                <p class="mt-2 text-blue-100">Access your pharmacy data anywhere, anytime with our responsive design.</p>
+                            </div>
+                            <div class="text-center">
+                                <div class="inline-flex items-center justify-center w-12 h-12 bg-white rounded-full">
+                                    <i class="fas fa-headset text-primary text-xl"></i>
+                                </div>
+                                <h3 class="mt-4 text-lg font-medium text-white">Local Support</h3>
+                                <p class="mt-2 text-blue-100">Dedicated support team that understands Rwandan pharmacy regulations.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Testimonials Section -->
+            <div class="mt-32">
+                <div class="text-center mb-16">
+                    <h2 class="text-3xl font-bold text-gray-900">Trusted by pharmacy owners across Rwanda</h2>
+                    <p class="mt-4 text-lg text-gray-600">See what our customers say about our platform</p>
+                </div>
+                <div class="grid grid-cols-1 gap-8 lg:grid-cols-3">
+                    <div class="bg-white rounded-lg shadow-lg p-6">
+                        <div class="flex items-center mb-4">
+                            <div class="w-12 h-12 bg-primary rounded-full flex items-center justify-center">
+                                <span class="text-white font-bold text-lg">JM</span>
+                            </div>
+                            <div class="ml-4">
+                                <div class="font-medium text-gray-900">Jean Marie Nkurunziza</div>
+                                <div class="text-sm text-gray-500">Pharmacy Owner, Kigali</div>
+                            </div>
+                        </div>
+                        <p class="text-gray-700 italic">"This system has transformed how we manage our pharmacy. The inventory tracking is exceptional, and we never run out of essential medicines anymore."</p>
+                        <div class="flex mt-4 text-yellow-400">
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                        </div>
+                    </div>
+                    <div class="bg-white rounded-lg shadow-lg p-6">
+                        <div class="flex items-center mb-4">
+                            <div class="w-12 h-12 bg-primary rounded-full flex items-center justify-center">
+                                <span class="text-white font-bold text-lg">AM</span>
+                            </div>
+                            <div class="ml-4">
+                                <div class="font-medium text-gray-900">Anne Marie Uwimana</div>
+                                <div class="text-sm text-gray-500">Pharmacy Manager, Butare</div>
+                            </div>
+                        </div>
+                        <p class="text-gray-700 italic">"The reports feature helps us make better business decisions. We can see which medicines are selling well and plan our orders accordingly."</p>
+                        <div class="flex mt-4 text-yellow-400">
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                        </div>
+                    </div>
+                    <div class="bg-white rounded-lg shadow-lg p-6">
+                        <div class="flex items-center mb-4">
+                            <div class="w-12 h-12 bg-primary rounded-full flex items-center justify-center">
+                                <span class="text-white font-bold text-lg">PM</span>
+                            </div>
+                            <div class="ml-4">
+                                <div class="font-medium text-gray-900">Paul Mukamana</div>
+                                <div class="text-sm text-gray-500">Head Pharmacist, Musanze</div>
+                            </div>
+                        </div>
+                        <p class="text-gray-700 italic">"Customer management has never been easier. We can track patient visits and medication history, which helps us provide better care."</p>
+                        <div class="flex mt-4 text-yellow-400">
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- CTA Section -->
+            <div class="mt-32">
+                <div class="bg-gray-50 rounded-2xl">
+                    <div class="max-w-7xl mx-auto py-16 px-4 sm:px-6 lg:px-8 text-center">
+                        <h2 class="text-3xl font-bold text-gray-900">Ready to modernize your pharmacy?</h2>
+                        <p class="mt-4 text-lg text-gray-600">Join hundreds of Rwandan pharmacies already using our platform</p>
+                        <div class="mt-8 flex flex-col sm:flex-row gap-4 justify-center">
+                            <button onclick="showDashboard()" class="bg-primary text-white px-8 py-3 rounded-md hover:bg-primary-dark transition-colors font-medium">
+                                Start Free Trial
+                            </button>
+                            <button class="border border-gray-300 text-gray-700 px-8 py-3 rounded-md hover:bg-gray-50 transition-colors font-medium">
+                                Schedule Demo
+                            </button>
+                        </div>
+                        <p class="mt-4 text-sm text-gray-500">No credit card required • 30-day free trial • Cancel anytime</p>
+                    </div>
+                </div>
+            </div>
         </main>
+
+        <!-- Footer -->
+        <footer class="bg-gray-900 text-white">
+            <div class="max-w-7xl mx-auto py-12 px-4 sm:px-6 lg:px-8">
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-8">
+                    <div class="col-span-1 md:col-span-2">
+                        <div class="flex items-center">
+                            <i class="fas fa-pills text-primary text-2xl mr-3"></i>
+                            <h3 class="text-xl font-bold">Nyina wa Jambo Pharmacy</h3>
+                        </div>
+                        <p class="mt-4 text-gray-400 max-w-md">
+                            The leading pharmacy management system in Rwanda. Trusted by hundreds of pharmacies to streamline operations and improve patient care.
+                        </p>
+                        <div class="flex space-x-4 mt-6">
+                            <a href="#" class="text-gray-400 hover:text-white transition-colors">
+                                <i class="fab fa-facebook-f text-xl"></i>
+                            </a>
+                            <a href="#" class="text-gray-400 hover:text-white transition-colors">
+                                <i class="fab fa-twitter text-xl"></i>
+                            </a>
+                            <a href="#" class="text-gray-400 hover:text-white transition-colors">
+                                <i class="fab fa-linkedin-in text-xl"></i>
+                            </a>
+                        </div>
+                    </div>
+                    <div>
+                        <h4 class="font-semibold text-white">Product</h4>
+                        <ul class="mt-4 space-y-2">
+                            <li><a href="#features" class="text-gray-400 hover:text-white transition-colors">Features</a></li>
+                            <li><a href="#" class="text-gray-400 hover:text-white transition-colors">Pricing</a></li>
+                            <li><a href="#" class="text-gray-400 hover:text-white transition-colors">Security</a></li>
+                            <li><a href="#" class="text-gray-400 hover:text-white transition-colors">Updates</a></li>
+                        </ul>
+                    </div>
+                    <div>
+                        <h4 class="font-semibold text-white">Support</h4>
+                        <ul class="mt-4 space-y-2">
+                            <li><a href="#" class="text-gray-400 hover:text-white transition-colors">Help Center</a></li>
+                            <li><a href="#" class="text-gray-400 hover:text-white transition-colors">Contact Us</a></li>
+                            <li><a href="#" class="text-gray-400 hover:text-white transition-colors">Training</a></li>
+                            <li><a href="#" class="text-gray-400 hover:text-white transition-colors">Documentation</a></li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="border-t border-gray-800 mt-12 pt-8 flex flex-col sm:flex-row justify-between items-center">
+                    <p class="text-gray-400">&copy; 2025 Nyina wa Jambo Pharmacy Management System. All rights reserved.</p>
+                    <div class="flex space-x-6 mt-4 sm:mt-0">
+                        <a href="#" class="text-gray-400 hover:text-white transition-colors text-sm">Privacy Policy</a>
+                        <a href="#" class="text-gray-400 hover:text-white transition-colors text-sm">Terms of Service</a>
+                        <a href="#" class="text-gray-400 hover:text-white transition-colors text-sm">Cookie Policy</a>
+                    </div>
+                </div>
+            </div>
+        </footer>
     </div>
 
     <!-- Dashboard Page -->
@@ -128,6 +392,31 @@
                         <a href="#" onclick="showDashboard()" class="bg-primary text-white px-3 py-2 rounded-md">
                             <i class="fas fa-tachometer-alt mr-1"></i>Dashboard
                         </a>
+                        <!-- Role-based navigation links -->
+                        <div id="roleBasedNav" class="hidden md:flex items-center space-x-4">
+                            <a href="medicines.html" class="text-gray-700 hover:text-primary px-3 py-2 rounded-md admin-only receptionist-only">
+                                <i class="fas fa-pills mr-1"></i>Medicines
+                            </a>
+                            <a href="suppliers.html" class="text-gray-700 hover:text-primary px-3 py-2 rounded-md admin-only">
+                                <i class="fas fa-truck mr-1"></i>Suppliers
+                            </a>
+                            <a href="customers.html" class="text-gray-700 hover:text-primary px-3 py-2 rounded-md admin-only receptionist-only">
+                                <i class="fas fa-users mr-1"></i>Customers
+                            </a>
+                            <a href="orders.html" class="text-gray-700 hover:text-primary px-3 py-2 rounded-md admin-only receptionist-only">
+                                <i class="fas fa-shopping-cart mr-1"></i>Orders
+                            </a>
+                            <a href="reports.html" class="text-gray-700 hover:text-primary px-3 py-2 rounded-md admin-only">
+                                <i class="fas fa-chart-bar mr-1"></i>Reports
+                            </a>
+                        </div>
+                        <!-- User menu -->
+                        <div id="userMenu" class="relative">
+                            <span id="currentUser" class="text-gray-700 px-3 py-2"></span>
+                            <button onclick="logout()" class="text-gray-700 hover:text-red-600 px-3 py-2 rounded-md">
+                                <i class="fas fa-sign-out-alt mr-1"></i>Logout
+                            </button>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -216,22 +505,44 @@
                 <div class="bg-white rounded-lg shadow-sm p-6">
                     <div class="flex items-center">
                         <div class="p-3 rounded-full bg-indigo-100">
-                            <i class="fas fa-dollar-sign text-indigo-600 text-xl"></i>
+                            <i class="fas fa-chart-line text-indigo-600 text-xl"></i>
                         </div>
                         <div class="ml-4">
-                            <p class="text-sm font-medium text-gray-600">Total Inventory Value</p>
-                            <p id="totalValue" class="text-2xl font-semibold text-gray-900">$0</p>
+                            <p class="text-sm font-medium text-gray-600">Total Revenue</p>
+                            <p id="totalRevenue" class="text-2xl font-semibold text-gray-900">0 RWF</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="bg-white rounded-lg shadow-sm p-6">
+                    <div class="flex items-center">
+                        <div class="p-3 rounded-full bg-emerald-100">
+                            <i class="fas fa-dollar-sign text-emerald-600 text-xl"></i>
+                        </div>
+                        <div class="ml-4">
+                            <p class="text-sm font-medium text-gray-600">Today's Revenue</p>
+                            <p id="todayRevenue" class="text-2xl font-semibold text-gray-900">0 RWF</p>
                         </div>
                     </div>
                 </div>
                 <div class="bg-white rounded-lg shadow-sm p-6">
                     <div class="flex items-center">
                         <div class="p-3 rounded-full bg-teal-100">
-                            <i class="fas fa-chart-line text-teal-600 text-xl"></i>
+                            <i class="fas fa-exchange-alt text-teal-600 text-xl"></i>
                         </div>
                         <div class="ml-4">
                             <p class="text-sm font-medium text-gray-600">Stock Movements</p>
                             <p id="stockMovements" class="text-2xl font-semibold text-gray-900">0</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="bg-white rounded-lg shadow-sm p-6">
+                    <div class="flex items-center">
+                        <div class="p-3 rounded-full bg-rose-100">
+                            <i class="fas fa-chart-pie text-rose-600 text-xl"></i>
+                        </div>
+                        <div class="ml-4">
+                            <p class="text-sm font-medium text-gray-600">Pending Orders</p>
+                            <p id="pendingOrders" class="text-2xl font-semibold text-gray-900">0</p>
                         </div>
                     </div>
                 </div>
@@ -326,18 +637,6 @@
                     </div>
                 </a>
 
-                <a href="test-connection.html" class="block bg-white rounded-lg shadow-sm p-6 hover:shadow-md transition-shadow">
-                    <div class="flex items-center">
-                        <div class="p-3 rounded-full bg-gray-100">
-                            <i class="fas fa-database text-gray-600 text-xl"></i>
-                        </div>
-                        <div class="ml-4">
-                            <h3 class="text-lg font-medium text-gray-900">Test Connection</h3>
-                            <p class="text-sm text-gray-500">Check Supabase database connection</p>
-                        </div>
-                        <i class="fas fa-arrow-right text-gray-400 ml-auto"></i>
-                    </div>
-                </a>
             </div>
 
             <!-- Recent Activity -->
@@ -348,6 +647,23 @@
                 </div>
             </div>
         </div>
+
+        <!-- Dashboard Footer -->
+        <footer class="bg-white border-t border-gray-200 mt-12">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+                <div class="flex flex-col sm:flex-row justify-between items-center">
+                    <div class="flex items-center">
+                        <i class="fas fa-pills text-primary mr-2"></i>
+                        <span class="text-sm text-gray-600">Nyina wa Jambo Pharmacy Management System</span>
+                    </div>
+                    <div class="flex items-center space-x-6 mt-4 sm:mt-0">
+                        <span class="text-xs text-gray-400">&copy; 2025 All rights reserved</span>
+                        <a href="#" class="text-xs text-gray-400 hover:text-primary transition-colors">Support</a>
+                        <a href="#" class="text-xs text-gray-400 hover:text-primary transition-colors">Documentation</a>
+                    </div>
+                </div>
+            </div>
+        </footer>
     </div>
 
     <!-- Notification -->
@@ -361,15 +677,70 @@
         }
 
         function showDashboard() {
+            // Check authentication before showing dashboard
+            if (!isAuthenticated()) {
+                showNotification('Please login to access the dashboard', 'warning');
+                window.location.href = 'login.html';
+                return;
+            }
+
+            const user = getCurrentUser();
+            if (user.role === 'customer') {
+                window.location.href = 'customer-portal.html';
+                return;
+            }
+
             document.getElementById("landingPage").style.display = "none";
             document.getElementById("dashboardPage").style.display = "block";
+            
+            // Update navigation for authenticated users
+            updateNavigation();
             loadDashboardData();
+        }
+
+        function updateNavigation() {
+            const user = getCurrentUser();
+            if (user) {
+                // Show role-based navigation
+                document.getElementById('roleBasedNav').classList.remove('hidden');
+                
+                // Update current user display
+                document.getElementById('currentUser').textContent = `${user.fullName} (${user.role})`;
+                
+                // Show/hide elements based on role
+                const adminElements = document.querySelectorAll('.admin-only');
+                const receptionistElements = document.querySelectorAll('.receptionist-only');
+                
+                adminElements.forEach(element => {
+                    element.style.display = isAdmin() ? 'inline-flex' : 'none';
+                });
+                
+                receptionistElements.forEach(element => {
+                    element.style.display = isReceptionist() ? 'inline-flex' : 'none';
+                });
+                
+                // Update login button to show user info and logout
+                const loginBtn = document.getElementById('loginBtn');
+                if (loginBtn) {
+                    loginBtn.innerHTML = `
+                        <i class="fas fa-user mr-2"></i>${user.fullName}
+                        <i class="fas fa-caret-down ml-2"></i>
+                    `;
+                    loginBtn.onclick = () => {
+                        if (confirm('Do you want to logout?')) {
+                            logout();
+                        }
+                    };
+                }
+            }
         }
 
         // Event listeners
         document.addEventListener("DOMContentLoaded", function () {
             var homeBtn = document.getElementById("homeBtn");
             if (homeBtn) homeBtn.onclick = showLandingPage;
+            var loginBtn = document.getElementById("loginBtn");
+            if (loginBtn) loginBtn.onclick = () => window.location.href = 'login.html';
             var dashboardBtn = document.getElementById("dashboardBtn");
             if (dashboardBtn) dashboardBtn.onclick = showDashboard;
             var getStartedBtn = document.getElementById("getStartedBtn");
@@ -410,15 +781,29 @@
                 });
                 document.getElementById("expiringSoonCount").textContent = expiringSoon.length;
 
-                // Calculate total inventory value
-                const totalValue = medicines.reduce((total, medicine) => {
-                    const price = parseFloat(medicine.price || 0);
-                    const stock = parseInt(medicine.stock || 0);
-                    return total + (price * stock);
+                // Calculate total revenue from completed orders
+                const completedOrders = orders.filter(order => order.status === 'completed');
+                const totalRevenue = completedOrders.reduce((total, order) => {
+                    return total + (parseFloat(order.total || 0));
                 }, 0);
-                document.getElementById("totalValue").textContent = `${totalValue.toLocaleString()} RWF`;
+                document.getElementById("totalRevenue").textContent = `${Math.round(totalRevenue).toLocaleString()} RWF`;
 
-                // Stock movements count
+                // Calculate today's revenue
+                const todayStr = today.toISOString().split('T')[0];
+                const todaysOrders = completedOrders.filter(order => {
+                    const orderDate = order.order_date || order.created_at?.split('T')[0];
+                    return orderDate === todayStr;
+                });
+                const todayRevenue = todaysOrders.reduce((total, order) => {
+                    return total + (parseFloat(order.total || 0));
+                }, 0);
+                document.getElementById("todayRevenue").textContent = `${Math.round(todayRevenue).toLocaleString()} RWF`;
+
+                // Calculate pending orders
+                const pendingOrders = orders.filter(order => order.status === 'pending');
+                document.getElementById("pendingOrders").textContent = pendingOrders.length;
+
+                // Stock movements count (keeping existing functionality)
                 document.getElementById("stockMovements").textContent = stockMovements.length;
 
                 // Update summary sections
@@ -645,6 +1030,33 @@
 
         .notification.info {
             background-color: #3b82f6;
+        }
+
+        /* Smooth scrolling */
+        html {
+            scroll-behavior: smooth;
+        }
+
+        /* Landing page animations */
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .animate-fade-in-up {
+            animation: fadeInUp 0.6s ease-out;
+        }
+
+        /* Hover effects */
+        .hover-lift:hover {
+            transform: translateY(-2px);
+            transition: transform 0.2s ease;
         }
     </style>
 </body>
