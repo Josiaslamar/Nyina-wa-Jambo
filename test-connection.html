@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Supabase Connection Test</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .status {
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 5px;
+            border-left: 4px solid;
+        }
+        .success {
+            background-color: #d4edda;
+            border-color: #28a745;
+            color: #155724;
+        }
+        .error {
+            background-color: #f8d7da;
+            border-color: #dc3545;
+            color: #721c24;
+        }
+        .warning {
+            background-color: #fff3cd;
+            border-color: #ffc107;
+            color: #856404;
+        }
+        .info {
+            background-color: #d1ecf1;
+            border-color: #17a2b8;
+            color: #0c5460;
+        }
+        button {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 10px 5px;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #3498db;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        pre {
+            background-color: #f8f9fa;
+            padding: 15px;
+            border-radius: 5px;
+            overflow-x: auto;
+            font-size: 12px;
+        }
+        .table-results {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+        }
+        .table-card {
+            background-color: #f8f9fa;
+            padding: 15px;
+            border-radius: 5px;
+            border: 1px solid #dee2e6;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🗄️ Supabase Connection Test</h1>
+        <p>This page will test your Supabase database connection and verify all tables are accessible.</p>
+        
+        <div id="connectionInfo" class="status info">
+            <strong>Connection Details:</strong><br>
+            <strong>URL:</strong> https://qeprqgdkearetdpbvcyr.supabase.co<br>
+            <strong>Tables to test:</strong> medicines, suppliers, customers, orders
+        </div>
+
+        <button onclick="testFullConnection()">🔍 Test Full Connection</button>
+        <button onclick="testEachTable()">📋 Test Each Table</button>
+        <button onclick="insertTestData()">➕ Insert Test Data</button>
+        <button onclick="clearResults()">🗑️ Clear Results</button>
+
+        <div id="results"></div>
+    </div>
+
+    <script src="supabase.js"></script>
+    <script>
+        function log(message, type = 'info') {
+            const results = document.getElementById('results');
+            const div = document.createElement('div');
+            div.className = `status ${type}`;
+            div.innerHTML = message;
+            results.appendChild(div);
+            console.log(message);
+        }
+
+        function clearResults() {
+            document.getElementById('results').innerHTML = '';
+        }
+
+        async function testFullConnection() {
+            clearResults();
+            log('🔄 Starting full connection test...', 'info');
+            
+            try {
+                // Test basic connection
+                const { data, error } = await supabase.from('medicines').select('count').single();
+                
+                if (error) {
+                    log(`❌ Connection failed: ${error.message}`, 'error');
+                    return false;
+                }
+                
+                log('✅ Basic connection successful!', 'success');
+                return true;
+                
+            } catch (error) {
+                log(`❌ Connection error: ${error.message}`, 'error');
+                return false;
+            }
+        }
+
+        async function testEachTable() {
+            clearResults();
+            log('🔄 Testing each table individually...', 'info');
+            
+            const tables = ['medicines', 'suppliers', 'customers', 'orders'];
+            const results = {};
+            
+            for (const table of tables) {
+                try {
+                    log(`Testing table: ${table}...`);
+                    const { data, error } = await supabase.from(table).select('*').limit(5);
+                    
+                    if (error) {
+                        log(`❌ Table '${table}' error: ${error.message}`, 'error');
+                        results[table] = { error: error.message, data: null };
+                    } else {
+                        log(`✅ Table '${table}' accessible! Found ${data.length} records.`, 'success');
+                        results[table] = { error: null, data: data };
+                        
+                        if (data.length > 0) {
+                            log(`Sample data from ${table}:<pre>${JSON.stringify(data[0], null, 2)}</pre>`);
+                        }
+                    }
+                } catch (error) {
+                    log(`❌ Unexpected error testing '${table}': ${error.message}`, 'error');
+                    results[table] = { error: error.message, data: null };
+                }
+            }
+            
+            // Summary
+            const successful = Object.keys(results).filter(table => !results[table].error);
+            const failed = Object.keys(results).filter(table => results[table].error);
+            
+            if (failed.length === 0) {
+                log(`🎉 All ${successful.length} tables are working perfectly!`, 'success');
+            } else {
+                log(`⚠️ Results: ${successful.length} working, ${failed.length} failed`, 'warning');
+                log(`Working tables: ${successful.join(', ')}`, 'success');
+                log(`Failed tables: ${failed.join(', ')}`, 'error');
+            }
+            
+            return results;
+        }
+
+        async function insertTestData() {
+            clearResults();
+            log('🔄 Testing data insertion capabilities...', 'info');
+            
+            try {
+                // Test medicine insertion
+                const testMedicine = {
+                    name: 'Test Medicine ' + Date.now(),
+                    category: 'Test Category',
+                    price: 10.50,
+                    stock: 100,
+                    supplier: 'Test Supplier'
+                };
+                
+                log('Inserting test medicine...');
+                const { data, error } = await supabase
+                    .from('medicines')
+                    .insert([testMedicine])
+                    .select();
+                
+                if (error) {
+                    log(`❌ Insert failed: ${error.message}`, 'error');
+                } else {
+                    log(`✅ Insert successful! Created medicine with ID: ${data[0].id}`, 'success');
+                    log(`Inserted data:<pre>${JSON.stringify(data[0], null, 2)}</pre>`);
+                    
+                    // Clean up - delete the test record
+                    await supabase.from('medicines').delete().eq('id', data[0].id);
+                    log('🗑️ Test record cleaned up.', 'info');
+                }
+                
+            } catch (error) {
+                log(`❌ Insert test error: ${error.message}`, 'error');
+            }
+        }
+
+        // Auto-test on page load
+        window.addEventListener('DOMContentLoaded', function() {
+            setTimeout(() => {
+                log('🚀 Auto-testing connection on page load...', 'info');
+                testFullConnection();
+            }, 500);
+        });
+    </script>
+</body>
+</html>

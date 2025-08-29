@@ -1,0 +1,509 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Medicines - Nyina wa Jambo Pharmacy</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+    <script src="supabase.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body class="bg-gray-50">
+    <!-- Navigation Header -->
+    <nav class="bg-white shadow-sm border-b border-gray-200">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-16">
+                <div class="flex items-center">
+                    <a href="index.html" class="text-xl font-bold text-primary">
+                        <i class="fas fa-pills mr-2"></i>Nyina wa Jambo Pharmacy
+                    </a>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <a href="index.html" class="text-gray-700 hover:text-primary px-3 py-2 rounded-md">
+                        <i class="fas fa-home mr-1"></i>Dashboard
+                    </a>
+                    <a href="medicines.html" class="bg-primary text-white px-3 py-2 rounded-md">
+                        <i class="fas fa-pills mr-1"></i>Medicines
+                    </a>
+                    <a href="suppliers.html" class="text-gray-700 hover:text-primary px-3 py-2 rounded-md">
+                        <i class="fas fa-truck mr-1"></i>Suppliers
+                    </a>
+                    <a href="customers.html" class="text-gray-700 hover:text-primary px-3 py-2 rounded-md">
+                        <i class="fas fa-users mr-1"></i>Customers
+                    </a>
+                    <a href="orders.html" class="text-gray-700 hover:text-primary px-3 py-2 rounded-md">
+                        <i class="fas fa-shopping-cart mr-1"></i>Orders
+                    </a>
+                    <a href="reports.html" class="text-gray-700 hover:text-primary px-3 py-2 rounded-md">
+                        <i class="fas fa-chart-bar mr-1"></i>Reports
+                    </a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <!-- Page Header -->
+        <div class="mb-8">
+            <div class="flex justify-between items-center">
+                <div>
+                    <h1 class="text-3xl font-bold text-gray-900">Medicines Management</h1>
+                    <p class="text-gray-600 mt-2">Manage your pharmacy's medicine inventory</p>
+                </div>
+                <button id="addMedicineBtn" class="bg-primary text-white px-6 py-3 rounded-lg hover:bg-primary-dark transition-colors">
+                    <i class="fas fa-plus mr-2"></i>Add Medicine
+                </button>
+            </div>
+        </div>
+
+        <!-- Filters and Search -->
+        <div class="bg-white rounded-lg shadow-sm p-6 mb-6">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Search Medicines</label>
+                    <input
+                        type="text"
+                        id="medicineSearch"
+                        placeholder="Search by name or category..."
+                        class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-primary focus:border-primary"
+                    />
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Filter by Category</label>
+                    <select
+                        id="categoryFilter"
+                        class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-primary focus:border-primary"
+                    >
+                        <option value="">All Categories</option>
+                        <option value="Antibiotics">Antibiotics</option>
+                        <option value="Pain Relief">Pain Relief</option>
+                        <option value="Vitamins">Vitamins</option>
+                        <option value="Heart">Heart</option>
+                        <option value="Diabetes">Diabetes</option>
+                    </select>
+                </div>
+                <div class="flex items-end">
+                    <button id="exportBtn" class="bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700 transition-colors">
+                        <i class="fas fa-download mr-2"></i>Export to Excel
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Medicines Table -->
+        <div class="bg-white rounded-lg shadow-sm overflow-hidden">
+            <div class="overflow-x-auto">
+                <table class="min-w-full divide-y divide-gray-200">
+                    <thead class="bg-gray-50">
+                        <tr>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Category</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Stock</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Expiry Date</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Price</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Supplier</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Sale On</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="medicinesTable" class="bg-white divide-y divide-gray-200">
+                        <!-- Table content will be loaded here -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Medicine Modal -->
+    <div id="medicineModal" class="modal">
+        <div class="modal-content">
+            <div class="flex justify-between items-center mb-6">
+                <h2 id="medicineModalTitle" class="text-xl font-semibold">Add Medicine</h2>
+                <button id="closeMedicineModal" class="text-gray-400 hover:text-gray-600">
+                    <i class="fas fa-times text-xl"></i>
+                </button>
+            </div>
+            <form id="medicineForm">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Medicine Name</label>
+                        <input
+                            type="text"
+                            id="medicineName"
+                            required
+                            class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-primary focus:border-primary"
+                        />
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Category</label>
+                        <select
+                            id="medicineCategory"
+                            required
+                            class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-primary focus:border-primary"
+                        >
+                            <option value="">Select Category</option>
+                            <option value="Antibiotics">Antibiotics</option>
+                            <option value="Pain Relief">Pain Relief</option>
+                            <option value="Vitamins">Vitamins</option>
+                            <option value="Heart">Heart</option>
+                            <option value="Diabetes">Diabetes</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Stock Quantity</label>
+                        <input
+                            type="number"
+                            id="medicineStock"
+                            required
+                            min="0"
+                            class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-primary focus:border-primary"
+                        />
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Expiry Date</label>
+                        <input
+                            type="date"
+                            id="medicineExpiry"
+                            required
+                            class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-primary focus:border-primary"
+                        />
+                    </div>
+                    <div class="md:col-span-2">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Price (RWF)</label>
+                        <input
+                            type="number"
+                            id="medicinePrice"
+                            required
+                            min="0"
+                            step="1"
+                            placeholder="Price in Rwandan Francs"
+                            class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-primary focus:border-primary"
+                        />
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Supplier</label>
+                        <input
+                            type="text"
+                            id="medicineSupplier"
+                            class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-primary focus:border-primary"
+                            placeholder="Enter supplier name"
+                        />
+                    </div>
+                    <div class="md:col-span-2">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Description</label>
+                        <textarea
+                            id="medicineDescription"
+                            rows="3"
+                            class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-primary focus:border-primary"
+                            placeholder="Enter medicine description"
+                        ></textarea>
+                    </div>
+                </div>
+                <div class="flex justify-end space-x-4 mt-6">
+                    <button type="button" id="cancelMedicine" class="px-4 py-2 text-gray-600 hover:text-gray-800">
+                        Cancel
+                    </button>
+                    <button type="submit" class="bg-primary text-white px-6 py-2 rounded-md hover:bg-primary-dark">
+                        Save Medicine
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Notification -->
+    <div id="notification" class="notification"></div>
+
+    <script>
+        let currentEditId = null;
+
+        // Auto-fetch data when page loads
+        document.addEventListener("DOMContentLoaded", function () {
+            renderMedicines();
+            setupEventListeners();
+        });
+
+        // Event Listeners
+        function setupEventListeners() {
+            // Search and filter
+            document.getElementById("medicineSearch").addEventListener("input", renderMedicines);
+            document.getElementById("categoryFilter").addEventListener("change", renderMedicines);
+
+            // Modal events
+            document.getElementById("addMedicineBtn").addEventListener("click", () => openMedicineModal());
+            document.getElementById("closeMedicineModal").addEventListener("click", closeMedicineModal);
+            document.getElementById("cancelMedicine").addEventListener("click", closeMedicineModal);
+            document.getElementById("medicineForm").addEventListener("submit", saveMedicine);
+
+            // Export functionality
+            document.getElementById("exportBtn").addEventListener("click", exportToExcel);
+        }
+
+        // Render medicines table
+        async function renderMedicines() {
+            const tbody = document.getElementById("medicinesTable");
+            if (!tbody) return;
+
+            const searchTerm = document.getElementById("medicineSearch")?.value.toLowerCase() || "";
+            const categoryFilter = document.getElementById("categoryFilter")?.value || "";
+
+            // Show loading state
+            tbody.innerHTML = '<tr><td colspan="6" class="px-6 py-4 text-center text-gray-500">Loading medicines...</td></tr>';
+
+            try {
+                const medicines = await fetchMedicines();
+                
+                let filteredMedicines = medicines.filter((medicine) => {
+                    const matchesSearch = medicine.name.toLowerCase().includes(searchTerm) ||
+                        (medicine.category && medicine.category.toLowerCase().includes(searchTerm));
+                    const matchesCategory = !categoryFilter || medicine.category === categoryFilter;
+                    return matchesSearch && matchesCategory;
+                });
+
+                if (filteredMedicines.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="6" class="px-6 py-4 text-center text-gray-500">No medicines found.</td></tr>';
+                    return;
+                }
+
+                tbody.innerHTML = filteredMedicines.map((medicine) => {
+                    const stockClass = medicine.stock <= 10 ? "text-red-600 font-semibold" : medicine.stock <= 50 ? "text-yellow-600" : "text-green-600";
+                    const expiryDate = new Date(medicine.expiry_date);
+                    const today = new Date();
+                    const daysUntilExpiry = Math.ceil((expiryDate - today) / (1000 * 60 * 60 * 24));
+                    const expiryClass = daysUntilExpiry <= 30 ? "text-red-600" : daysUntilExpiry <= 90 ? "text-yellow-600" : "text-gray-900";
+
+                    return `
+                        <tr class="hover:bg-gray-50">
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <div class="font-medium text-gray-900">${medicine.name}</div>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <span class="px-2 py-1 text-xs font-semibold rounded-full bg-blue-100 text-blue-800">
+                                    ${medicine.category}
+                                </span>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <span class="${stockClass}">${medicine.stock}</span>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap ${expiryClass}">
+                                ${medicine.expiry_date}
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-gray-900">
+                                ${Math.round(medicine.price).toLocaleString()} RWF
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-gray-600">
+                                ${medicine.supplier || 'N/A'}
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                                <button onclick="editMedicine(${medicine.id})" class="text-indigo-600 hover:text-indigo-900 mr-3">
+                                    <i class="fas fa-edit"></i>
+                                </button>
+                                <button onclick="deleteMedicine(${medicine.id})" class="text-red-600 hover:text-red-900">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </td>
+                        </tr>
+                    `;
+                }).join("");
+
+            } catch (error) {
+                console.error('Error loading medicines:', error);
+                tbody.innerHTML = '<tr><td colspan="7" class="px-6 py-4 text-center text-red-500">Error loading medicines. Please try again.</td></tr>';
+            }
+        }
+
+        // Modal functions
+        async function openMedicineModal(medicineId = null) {
+            const modal = document.getElementById("medicineModal");
+            const title = document.getElementById("medicineModalTitle");
+            const form = document.getElementById("medicineForm");
+
+            currentEditId = medicineId;
+
+            if (medicineId) {
+                title.textContent = "Edit Medicine";
+                try {
+                    const medicines = await fetchMedicines();
+                    const medicine = medicines.find((m) => m.id === medicineId);
+                    if (medicine) {
+                        document.getElementById("medicineName").value = medicine.name;
+                        document.getElementById("medicineCategory").value = medicine.category;
+                        document.getElementById("medicineStock").value = medicine.stock;
+                        document.getElementById("medicineExpiry").value = medicine.expiry_date;
+                        document.getElementById("medicinePrice").value = medicine.price;
+                        document.getElementById("medicineSupplier").value = medicine.supplier || '';
+                        document.getElementById("medicineDescription").value = medicine.description || '';
+                    }
+                } catch (error) {
+                    console.error('Error fetching medicine data:', error);
+                    showNotification('Error loading medicine data. Please try again.', 'error');
+                    return;
+                }
+            } else {
+                title.textContent = "Add Medicine";
+                form.reset();
+            }
+
+            modal.classList.add("show");
+        }
+
+        function closeMedicineModal() {
+            document.getElementById("medicineModal").classList.remove("show");
+            currentEditId = null;
+        }
+
+        async function saveMedicine(e) {
+            e.preventDefault();
+
+            const medicineData = {
+                name: document.getElementById("medicineName").value,
+                category: document.getElementById("medicineCategory").value,
+                stock: parseInt(document.getElementById("medicineStock").value) || 0,
+                expiry_date: document.getElementById("medicineExpiry").value,
+                price: parseFloat(document.getElementById("medicinePrice").value) || 0,
+                supplier: document.getElementById("medicineSupplier").value || '',
+                description: document.getElementById("medicineDescription").value || ''
+            };
+
+            try {
+                if (currentEditId) {
+                    await updateMedicine(currentEditId, medicineData);
+                } else {
+                    await addMedicine(medicineData);
+                }
+
+                renderMedicines();
+                closeMedicineModal();
+                showNotification("Medicine saved successfully!", "success");
+            } catch (error) {
+                console.error('Error saving medicine:', error);
+                showNotification("Error saving medicine. Please try again.", "error");
+            }
+        }
+
+        function editMedicine(id) {
+            openMedicineModal(id);
+        }
+
+        async function deleteMedicine(id) {
+            if (confirm("Are you sure you want to delete this medicine?")) {
+                try {
+                    await deleteMedicine(id);
+                    renderMedicines();
+                    showNotification("Medicine deleted successfully!", "success");
+                } catch (error) {
+                    console.error('Error deleting medicine:', error);
+                    showNotification("Error deleting medicine. Please try again.", "error");
+                }
+            }
+        }
+
+        async function exportToExcel() {
+            try {
+                const medicines = await fetchMedicines();
+                // Export functionality would go here
+                showNotification("Export feature coming soon!", "info");
+            } catch (error) {
+                console.error('Error exporting data:', error);
+                showNotification("Error exporting data. Please try again.", "error");
+            }
+        }
+
+        // Notification function
+        function showNotification(message, type = "info") {
+            const notification = document.getElementById("notification");
+            notification.textContent = message;
+            notification.className = `notification show ${type}`;
+            
+            setTimeout(() => {
+                notification.classList.remove("show");
+            }, 3000);
+        }
+    </script>
+
+    <style>
+        :root {
+            --primary: #3b82f6;
+            --primary-dark: #2563eb;
+        }
+
+        .bg-primary {
+            background-color: var(--primary);
+        }
+
+        .text-primary {
+            color: var(--primary);
+        }
+
+        .hover\\:bg-primary-dark:hover {
+            background-color: var(--primary-dark);
+        }
+
+        .border-primary {
+            border-color: var(--primary);
+        }
+
+        .ring-primary {
+            --tw-ring-color: var(--primary);
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+        }
+
+        .modal.show {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-content {
+            background: white;
+            padding: 2rem;
+            border-radius: 0.5rem;
+            width: 90%;
+            max-width: 600px;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 1rem 1.5rem;
+            border-radius: 0.5rem;
+            color: white;
+            font-weight: 500;
+            transform: translateX(100%);
+            transition: transform 0.3s ease;
+            z-index: 1001;
+        }
+
+        .notification.show {
+            transform: translateX(0);
+        }
+
+        .notification.success {
+            background-color: #10b981;
+        }
+
+        .notification.error {
+            background-color: #ef4444;
+        }
+
+        .notification.info {
+            background-color: #3b82f6;
+        }
+    </style>
+</body>
+</html>

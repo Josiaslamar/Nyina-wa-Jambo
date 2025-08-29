@@ -1,0 +1,556 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Orders - Nyina wa Jambo Pharmacy</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+    <script src="supabase.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body class="bg-gray-50">
+    <!-- Navigation Header -->
+    <nav class="bg-white shadow-sm border-b border-gray-200">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-16">
+                <div class="flex items-center">
+                    <a href="index.html" class="text-xl font-bold text-primary">
+                        <i class="fas fa-pills mr-2"></i>Nyina wa Jambo Pharmacy
+                    </a>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <a href="index.html" class="text-gray-700 hover:text-primary px-3 py-2 rounded-md">
+                        <i class="fas fa-home mr-1"></i>Dashboard
+                    </a>
+                    <a href="medicines.html" class="text-gray-700 hover:text-primary px-3 py-2 rounded-md">
+                        <i class="fas fa-pills mr-1"></i>Medicines
+                    </a>
+                    <a href="suppliers.html" class="text-gray-700 hover:text-primary px-3 py-2 rounded-md">
+                        <i class="fas fa-truck mr-1"></i>Suppliers
+                    </a>
+                    <a href="customers.html" class="text-gray-700 hover:text-primary px-3 py-2 rounded-md">
+                        <i class="fas fa-users mr-1"></i>Customers
+                    </a>
+                    <a href="orders.html" class="bg-primary text-white px-3 py-2 rounded-md">
+                        <i class="fas fa-shopping-cart mr-1"></i>Orders
+                    </a>
+                    <a href="reports.html" class="text-gray-700 hover:text-primary px-3 py-2 rounded-md">
+                        <i class="fas fa-chart-bar mr-1"></i>Reports
+                    </a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <!-- Page Header -->
+        <div class="mb-8">
+            <div class="flex justify-between items-center">
+                <div>
+                    <h1 class="text-3xl font-bold text-gray-900">Orders Management</h1>
+                    <p class="text-gray-600 mt-2">Manage pharmacy orders and transactions</p>
+                </div>
+                <button id="addOrderBtn" class="bg-primary text-white px-6 py-3 rounded-lg hover:bg-primary-dark transition-colors">
+                    <i class="fas fa-plus mr-2"></i>New Order
+                </button>
+            </div>
+        </div>
+
+        <!-- Filters -->
+        <div class="bg-white rounded-lg shadow-sm p-6 mb-6">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Search Orders</label>
+                    <input
+                        type="text"
+                        id="orderSearch"
+                        placeholder="Search by customer name..."
+                        class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-primary focus:border-primary"
+                    />
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Filter by Status</label>
+                    <select
+                        id="statusFilter"
+                        class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-primary focus:border-primary"
+                    >
+                        <option value="">All Statuses</option>
+                        <option value="pending">Pending</option>
+                        <option value="processing">Processing</option>
+                        <option value="completed">Completed</option>
+                        <option value="cancelled">Cancelled</option>
+                    </select>
+                </div>
+                <div class="flex items-end">
+                    <button id="exportBtn" class="bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700 transition-colors">
+                        <i class="fas fa-download mr-2"></i>Export to Excel
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Orders Table -->
+        <div class="bg-white rounded-lg shadow-sm overflow-hidden">
+            <div class="overflow-x-auto">
+                <table class="min-w-full divide-y divide-gray-200">
+                    <thead class="bg-gray-50">
+                        <tr>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Order ID</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Customer</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Total</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Items</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="ordersTable" class="bg-white divide-y divide-gray-200">
+                        <!-- Table content will be loaded here -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Order Modal -->
+    <div id="orderModal" class="modal">
+        <div class="modal-content">
+            <div class="flex justify-between items-center mb-6">
+                <h2 class="text-xl font-semibold">New Order</h2>
+                <button id="closeOrderModal" class="text-gray-400 hover:text-gray-600">
+                    <i class="fas fa-times text-xl"></i>
+                </button>
+            </div>
+            <form id="orderForm">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Customer</label>
+                        <select
+                            id="orderCustomer"
+                            required
+                            class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-primary focus:border-primary"
+                        >
+                            <option value="">Select Customer</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Status</label>
+                        <select
+                            id="orderStatus"
+                            required
+                            class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-primary focus:border-primary"
+                        >
+                            <option value="pending">Pending</option>
+                            <option value="processing">Processing</option>
+                            <option value="completed">Completed</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="mb-6">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Medicines</label>
+                    <div id="orderMedicines" class="space-y-3">
+                        <!-- Medicine items will be added here -->
+                    </div>
+                    <button type="button" id="addMedicineItem" class="mt-3 px-4 py-2 bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200">
+                        <i class="fas fa-plus mr-2"></i>Add Medicine
+                    </button>
+                </div>
+
+                <div class="flex justify-between items-center mb-6">
+                    <div class="text-lg font-semibold">
+                        Total: <span id="orderTotal">0</span> RWF
+                    </div>
+                </div>
+
+                <div class="flex justify-end space-x-4">
+                    <button type="button" id="cancelOrder" class="px-4 py-2 text-gray-600 hover:text-gray-800">
+                        Cancel
+                    </button>
+                    <button type="submit" class="bg-primary text-white px-6 py-2 rounded-md hover:bg-primary-dark">
+                        Create Order
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Notification -->
+    <div id="notification" class="notification"></div>
+
+    <script>
+        let availableMedicines = [];
+        let availableCustomers = [];
+        let orderItems = [];
+
+        // Auto-fetch data when page loads
+        document.addEventListener("DOMContentLoaded", function () {
+            renderOrders();
+            loadCustomers();
+            loadMedicines();
+            setupEventListeners();
+        });
+
+        // Event Listeners
+        function setupEventListeners() {
+            // Search and filter
+            document.getElementById("orderSearch").addEventListener("input", renderOrders);
+            document.getElementById("statusFilter").addEventListener("change", renderOrders);
+
+            // Modal events
+            document.getElementById("addOrderBtn").addEventListener("click", openOrderModal);
+            document.getElementById("closeOrderModal").addEventListener("click", closeOrderModal);
+            document.getElementById("cancelOrder").addEventListener("click", closeOrderModal);
+            document.getElementById("orderForm").addEventListener("submit", saveOrder);
+            document.getElementById("addMedicineItem").addEventListener("click", addMedicineItem);
+
+            // Export functionality
+            document.getElementById("exportBtn").addEventListener("click", exportToExcel);
+        }
+
+        // Load data
+        async function loadCustomers() {
+            try {
+                availableCustomers = await fetchCustomers();
+                const customerSelect = document.getElementById("orderCustomer");
+                customerSelect.innerHTML = '<option value="">Select Customer</option>' +
+                    availableCustomers.map(customer => 
+                        `<option value="${customer.id}">${customer.name}</option>`
+                    ).join("");
+            } catch (error) {
+                console.error('Error loading customers:', error);
+            }
+        }
+
+        async function loadMedicines() {
+            try {
+                availableMedicines = await fetchMedicines();
+            } catch (error) {
+                console.error('Error loading medicines:', error);
+            }
+        }
+
+        // Render orders table
+        async function renderOrders() {
+            const tbody = document.getElementById("ordersTable");
+            if (!tbody) return;
+
+            const searchTerm = document.getElementById("orderSearch")?.value.toLowerCase() || "";
+            const statusFilter = document.getElementById("statusFilter")?.value || "";
+
+            // Show loading state
+            tbody.innerHTML = '<tr><td colspan="7" class="px-6 py-4 text-center text-gray-500">Loading orders...</td></tr>';
+
+            try {
+                const orders = await fetchOrders();
+                
+                let filteredOrders = orders.filter((order) => {
+                    const matchesSearch = order.customerName.toLowerCase().includes(searchTerm);
+                    const matchesStatus = !statusFilter || order.status === statusFilter;
+                    return matchesSearch && matchesStatus;
+                });
+
+                if (filteredOrders.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="7" class="px-6 py-4 text-center text-gray-500">No orders found.</td></tr>';
+                    return;
+                }
+
+                tbody.innerHTML = filteredOrders.map((order) => {
+                    const statusClass = {
+                        'pending': 'bg-yellow-100 text-yellow-800',
+                        'processing': 'bg-blue-100 text-blue-800',
+                        'completed': 'bg-green-100 text-green-800',
+                        'cancelled': 'bg-red-100 text-red-800'
+                    }[order.status] || 'bg-gray-100 text-gray-800';
+
+                    const medicines = Array.isArray(order.medicines) ? order.medicines : [];
+                    const itemCount = medicines.length;
+
+                    return `
+                        <tr class="hover:bg-gray-50">
+                            <td class="px-6 py-4 whitespace-nowrap font-medium text-gray-900">
+                                #${order.id}
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-gray-900">
+                                ${order.customerName}
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-gray-900">
+                                ${order.date}
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-gray-900">
+                                ${Math.round(order.total).toLocaleString()} RWF
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <span class="px-2 py-1 text-xs font-semibold rounded-full ${statusClass}">
+                                    ${order.status.charAt(0).toUpperCase() + order.status.slice(1)}
+                                </span>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-gray-900">
+                                ${itemCount} item${itemCount !== 1 ? 's' : ''}
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                                <button onclick="viewOrder(${order.id})" class="text-indigo-600 hover:text-indigo-900 mr-3">
+                                    <i class="fas fa-eye"></i>
+                                </button>
+                                <button onclick="deleteOrder(${order.id})" class="text-red-600 hover:text-red-900">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </td>
+                        </tr>
+                    `;
+                }).join("");
+
+            } catch (error) {
+                console.error('Error loading orders:', error);
+                tbody.innerHTML = '<tr><td colspan="7" class="px-6 py-4 text-center text-red-500">Error loading orders. Please try again.</td></tr>';
+            }
+        }
+
+        // Modal functions
+        function openOrderModal() {
+            const modal = document.getElementById("orderModal");
+            const form = document.getElementById("orderForm");
+            
+            form.reset();
+            orderItems = [];
+            updateOrderMedicines();
+            updateOrderTotal();
+            
+            modal.classList.add("show");
+        }
+
+        function closeOrderModal() {
+            document.getElementById("orderModal").classList.remove("show");
+        }
+
+        function addMedicineItem() {
+            const container = document.getElementById("orderMedicines");
+            const itemIndex = orderItems.length;
+            
+            const medicineItem = {
+                medicineId: "",
+                quantity: 1,
+                price: 0
+            };
+            
+            orderItems.push(medicineItem);
+            
+            const itemDiv = document.createElement("div");
+            itemDiv.className = "flex space-x-3 items-end";
+            itemDiv.innerHTML = `
+                <div class="flex-1">
+                    <select class="w-full px-3 py-2 border border-gray-300 rounded-md" onchange="updateMedicineItem(${itemIndex}, 'medicineId', this.value)">
+                        <option value="">Select Medicine</option>
+                        ${availableMedicines.map(med => 
+                            `<option value="${med.id}" data-price="${med.price}">${med.name} - ${Math.round(med.price).toLocaleString()} RWF</option>`
+                        ).join("")}
+                    </select>
+                </div>
+                <div class="w-24">
+                    <input type="number" min="1" value="1" class="w-full px-3 py-2 border border-gray-300 rounded-md" 
+                           onchange="updateMedicineItem(${itemIndex}, 'quantity', this.value)">
+                </div>
+                <button type="button" onclick="removeMedicineItem(${itemIndex})" class="px-3 py-2 text-red-600 hover:text-red-800">
+                    <i class="fas fa-trash"></i>
+                </button>
+            `;
+            
+            container.appendChild(itemDiv);
+        }
+
+        function updateMedicineItem(index, field, value) {
+            if (field === 'medicineId') {
+                const medicine = availableMedicines.find(m => m.id == value);
+                orderItems[index].medicineId = value;
+                orderItems[index].price = medicine ? medicine.price : 0;
+            } else if (field === 'quantity') {
+                orderItems[index].quantity = parseInt(value) || 1;
+            }
+            updateOrderTotal();
+        }
+
+        function removeMedicineItem(index) {
+            orderItems.splice(index, 1);
+            updateOrderMedicines();
+            updateOrderTotal();
+        }
+
+        function updateOrderMedicines() {
+            const container = document.getElementById("orderMedicines");
+            container.innerHTML = "";
+            orderItems.forEach((item, index) => addMedicineItem());
+        }
+
+        function updateOrderTotal() {
+            const total = orderItems.reduce((sum, item) => {
+                return sum + (item.price * item.quantity);
+            }, 0);
+            document.getElementById("orderTotal").textContent = Math.round(total).toLocaleString();
+        }
+
+        async function saveOrder(e) {
+            e.preventDefault();
+
+            const customerId = document.getElementById("orderCustomer").value;
+            const status = document.getElementById("orderStatus").value;
+
+            if (!customerId) {
+                showNotification("Please select a customer", "error");
+                return;
+            }
+
+            if (orderItems.length === 0) {
+                showNotification("Please add at least one medicine", "error");
+                return;
+            }
+
+            const customer = availableCustomers.find(c => c.id == customerId);
+            const total = orderItems.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+
+            const orderData = {
+                customerId: parseInt(customerId),
+                customerName: customer.name,
+                date: new Date().toISOString().split("T")[0],
+                total: total,
+                status: status,
+                medicines: orderItems.filter(item => item.medicineId)
+            };
+
+            try {
+                await addOrder(orderData);
+                renderOrders();
+                closeOrderModal();
+                showNotification("Order created successfully!", "success");
+            } catch (error) {
+                console.error('Error saving order:', error);
+                showNotification("Error creating order. Please try again.", "error");
+            }
+        }
+
+        function viewOrder(id) {
+            // View order details functionality
+            showNotification("Order details view coming soon!", "info");
+        }
+
+        async function deleteOrder(id) {
+            if (confirm("Are you sure you want to delete this order?")) {
+                try {
+                    await deleteOrderById(id);
+                    renderOrders();
+                    showNotification("Order deleted successfully!", "success");
+                } catch (error) {
+                    console.error('Error deleting order:', error);
+                    showNotification("Error deleting order. Please try again.", "error");
+                }
+            }
+        }
+
+        async function exportToExcel() {
+            try {
+                const orders = await fetchOrders();
+                // Export functionality would go here
+                showNotification("Export feature coming soon!", "info");
+            } catch (error) {
+                console.error('Error exporting data:', error);
+                showNotification("Error exporting data. Please try again.", "error");
+            }
+        }
+
+        // Notification function
+        function showNotification(message, type = "info") {
+            const notification = document.getElementById("notification");
+            notification.textContent = message;
+            notification.className = `notification show ${type}`;
+            
+            setTimeout(() => {
+                notification.classList.remove("show");
+            }, 3000);
+        }
+    </script>
+
+    <style>
+        :root {
+            --primary: #3b82f6;
+            --primary-dark: #2563eb;
+        }
+
+        .bg-primary {
+            background-color: var(--primary);
+        }
+
+        .text-primary {
+            color: var(--primary);
+        }
+
+        .hover\\:bg-primary-dark:hover {
+            background-color: var(--primary-dark);
+        }
+
+        .border-primary {
+            border-color: var(--primary);
+        }
+
+        .ring-primary {
+            --tw-ring-color: var(--primary);
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+        }
+
+        .modal.show {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-content {
+            background: white;
+            padding: 2rem;
+            border-radius: 0.5rem;
+            width: 90%;
+            max-width: 800px;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 1rem 1.5rem;
+            border-radius: 0.5rem;
+            color: white;
+            font-weight: 500;
+            transform: translateX(100%);
+            transition: transform 0.3s ease;
+            z-index: 1001;
+        }
+
+        .notification.show {
+            transform: translateX(0);
+        }
+
+        .notification.success {
+            background-color: #10b981;
+        }
+
+        .notification.error {
+            background-color: #ef4444;
+        }
+
+        .notification.info {
+            background-color: #3b82f6;
+        }
+    </style>
+</body>
+</html>

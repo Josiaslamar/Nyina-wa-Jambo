@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Dashboard - Concorde Pharmacy</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.3.0/exceljs.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
+  <!-- Supabase JS CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.7/dist/umd/supabase.min.js"></script>
+  <script src="supabase.js"></script>
+    <style>
+      @import url("https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap");
+      body { font-family: "Inter", sans-serif; }
+      .gradient-bg { background: linear-gradient(135deg, #16a34a 0%, #22c55e 100%); }
+      .card-hover { transition: all 0.3s ease; }
+      .card-hover:hover { transform: translateY(-5px); box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1); }
+      .fade-in { animation: fadeIn 0.6s ease-in; }
+      .slide-up { animation: slideUp 0.8s ease-out; }
+      @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+      @keyframes slideUp { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
+      .stats-card { background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%); }
+      .low-stock { background-color: #fef2f2; border-left: 4px solid #ef4444; }
+      .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.5); }
+      .modal.show { display: flex; align-items: center; justify-content: center; }
+      .animate-pulse-slow { animation: pulse 3s infinite; }
+    </style>
+  </head>
+  <body class="bg-gray-50">
+    <!-- Dashboard -->
+    <div id="dashboardPage" class="min-h-screen bg-gray-50">
+      <!-- ...existing dashboard HTML and scripts from your index.html... -->
+    </div>
+  </body>
+</html>
