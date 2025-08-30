@@ -287,7 +287,7 @@
     <div id="notificationContainer"></div>
     
     <!-- Landing Page -->
-    <div id="landingPage" class="min-h-screen">
+    <div id="landingPage" class="min-h-screen" style="display: none;">
         <!-- Header -->
         <header class="bg-white shadow-sm sticky top-0 z-50">
             <nav class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -755,7 +755,7 @@
                             </div>
                         </div>
                     </div>
-                    <div class="bg-white rounded-lg shadow-sm p-4 sm:p-6 card-hover">
+                    <!-- <div class="bg-white rounded-lg shadow-sm p-4 sm:p-6 card-hover">
                         <div class="flex items-center">
                             <div class="p-3 rounded-full bg-yellow-100">
                                 <i class="fas fa-file-medical text-yellow-600 text-lg sm:text-xl"></i>
@@ -765,7 +765,7 @@
                                 <p id="totalOrders" class="text-xl sm:text-2xl font-semibold text-gray-900">0</p>
                             </div>
                         </div>
-                    </div>
+                    </div> -->
                 </div>
 
                 <!-- Additional Stats -->
@@ -1109,45 +1109,43 @@
 
         // Check authentication on page load and redirect accordingly
         function checkAuthenticationOnLoad() {
-            setTimeout(() => {
-                const urlParams = new URLSearchParams(window.location.search);
-                const forceHome = urlParams.get('home');
-                const showDash = urlParams.get('dashboard');
+            const urlParams = new URLSearchParams(window.location.search);
+            const forceHome = urlParams.get('home');
+            const showDash = urlParams.get('dashboard');
+            
+            if (isAuthenticated()) {
+                const user = getCurrentUser();
+                console.log('User authenticated on page load:', user);
                 
-                if (isAuthenticated()) {
-                    const user = getCurrentUser();
-                    console.log('User authenticated on page load:', user);
-                    
-                    if (user.role === 'customer') {
-                        window.location.href = 'customer-portal.html';
-                        return;
-                    }
-                    
-                    if ((user.role === 'admin' || user.role === 'receptionist') && !forceHome) {
-                        showDashboard();
-                        return;
-                    }
-                    
-                    if (forceHome) {
-                        showLandingPage();
-                        updateNavigation();
-                        return;
-                    }
-                } else {
-                    console.log('User not authenticated on page load');
-                    
-                    if (showDash) {
-                        showNotification('Please login to access the dashboard', 'warning');
-                        setTimeout(() => {
-                            window.location.href = 'login.html';
-                        }, 1500);
-                        return;
-                    }
+                if (user.role === 'customer') {
+                    window.location.href = 'customer-portal.html';
+                    return;
                 }
                 
-                showLandingPage();
-                updateNavigationForGuest();
-            }, 100);
+                if ((user.role === 'admin' || user.role === 'receptionist') && !forceHome) {
+                    showDashboard();
+                    return;
+                }
+                
+                if (forceHome) {
+                    showLandingPage();
+                    updateNavigation();
+                    return;
+                }
+            } else {
+                console.log('User not authenticated on page load');
+                
+                if (showDash) {
+                    showNotification('Please login to access the dashboard', 'warning');
+                    setTimeout(() => {
+                        window.location.href = 'login.html';
+                    }, 1500);
+                    return;
+                }
+            }
+            
+            showLandingPage();
+            updateNavigationForGuest();
         }
 
         function updateNavigationForGuest() {
@@ -1179,7 +1177,7 @@
                 document.getElementById("totalMedicines").textContent = medicines.length;
                 document.getElementById("totalSuppliers").textContent = suppliers.length;
                 document.getElementById("totalCustomers").textContent = customers.length;
-                document.getElementById("totalOrders").textContent = orders.length;
+                // document.getElementById("totalOrders").textContent = orders.length;
 
                 const lowStockMedicines = medicines.filter(m => (m.stock || 0) <= 10);
                 document.getElementById("lowStockCount").textContent = lowStockMedicines.length;
