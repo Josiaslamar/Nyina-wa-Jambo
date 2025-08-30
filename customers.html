@@ -9,95 +9,133 @@
     <script src="supabase.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 </head>
-<body class="bg-gray-50">
-    <!-- Navigation Header -->
-    <nav class="bg-white shadow-sm border-b border-gray-200">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="flex justify-between h-16">
-                <div class="flex items-center">
-                    <a href="index.html" class="text-xl font-bold text-primary">
-                        <i class="fas fa-pills mr-2"></i>Nyina wa Jambo Pharmacy
-                    </a>
-                </div>
-                <div class="flex items-center space-x-4">
-                    <a href="index.html" class="text-gray-700 hover:text-primary px-3 py-2 rounded-md">
-                        <i class="fas fa-home mr-1"></i>Dashboard
-                    </a>
-                    <a href="medicines.html" class="text-gray-700 hover:text-primary px-3 py-2 rounded-md">
-                        <i class="fas fa-pills mr-1"></i>Medicines
-                    </a>
-                    <a href="suppliers.html" class="text-gray-700 hover:text-primary px-3 py-2 rounded-md">
-                        <i class="fas fa-truck mr-1"></i>Suppliers
-                    </a>
-                    <a href="customers.html" class="bg-primary text-white px-3 py-2 rounded-md">
-                        <i class="fas fa-users mr-1"></i>Customers
-                    </a>
-                    <a href="orders.html" class="text-gray-700 hover:text-primary px-3 py-2 rounded-md">
-                        <i class="fas fa-shopping-cart mr-1"></i>Orders
-                    </a>
-                    <a href="reports.html" class="text-gray-700 hover:text-primary px-3 py-2 rounded-md">
-                        <i class="fas fa-chart-bar mr-1"></i>Reports
-                    </a>
-                </div>
+<body class="bg-gray-100">
+    <div class="flex h-screen bg-gray-100">
+        <!-- Sidebar -->
+        <aside id="sidebar" class="w-64 bg-primary text-white flex-shrink-0 hidden lg:block">
+            <div class="p-6">
+                <a href="index.html?home=true" class="text-2xl font-bold text-white flex items-center">
+                    <i class="fas fa-pills mr-3"></i>
+                    <span>Nyina wa Jambo</span>
+                </a>
             </div>
-        </div>
-    </nav>
-
-    <!-- Main Content -->
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <!-- Page Header -->
-        <div class="mb-8">
-            <div class="flex justify-between items-center">
-                <div>
-                    <h1 class="text-3xl font-bold text-gray-900">Customers Management</h1>
-                    <p class="text-gray-600 mt-2">Manage your pharmacy's customer base</p>
-                </div>
-                <button id="addCustomerBtn" class="bg-primary text-white px-6 py-3 rounded-lg hover:bg-primary-dark transition-colors">
-                    <i class="fas fa-plus mr-2"></i>Add Customer
+            <nav class="mt-6">
+                <a href="index.html?dashboard=true" class="flex items-center py-3 px-6 text-gray-300 hover:bg-green-600 hover:text-white transition-colors">
+                    <i class="fas fa-tachometer-alt w-6 text-center"></i>
+                    <span class="ml-4">Dashboard</span>
+                </a>
+                <a href="medicines.html" class="flex items-center py-3 px-6 text-gray-300 hover:bg-green-600 hover:text-white transition-colors receptionist-only">
+                    <i class="fas fa-capsules w-6 text-center"></i>
+                    <span class="ml-4">Medicines</span>
+                </a>
+                <a href="suppliers.html" class="flex items-center py-3 px-6 text-gray-300 hover:bg-green-600 hover:text-white transition-colors admin-only">
+                    <i class="fas fa-truck w-6 text-center"></i>
+                    <span class="ml-4">Suppliers</span>
+                </a>
+                <a href="customers.html" class="flex items-center py-3 px-6 bg-green-600 text-white receptionist-only">
+                    <i class="fas fa-users w-6 text-center"></i>
+                    <span class="ml-4">Customers</span>
+                </a>
+                <a href="orders.html" class="flex items-center py-3 px-6 text-gray-300 hover:bg-green-600 hover:text-white transition-colors receptionist-only">
+                    <i class="fas fa-shopping-cart w-6 text-center"></i>
+                    <span class="ml-4">Orders</span>
+                </a>
+                <a href="reports.html" class="flex items-center py-3 px-6 text-gray-300 hover:bg-green-600 hover:text-white transition-colors admin-only">
+                    <i class="fas fa-chart-line w-6 text-center"></i>
+                    <span class="ml-4">Reports</span>
+                </a>
+            </nav>
+            <div class="absolute bottom-0 w-full p-6">
+                <button onclick="logout()" class="w-full flex items-center justify-center py-2 px-4 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors">
+                    <i class="fas fa-sign-out-alt mr-2"></i>
+                    <span>Logout</span>
                 </button>
             </div>
-        </div>
+        </aside>
 
-        <!-- Search -->
-        <div class="bg-white rounded-lg shadow-sm p-6 mb-6">
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-2">Search Customers</label>
-                    <input
-                        type="text"
-                        id="customerSearch"
-                        placeholder="Search by name or phone..."
-                        class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-primary focus:border-primary"
-                    />
-                </div>
-                <div class="flex items-end">
-                    <button id="exportBtn" class="bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700 transition-colors">
-                        <i class="fas fa-download mr-2"></i>Export to Excel
+        <!-- Main content -->
+        <div class="flex-1 flex flex-col overflow-hidden">
+            <!-- Top bar -->
+            <header class="bg-white shadow-sm flex justify-between items-center p-4">
+                <button id="menu-toggle" class="text-gray-700 lg:hidden">
+                    <i class="fas fa-bars text-xl"></i>
+                </button>
+                <h1 class="text-xl font-semibold text-gray-800 hidden lg:block">Customers Management</h1>
+                <div class="relative">
+                    <button id="userAvatar" class="flex items-center space-x-2">
+                        <img src="" alt="User Avatar" class="w-10 h-10 rounded-full">
+                        <span id="currentUser" class="text-gray-700 font-medium hidden md:block"></span>
                     </button>
+                    <div id="userDropdown" class="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg z-50 hidden">
+                        <div class="py-1">
+                            <div class="px-4 py-2 text-sm text-gray-500 border-b">
+                                <span id="userInfo"></span>
+                            </div>
+                             <a href="index.html?home=true" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                                <i class="fas fa-home mr-2"></i>Home Page
+                            </a>
+                            <button onclick="logout()" class="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                                <i class="fas fa-sign-out-alt mr-2"></i>Logout
+                            </button>
+                        </div>
+                    </div>
                 </div>
-            </div>
-        </div>
+            </header>
 
-        <!-- Customers Table -->
-        <div class="bg-white rounded-lg shadow-sm overflow-hidden">
-            <div class="overflow-x-auto">
-                <table class="min-w-full divide-y divide-gray-200">
-                    <thead class="bg-gray-50">
-                        <tr>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Customer ID</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Phone</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Email</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Address</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Last Visit</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody id="customersTable" class="bg-white divide-y divide-gray-200">
-                        <!-- Table content will be loaded here -->
-                    </tbody>
-                </table>
-            </div>
+            <!-- Main content area -->
+            <main class="flex-1 overflow-x-hidden overflow-y-auto bg-gray-100 p-6">
+                <div class="container mx-auto">
+                    <!-- Page Header -->
+                    <div class="mb-8">
+                        <div class="flex justify-between items-center">
+                            <div>
+                                <h1 class="text-3xl font-bold text-gray-900">Customers Management</h1>
+                                <p class="text-gray-600 mt-2">Manage your pharmacy's customer base</p>
+                            </div>
+                            <button id="addCustomerBtn" class="bg-primary text-white px-6 py-3 rounded-lg hover:bg-green-600 transition-colors shadow-md">
+                                <i class="fas fa-plus mr-2"></i>Add Customer
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Search -->
+                    <div class="bg-white rounded-lg shadow-sm p-6 mb-6">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Search Customers</label>
+                                <input type="text" id="customerSearch" placeholder="Search by name or phone..." class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-primary focus:border-primary" />
+                            </div>
+                            <div class="flex items-end">
+                                <button id="exportBtn" class="bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700 transition-colors">
+                                    <i class="fas fa-download mr-2"></i>Export to Excel
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Customers Table -->
+                    <div class="bg-white rounded-lg shadow-sm overflow-hidden">
+                        <div class="overflow-x-auto">
+                            <table class="min-w-full divide-y divide-gray-200">
+                                <thead class="bg-gray-50">
+                                    <tr>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Customer ID</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Phone</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Email</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Address</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Last Visit</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="customersTable" class="bg-white divide-y divide-gray-200">
+                                    <!-- Table content will be loaded here -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </main>
         </div>
     </div>
 
@@ -114,64 +152,34 @@
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-2">Customer ID</label>
-                        <input
-                            type="text"
-                            id="customerId"
-                            required
-                            placeholder="e.g., CUS001"
-                            class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-primary focus:border-primary"
-                        />
+                        <input type="text" id="customerId" required placeholder="e.g., CUS001" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-primary focus:border-primary" />
                     </div>
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-2">Customer Name</label>
-                        <input
-                            type="text"
-                            id="customerName"
-                            required
-                            class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-primary focus:border-primary"
-                        />
+                        <input type="text" id="customerName" required class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-primary focus:border-primary" />
                     </div>
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-2">Phone Number</label>
-                        <input
-                            type="tel"
-                            id="customerPhone"
-                            class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-primary focus:border-primary"
-                        />
+                        <input type="tel" id="customerPhone" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-primary focus:border-primary" />
                     </div>
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-2">Email Address</label>
-                        <input
-                            type="email"
-                            id="customerEmail"
-                            class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-primary focus:border-primary"
-                            placeholder="Email address"
-                        />
+                        <input type="email" id="customerEmail" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-primary focus:border-primary" placeholder="Email address" />
                     </div>
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-2">Address</label>
-                        <textarea
-                            id="customerAddress"
-                            rows="2"
-                            placeholder="Customer address"
-                            class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-primary focus:border-primary"
-                        ></textarea>
+                        <textarea id="customerAddress" rows="2" placeholder="Customer address" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-primary focus:border-primary"></textarea>
                     </div>
                     <div class="md:col-span-2">
                         <label class="block text-sm font-medium text-gray-700 mb-2">Notes</label>
-                        <textarea
-                            id="customerNotes"
-                            rows="3"
-                            placeholder="Any additional notes about the customer..."
-                            class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-primary focus:border-primary"
-                        ></textarea>
+                        <textarea id="customerNotes" rows="3" placeholder="Any additional notes about the customer..." class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-primary focus:border-primary"></textarea>
                     </div>
                 </div>
                 <div class="flex justify-end space-x-4 mt-6">
                     <button type="button" id="cancelCustomer" class="px-4 py-2 text-gray-600 hover:text-gray-800">
                         Cancel
                     </button>
-                    <button type="submit" class="bg-primary text-white px-6 py-2 rounded-md hover:bg-primary-dark">
+                    <button type="submit" class="bg-primary text-white px-6 py-2 rounded-md hover:bg-green-600">
                         Save Customer
                     </button>
                 </div>
@@ -185,106 +193,124 @@
     <script>
         let currentEditId = null;
 
-        // Auto-fetch data when page loads
         document.addEventListener("DOMContentLoaded", function () {
+            if (!isAuthenticated()) {
+                window.location.href = 'login.html';
+                return;
+            }
+
+            const user = getCurrentUser();
+            if (!user || (user.role !== 'admin' && user.role !== 'receptionist')) {
+                showNotification('Access denied. Admin or receptionist privileges required.', 'error');
+                setTimeout(() => logout(), 2000);
+                return;
+            }
+
+            updateNavigation();
             renderCustomers();
             setupEventListeners();
         });
 
-        // Event Listeners
-        function setupEventListeners() {
-            // Search
-            document.getElementById("customerSearch").addEventListener("input", renderCustomers);
+        function updateNavigation() {
+            const user = getCurrentUser();
+            if (user) {
+                document.getElementById('currentUser').textContent = `${user.fullName}`;
+                document.getElementById('userInfo').textContent = `${user.fullName} (${user.role})`;
+                document.getElementById('userAvatar').src = `https://ui-avatars.com/api/?name=${encodeURIComponent(user.fullName)}&background=16a34a&color=fff&bold=true`;
 
-            // Modal events
-            document.getElementById("addCustomerBtn").addEventListener("click", () => openCustomerModal());
-            document.getElementById("closeCustomerModal").addEventListener("click", closeCustomerModal);
-            document.getElementById("cancelCustomer").addEventListener("click", closeCustomerModal);
-            document.getElementById("customerForm").addEventListener("submit", saveCustomer);
-
-            // Export functionality
-            document.getElementById("exportBtn").addEventListener("click", exportToExcel);
+                const adminElements = document.querySelectorAll('.admin-only');
+                adminElements.forEach(el => el.style.display = (user.role === 'admin') ? 'flex' : 'none');
+                
+                const receptionistElements = document.querySelectorAll('.receptionist-only');
+                receptionistElements.forEach(el => el.style.display = (user.role === 'receptionist' || user.role === 'admin') ? 'flex' : 'none');
+            }
         }
 
-        // Render customers table
+        function setupEventListeners() {
+            document.getElementById('addCustomerBtn').addEventListener('click', () => openCustomerModal());
+            document.getElementById('closeCustomerModal').addEventListener('click', closeCustomerModal);
+            document.getElementById('cancelCustomer').addEventListener('click', closeCustomerModal);
+            document.getElementById('customerForm').addEventListener('submit', saveCustomer);
+            document.getElementById('customerSearch').addEventListener('input', renderCustomers);
+            document.getElementById('exportBtn').addEventListener('click', exportToExcel);
+
+            // Sidebar toggle
+            const menuToggle = document.getElementById('menu-toggle');
+            const sidebar = document.getElementById('sidebar');
+            menuToggle.addEventListener('click', (e) => {
+                e.stopPropagation();
+                sidebar.classList.toggle('hidden');
+            });
+
+            // User dropdown
+            const userAvatar = document.getElementById('userAvatar');
+            const userDropdown = document.getElementById('userDropdown');
+            userAvatar.addEventListener('click', (e) => {
+                e.stopPropagation();
+                userDropdown.classList.toggle('hidden');
+            });
+
+            // Close dropdown/sidebar when clicking outside
+            document.addEventListener('click', function(e) {
+                if (!sidebar.classList.contains('hidden') && !sidebar.contains(e.target) && !menuToggle.contains(e.target)) {
+                    sidebar.classList.add('hidden');
+                }
+                if (!userDropdown.classList.contains('hidden') && !userAvatar.contains(e.target)) {
+                    userDropdown.classList.add('hidden');
+                }
+            });
+        }
+
         async function renderCustomers() {
             const tbody = document.getElementById("customersTable");
-            if (!tbody) return;
+            const searchTerm = document.getElementById("customerSearch").value.toLowerCase();
 
-            const searchTerm = document.getElementById("customerSearch")?.value.toLowerCase() || "";
-
-            // Show loading state
             tbody.innerHTML = '<tr><td colspan="7" class="px-6 py-4 text-center text-gray-500">Loading customers...</td></tr>';
 
             try {
                 const customers = await fetchCustomers();
-                
-                let filteredCustomers = customers.filter((customer) => {
-                    return customer.name.toLowerCase().includes(searchTerm) ||
-                           (customer.phone && customer.phone.toLowerCase().includes(searchTerm)) ||
-                           (customer.email && customer.email.toLowerCase().includes(searchTerm)) ||
-                           (customer.address && customer.address.toLowerCase().includes(searchTerm)) ||
-                           (customer.customer_id && customer.customer_id.toLowerCase().includes(searchTerm));
-                });
+                let filteredCustomers = customers.filter(c => 
+                    (c.name && c.name.toLowerCase().includes(searchTerm)) ||
+                    (c.phone && c.phone.includes(searchTerm)) ||
+                    (c.email && c.email.toLowerCase().includes(searchTerm)) ||
+                    (c.customer_id && c.customer_id.toLowerCase().includes(searchTerm))
+                );
 
                 if (filteredCustomers.length === 0) {
                     tbody.innerHTML = '<tr><td colspan="7" class="px-6 py-4 text-center text-gray-500">No customers found.</td></tr>';
                     return;
                 }
 
-                tbody.innerHTML = filteredCustomers.map((customer) => `
+                tbody.innerHTML = filteredCustomers.map(customer => `
                     <tr class="hover:bg-gray-50">
-                        <td class="px-6 py-4 whitespace-nowrap">
-                            <div class="font-medium text-gray-900">${customer.customer_id || 'N/A'}</div>
-                        </td>
-                        <td class="px-6 py-4 whitespace-nowrap">
-                            <div class="font-medium text-gray-900">${customer.name}</div>
-                        </td>
-                        <td class="px-6 py-4 whitespace-nowrap text-gray-900">
-                            ${customer.phone || 'N/A'}
-                        </td>
-                        <td class="px-6 py-4 whitespace-nowrap text-gray-900">
-                            ${customer.email || 'N/A'}
-                        </td>
-                        <td class="px-6 py-4 text-gray-900">
-                            ${customer.address || 'N/A'}
-                        </td>
-                        <td class="px-6 py-4 whitespace-nowrap text-gray-900">
-                            ${customer.last_visit || 'N/A'}
-                        </td>
-                        <td class="px-6 py-4 text-gray-900">
-                            ${customer.notes || 'No notes'}
-                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap"><div class="font-medium text-gray-900">${customer.customer_id || 'N/A'}</div></td>
+                        <td class="px-6 py-4 whitespace-nowrap"><div class="font-medium text-gray-900">${customer.name}</div></td>
+                        <td class="px-6 py-4 whitespace-nowrap text-gray-900">${customer.phone || 'N/A'}</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-gray-900">${customer.email || 'N/A'}</td>
+                        <td class="px-6 py-4 text-gray-900">${customer.address || 'N/A'}</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-gray-900">${customer.last_visit ? new Date(customer.last_visit).toLocaleDateString() : 'N/A'}</td>
                         <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                            <button onclick="editCustomer(${customer.id})" class="text-indigo-600 hover:text-indigo-900 mr-3">
-                                <i class="fas fa-edit"></i>
-                            </button>
-                            <button onclick="deleteCustomer(${customer.id})" class="text-red-600 hover:text-red-900">
-                                <i class="fas fa-trash"></i>
-                            </button>
+                            <button onclick="editCustomer(${customer.id})" class="text-indigo-600 hover:text-indigo-900 mr-3"><i class="fas fa-edit"></i></button>
+                            <button onclick="deleteCustomerLocal(${customer.id})" class="text-red-600 hover:text-red-900"><i class="fas fa-trash"></i></button>
                         </td>
                     </tr>
                 `).join("");
-
             } catch (error) {
                 console.error('Error loading customers:', error);
-                tbody.innerHTML = '<tr><td colspan="5" class="px-6 py-4 text-center text-red-500">Error loading customers. Please try again.</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="7" class="px-6 py-4 text-center text-red-500">Error loading customers. Please try again.</td></tr>';
             }
         }
 
-        // Modal functions
         async function openCustomerModal(customerId = null) {
             const modal = document.getElementById("customerModal");
             const title = document.getElementById("customerModalTitle");
             const form = document.getElementById("customerForm");
-
             currentEditId = customerId;
 
             if (customerId) {
                 title.textContent = "Edit Customer";
                 try {
-                    const customers = await fetchCustomers();
-                    const customer = customers.find((c) => c.id === customerId);
+                    const customer = (await fetchCustomers()).find(c => c.id === customerId);
                     if (customer) {
                         document.getElementById("customerId").value = customer.customer_id || '';
                         document.getElementById("customerName").value = customer.name;
@@ -292,22 +318,17 @@
                         document.getElementById("customerEmail").value = customer.email || '';
                         document.getElementById("customerAddress").value = customer.address || '';
                         document.getElementById("customerNotes").value = customer.notes || "";
-                        
-                        // Disable customer ID field when editing
                         document.getElementById("customerId").disabled = true;
                     }
                 } catch (error) {
-                    console.error('Error fetching customer data:', error);
-                    showNotification('Error loading customer data. Please try again.', 'error');
+                    showNotification('Error loading customer data.', 'error');
                     return;
                 }
             } else {
                 title.textContent = "Add Customer";
                 form.reset();
-                // Enable customer ID field for new customers
                 document.getElementById("customerId").disabled = false;
             }
-
             modal.classList.add("show");
         }
 
@@ -318,10 +339,9 @@
 
         async function saveCustomer(e) {
             e.preventDefault();
-
-            const customerId = document.getElementById("customerId").value;
+            const customerIdValue = document.getElementById("customerId").value;
             const customerData = {
-                customer_id: customerId,
+                customer_id: customerIdValue,
                 name: document.getElementById("customerName").value,
                 phone: document.getElementById("customerPhone").value,
                 email: document.getElementById("customerEmail").value,
@@ -330,10 +350,9 @@
                 last_visit: new Date().toISOString().split("T")[0],
             };
 
-            // Validate customer ID format (3 letters + 3 digits) for new customers
-            if (!currentEditId && customerId) {
+            if (!currentEditId && customerIdValue) {
                 const customerIdPattern = /^[A-Z]{3}\d{3}$/;
-                if (!customerIdPattern.test(customerId)) {
+                if (!customerIdPattern.test(customerIdValue)) {
                     showNotification("Customer ID must be in format ABC123 (3 uppercase letters + 3 digits)", "error");
                     return;
                 }
@@ -345,13 +364,11 @@
                 } else {
                     await addCustomer(customerData);
                 }
-
                 renderCustomers();
                 closeCustomerModal();
                 showNotification("Customer saved successfully!", "success");
             } catch (error) {
-                console.error('Error saving customer:', error);
-                showNotification("Error saving customer. Please try again.", "error");
+                showNotification("Error saving customer.", "error");
             }
         }
 
@@ -359,123 +376,50 @@
             openCustomerModal(id);
         }
 
-        async function deleteCustomer(id) {
+        async function deleteCustomerLocal(id) {
             if (confirm("Are you sure you want to delete this customer?")) {
                 try {
                     await deleteCustomer(id);
                     renderCustomers();
                     showNotification("Customer deleted successfully!", "success");
                 } catch (error) {
-                    console.error('Error deleting customer:', error);
-                    showNotification("Error deleting customer. Please try again.", "error");
+                    showNotification("Error deleting customer.", "error");
                 }
             }
         }
 
         async function exportToExcel() {
-            try {
-                const customers = await fetchCustomers();
-                // Export functionality would go here
-                showNotification("Export feature coming soon!", "info");
-            } catch (error) {
-                console.error('Error exporting data:', error);
-                showNotification("Error exporting data. Please try again.", "error");
-            }
+            showNotification("Export feature coming soon!", "info");
         }
 
-        // Notification function
         function showNotification(message, type = "info") {
             const notification = document.getElementById("notification");
             notification.textContent = message;
             notification.className = `notification show ${type}`;
-            
-            setTimeout(() => {
-                notification.classList.remove("show");
-            }, 3000);
+            setTimeout(() => notification.classList.remove("show"), 3000);
         }
     </script>
 
     <style>
         :root {
-            --primary: #3b82f6;
-            --primary-dark: #2563eb;
+            --primary: #16a34a; /* Green-600 */
         }
+        .bg-primary { background-color: var(--primary); }
+        .text-primary { color: var(--primary); }
+        .border-primary { border-color: var(--primary); }
+        .ring-primary { --tw-ring-color: var(--primary); }
+        .hover\:bg-green-600:hover { background-color: #15803d; } /* Green-700 */
 
-        .bg-primary {
-            background-color: var(--primary);
-        }
-
-        .text-primary {
-            color: var(--primary);
-        }
-
-        .hover\\:bg-primary-dark:hover {
-            background-color: var(--primary-dark);
-        }
-
-        .border-primary {
-            border-color: var(--primary);
-        }
-
-        .ring-primary {
-            --tw-ring-color: var(--primary);
-        }
-
-        .modal {
-            display: none;
-            position: fixed;
-            z-index: 1000;
-            left: 0;
-            top: 0;
-            width: 100%;
-            height: 100%;
-            background-color: rgba(0, 0, 0, 0.5);
-        }
-
-        .modal.show {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .modal-content {
-            background: white;
-            padding: 2rem;
-            border-radius: 0.5rem;
-            width: 90%;
-            max-width: 600px;
-            max-height: 90vh;
-            overflow-y: auto;
-        }
-
-        .notification {
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            padding: 1rem 1.5rem;
-            border-radius: 0.5rem;
-            color: white;
-            font-weight: 500;
-            transform: translateX(100%);
-            transition: transform 0.3s ease;
-            z-index: 1001;
-        }
-
-        .notification.show {
-            transform: translateX(0);
-        }
-
-        .notification.success {
-            background-color: #10b981;
-        }
-
-        .notification.error {
-            background-color: #ef4444;
-        }
-
-        .notification.info {
-            background-color: #3b82f6;
-        }
+        .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.5); }
+        .modal.show { display: flex; align-items: center; justify-content: center; }
+        .modal-content { background: white; padding: 2rem; border-radius: 0.5rem; width: 90%; max-width: 600px; max-height: 90vh; overflow-y: auto; }
+        
+        .notification { position: fixed; top: 20px; right: 20px; padding: 1rem 1.5rem; border-radius: 0.5rem; color: white; font-weight: 500; transform: translateX(120%); opacity: 0; transition: transform 0.3s ease, opacity 0.3s ease; z-index: 1001; }
+        .notification.show { transform: translateX(0); opacity: 1; }
+        .notification.success { background-color: #10b981; }
+        .notification.warning { background-color: #f59e0b; }
+        .notification.error { background-color: #ef4444; }
+        .notification.info { background-color: #3b82f6; }
     </style>
 </body>
 </html>

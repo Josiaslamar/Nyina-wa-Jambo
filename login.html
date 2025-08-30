@@ -228,6 +228,7 @@
                         
                         // Store in localStorage (in production, use secure session management)
                         localStorage.setItem('userSession', JSON.stringify(sessionData));
+                        console.log('Session stored successfully:', sessionData);
                         
                         if (rememberMe) {
                             localStorage.setItem('rememberUser', username);
@@ -238,22 +239,30 @@
                         // Update last login
                         await updateLastLogin(user.id);
                         
+                        // Ensure localStorage is written before redirect
+                        await new Promise(resolve => setTimeout(resolve, 100));
+                        
                         // Redirect based on role
                         setTimeout(() => {
+                            console.log('Redirecting user with role:', user.role);
                             switch(user.role) {
                                 case 'admin':
+                                    console.log('Redirecting admin to dashboard');
                                     window.location.href = 'index.html';
                                     break;
                                 case 'receptionist':
+                                    console.log('Redirecting receptionist to dashboard');
                                     window.location.href = 'index.html';
                                     break;
                                 case 'customer':
+                                    console.log('Redirecting customer to portal');
                                     window.location.href = 'customer-portal.html';
                                     break;
                                 default:
+                                    console.log('Redirecting default user to dashboard');
                                     window.location.href = 'index.html';
                             }
-                        }, 1500);
+                        }, 1000); // Reduced timeout for faster redirect
                     } else {
                         showNotification('User data not found', 'error');
                     }
@@ -271,8 +280,33 @@
             }
         });
 
-        // Auto-fill remembered username
+        // Auto-fill remembered username and check authentication
         document.addEventListener('DOMContentLoaded', function() {
+            // Check if user is already authenticated
+            const session = localStorage.getItem('userSession');
+            if (session) {
+                try {
+                    const user = JSON.parse(session);
+                    console.log('User already authenticated, redirecting:', user);
+                    
+                    // Redirect based on role
+                    setTimeout(() => {
+                        switch(user.role) {
+                            case 'customer':
+                                window.location.href = 'customer-portal.html';
+                                break;
+                            default:
+                                window.location.href = 'index.html';
+                        }
+                    }, 500);
+                    return;
+                } catch (error) {
+                    console.error('Error parsing existing session:', error);
+                    localStorage.removeItem('userSession');
+                }
+            }
+            
+            // Auto-fill remembered username if not authenticated
             const rememberedUser = localStorage.getItem('rememberUser');
             if (rememberedUser) {
                 document.getElementById('username').value = rememberedUser;

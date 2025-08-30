@@ -9,14 +9,72 @@
     <script src="supabase.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
-        .primary { color: #16a34a; }
-        .bg-primary { background-color: #16a34a; }
-        .bg-primary-dark { background-color: #15803d; }
+        /* Consistent primary green color scheme */
+        :root {
+            --primary: #16a34a;
+            --primary-dark: #15803d;
+            --primary-light: #22c55e;
+            --primary-50: #f0fdf4;
+            --primary-100: #dcfce7;
+            --primary-600: #16a34a;
+            --primary-700: #15803d;
+        }
+        
+        .primary { color: var(--primary); }
+        .bg-primary { background-color: var(--primary); }
+        .bg-primary-dark { background-color: var(--primary-dark); }
+        .text-primary { color: var(--primary); }
+        .hover\:text-primary:hover { color: var(--primary); }
+        .border-primary { border-color: var(--primary); }
+        .hover\:border-primary:hover { border-color: var(--primary); }
+        
+        /* Consistent gradient background */
+        .gradient-bg {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
+        }
         
         /* Role-based visibility */
         .admin-only { display: none; }
         .receptionist-only { display: none; }
         .customer-only { display: none; }
+        
+        /* Enhanced responsive design utilities */
+        @media (max-width: 768px) {
+            .mobile-hidden { display: none !important; }
+            .mobile-full { width: 100% !important; }
+            .mobile-stack { flex-direction: column !important; }
+            .mobile-center { text-align: center !important; }
+            .mobile-p-4 { padding: 1rem !important; }
+            .mobile-text-sm { font-size: 0.875rem !important; }
+            .mobile-gap-4 { gap: 1rem !important; }
+        }
+        
+        @media (max-width: 640px) {
+            .sm-text-2xl { font-size: 1.5rem !important; }
+            .sm-px-4 { padding-left: 1rem !important; padding-right: 1rem !important; }
+            .sm-py-12 { padding-top: 3rem !important; padding-bottom: 3rem !important; }
+        }
+        
+        /* Dashboard responsive grid */
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 1.5rem;
+        }
+        
+        /* Responsive grid for features */
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+        }
+        
+        @media (max-width: 640px) {
+            .features-grid {
+                grid-template-columns: 1fr;
+                gap: 1.5rem;
+            }
+        }
         
         /* Notification styles */
         .notification {
@@ -30,12 +88,198 @@
             z-index: 1000;
             transform: translateX(400px);
             transition: transform 0.3s ease;
+            max-width: 90vw;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
         }
         .notification.show { transform: translateX(0); }
-        .notification.success { background-color: #10b981; }
+        .notification.success { background-color: var(--primary); }
         .notification.error { background-color: #ef4444; }
         .notification.warning { background-color: #f59e0b; }
         .notification.info { background-color: #3b82f6; }
+        
+        /* Enhanced mobile responsive navigation */
+        @media (max-width: 1024px) {
+            .nav-links { display: none; }
+            .mobile-menu-button { display: block; }
+        }
+        
+        @media (max-width: 640px) {
+            .nav-mobile-stack {
+                flex-direction: column;
+                gap: 0.5rem;
+            }
+            .nav-mobile-stack > * {
+                width: 100%;
+                text-align: center;
+            }
+        }
+        
+        /* Mobile menu styles */
+        .mobile-menu {
+            display: none;
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            background: white;
+            border: 1px solid #e5e7eb;
+            border-radius: 0.5rem;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+            z-index: 1000;
+            margin-top: 0.5rem;
+        }
+        
+        .mobile-menu.show {
+            display: block;
+        }
+        
+        .mobile-menu-item {
+            display: block;
+            padding: 0.75rem 1rem;
+            color: #374151;
+            text-decoration: none;
+            border-bottom: 1px solid #f3f4f6;
+            transition: all 0.2s ease;
+        }
+        
+        .mobile-menu-item:hover {
+            background-color: #f9fafb;
+            color: var(--primary);
+        }
+        
+        .mobile-menu-item:last-child {
+            border-bottom: none;
+        }
+        
+        /* Enhanced responsive grid for dashboard */
+        .dashboard-stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 1rem;
+        }
+        
+        @media (max-width: 640px) {
+            .dashboard-stats-grid {
+                grid-template-columns: 1fr;
+                gap: 0.75rem;
+            }
+        }
+        
+        /* Responsive additional stats */
+        .additional-stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1rem;
+        }
+        
+        @media (max-width: 768px) {
+            .additional-stats-grid {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 0.75rem;
+            }
+        }
+        
+        @media (max-width: 640px) {
+            .additional-stats-grid {
+                grid-template-columns: 1fr;
+                gap: 0.5rem;
+            }
+        }
+        
+        /* Responsive summary cards */
+        .summary-cards-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.5rem;
+        }
+        
+        @media (max-width: 768px) {
+            .summary-cards-grid {
+                grid-template-columns: 1fr;
+                gap: 1rem;
+            }
+        }
+        
+        /* Responsive quick actions */
+        .quick-actions-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1rem;
+        }
+        
+        @media (max-width: 768px) {
+            .quick-actions-grid {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 0.75rem;
+            }
+        }
+        
+        @media (max-width: 640px) {
+            .quick-actions-grid {
+                grid-template-columns: 1fr;
+                gap: 0.5rem;
+            }
+        }
+        
+        /* Mobile-optimized activity items */
+        @media (max-width: 640px) {
+            .activity-item {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 0.5rem;
+            }
+            
+            .activity-icon {
+                align-self: flex-start;
+            }
+            
+            .activity-content {
+                width: 100%;
+            }
+            
+            .activity-time {
+                align-self: flex-end;
+                font-size: 0.75rem;
+            }
+        }
+        
+        /* Enhanced card hover effects */
+        .card-hover {
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+        .card-hover:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+        }
+        
+        /* Button hover effects */
+        .btn-hover {
+            transition: all 0.2s ease;
+        }
+        .btn-hover:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        }
+        
+        /* Smooth animations */
+        .animate-fade-in {
+            animation: fadeIn 0.6s ease-out;
+        }
+        
+        .animate-slide-up {
+            animation: slideUp 0.8s ease-out;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
     </style>
 </head>
 <body class="bg-gray-50">
@@ -45,63 +289,69 @@
     <!-- Landing Page -->
     <div id="landingPage" class="min-h-screen">
         <!-- Header -->
-        <header class="bg-white shadow-sm">
+        <header class="bg-white shadow-sm sticky top-0 z-50">
             <nav class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                <div class="flex justify-between items-center py-6">
+                <div class="flex justify-between items-center py-4 sm:py-6">
                     <div class="flex items-center">
-                        <i class="fas fa-pills text-primary text-2xl mr-3"></i>
-                        <h1 class="text-2xl font-bold text-gray-900">Nyina wa Jambo Pharmacy</h1>
+                        <i class="fas fa-heartbeat text-primary text-xl sm:text-2xl mr-2 sm:mr-3"></i>
+                        <h1 class="text-lg sm:text-2xl font-bold text-gray-900">
+                            <span class="hidden sm:inline">Nyina wa Jambo Pharmacy</span>
+                            <span class="sm:hidden">Nyina wa Jambo</span>
+                        </h1>
                     </div>
-                    <div class="flex space-x-4">
-                        <button id="homeBtn" class="text-gray-700 hover:text-primary px-3 py-2 rounded-md">Home</button>
-                        <button id="loginBtn" class="text-gray-700 hover:text-primary px-3 py-2 rounded-md border border-gray-300 hover:border-primary">
-                            <i class="fas fa-sign-in-alt mr-2"></i>Login
+                    <div class="flex items-center space-x-2 sm:space-x-4 nav-mobile-stack">
+                        <button id="homeBtn" class="text-gray-700 hover:text-primary px-2 sm:px-3 py-2 rounded-md transition-colors btn-hover">
+                            <i class="fas fa-home mr-0 sm:mr-2"></i>
+                            <span class="hidden sm:inline">Home</span>
                         </button>
-                        <button id="dashboardBtn" class="bg-primary text-white px-6 py-2 rounded-md hover:bg-primary-dark">Dashboard</button>
+                        <button id="loginBtn" class="bg-primary text-white hover:bg-primary-dark px-3 sm:px-4 py-2 rounded-md border border-primary hover:border-primary-dark transition-colors btn-hover">
+                            <i class="fas fa-sign-in-alt mr-0 sm:mr-2"></i>
+                            <span class="hidden sm:inline">Login</span>
+                        </button>
                     </div>
                 </div>
             </nav>
         </header>
 
         <!-- Hero Section -->
-        <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
+        <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 sm:py-20 animate-fade-in">
             <div class="text-center">
-                <h1 class="text-4xl tracking-tight font-extrabold text-gray-900 sm:text-5xl md:text-6xl">
-                    <span class="block">Modern Pharmacy</span>
+                <h1 class="text-3xl sm:text-4xl md:text-5xl lg:text-6xl tracking-tight font-extrabold text-gray-900">
+                    <span class="block">Comprehensive Pharmacy</span>
                     <span class="block text-primary">Management System</span>
                 </h1>
                 <p class="mt-3 max-w-md mx-auto text-base text-gray-500 sm:text-lg md:mt-5 md:text-xl md:max-w-3xl">
-                    Streamline your pharmacy operations with our comprehensive management solution. Track inventory, manage orders, and analyze performance all in one place.
+                    Streamline your pharmacy operations with our comprehensive management solution. Perfect for pharmacies, dispensaries, health posts, and hospitals. Track inventory, manage patients, and analyze performance all in one place.
                 </p>
-                <div class="mt-5 max-w-md mx-auto sm:flex sm:justify-center md:mt-8">
+                <div class="mt-5 max-w-md mx-auto sm:flex sm:justify-center md:mt-8 mobile-stack mobile-gap-4">
                     <div class="rounded-md shadow">
-                        <button id="getStartedBtn" class="w-full flex items-center justify-center px-8 py-3 border border-transparent text-base font-medium rounded-md text-white bg-primary hover:bg-primary-dark md:py-4 md:text-lg md:px-10 transition-colors">
-                            Get Started
+                        <button id="getStartedBtn" class="w-full flex items-center justify-center px-6 sm:px-8 py-3 border border-transparent text-base font-medium rounded-md text-white bg-primary hover:bg-primary-dark md:py-4 md:text-lg md:px-10 transition-colors btn-hover">
+                            <i class="fas fa-stethoscope mr-2"></i>Get Started
                         </button>
                     </div>
                     <div class="mt-3 rounded-md shadow sm:mt-0 sm:ml-3">
-                        <a href="#features" class="w-full flex items-center justify-center px-8 py-3 border border-transparent text-base font-medium rounded-md text-primary bg-white hover:bg-gray-50 md:py-4 md:text-lg md:px-10 transition-colors">
-                            Learn More
+                        <a href="#features" class="w-full flex items-center justify-center px-6 sm:px-8 py-3 border border-transparent text-base font-medium rounded-md text-primary bg-white hover:bg-gray-50 md:py-4 md:text-lg md:px-10 transition-colors btn-hover">
+                            <i class="fas fa-info-circle mr-2"></i>Learn More
                         </a>
                     </div>
                 </div>
             </div>
 
             <!-- Stats Section -->
-            <div class="mt-20">
-                <div class="grid grid-cols-1 gap-8 sm:grid-cols-3">
-                    <div class="text-center">
-                        <div class="text-4xl font-bold text-primary">99.9%</div>
+            <div class="mt-16 sm:mt-20 animate-slide-up">
+                <div class="grid grid-cols-1 gap-6 sm:gap-8 sm:grid-cols-3">
+                    <div class="text-center p-6 bg-white rounded-lg shadow-sm card-hover">
+                        <div class="text-3xl sm:text-4xl font-bold text-primary">99.9%</div>
                         <div class="mt-2 text-lg text-gray-600">Uptime</div>
                         <div class="mt-1 text-sm text-gray-500">Reliable system availability</div>
                     </div>
-                    <div class="text-center">
-                        <div class="text-4xl font-bold text-primary">500+</div>
-                        <div class="mt-2 text-lg text-gray-600">Pharmacies</div>
+                    <div class="text-center p-6 bg-white rounded-lg shadow-sm card-hover">
+                        <div class="text-3xl sm:text-4xl font-bold text-primary">1,200+</div>
+                        <div class="mt-2 text-lg text-gray-600">Healthcare Facilities</div>
                         <div class="mt-1 text-sm text-gray-500">Trust our platform</div>
                     </div>
-                    <div class="text-center">
-                        <div class="text-4xl font-bold text-primary">24/7</div>
+                    <div class="text-center p-6 bg-white rounded-lg shadow-sm card-hover">
+                        <div class="text-3xl sm:text-4xl font-bold text-primary">24/7</div>
                         <div class="mt-2 text-lg text-gray-600">Support</div>
                         <div class="mt-1 text-sm text-gray-500">Always here to help</div>
                     </div>
@@ -109,25 +359,25 @@
             </div>
 
             <!-- Features Grid -->
-            <div id="features" class="mt-20">
-                <div class="text-center mb-16">
-                    <h2 class="text-3xl font-bold text-gray-900">Everything you need to manage your pharmacy</h2>
-                    <p class="mt-4 text-lg text-gray-600">Comprehensive tools designed specifically for modern pharmacy operations</p>
+            <div id="features" class="mt-20 sm:mt-32">
+                <div class="text-center mb-12 sm:mb-16">
+                    <h2 class="text-2xl sm:text-3xl font-bold text-gray-900">Everything you need to manage your pharmacy</h2>
+                    <p class="mt-4 text-base sm:text-lg text-gray-600">Comprehensive tools designed for pharmacies, dispensaries, health posts, and hospitals</p>
                 </div>
-                <div class="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-4">
+                <div class="features-grid">
                     <div class="pt-6">
-                        <div class="flow-root bg-white rounded-lg px-6 pb-8 shadow-lg hover:shadow-xl transition-shadow">
+                        <div class="flow-root bg-white rounded-lg px-6 pb-8 shadow-lg hover:shadow-xl transition-shadow card-hover">
                             <div class="-mt-6">
                                 <div class="inline-flex items-center justify-center p-3 bg-primary rounded-md shadow-lg">
                                     <i class="fas fa-pills text-white text-xl"></i>
                                 </div>
-                                <h3 class="mt-8 text-lg font-medium text-gray-900 tracking-tight">Medicine Management</h3>
+                                <h3 class="mt-8 text-lg font-medium text-gray-900 tracking-tight">Medicine & Inventory</h3>
                                 <p class="mt-5 text-base text-gray-500">
-                                    Track inventory, expiration dates, and stock levels with real-time updates and automated alerts.
+                                    Track medications, medical supplies, and equipment with real-time updates and automated alerts.
                                 </p>
                                 <ul class="mt-4 text-sm text-gray-500 space-y-1">
-                                    <li>• Inventory tracking</li>
-                                    <li>• Expiry monitoring</li>
+                                    <li>• Medication tracking</li>
+                                    <li>• Supply monitoring</li>
                                     <li>• Stock alerts</li>
                                     <li>• Category management</li>
                                 </ul>
@@ -136,7 +386,27 @@
                     </div>
 
                     <div class="pt-6">
-                        <div class="flow-root bg-white rounded-lg px-6 pb-8 shadow-lg hover:shadow-xl transition-shadow">
+                        <div class="flow-root bg-white rounded-lg px-6 pb-8 shadow-lg hover:shadow-xl transition-shadow card-hover">
+                            <div class="-mt-6">
+                                <div class="inline-flex items-center justify-center p-3 bg-primary rounded-md shadow-lg">
+                                    <i class="fas fa-user-md text-white text-xl"></i>
+                                </div>
+                                <h3 class="mt-8 text-lg font-medium text-gray-900 tracking-tight">Patient Management</h3>
+                                <p class="mt-5 text-base text-gray-500">
+                                    Manage patient records, appointments, and treatment history with secure digital records.
+                                </p>
+                                <ul class="mt-4 text-sm text-gray-500 space-y-1">
+                                    <li>• Patient records</li>
+                                    <li>• Visit history</li>
+                                    <li>• Prescription tracking</li>
+                                    <li>• Appointment scheduling</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="pt-6">
+                        <div class="flow-root bg-white rounded-lg px-6 pb-8 shadow-lg hover:shadow-xl transition-shadow card-hover">
                             <div class="-mt-6">
                                 <div class="inline-flex items-center justify-center p-3 bg-primary rounded-md shadow-lg">
                                     <i class="fas fa-truck text-white text-xl"></i>
@@ -156,7 +426,7 @@
                     </div>
 
                     <div class="pt-6">
-                        <div class="flow-root bg-white rounded-lg px-6 pb-8 shadow-lg hover:shadow-xl transition-shadow">
+                        <div class="flow-root bg-white rounded-lg px-6 pb-8 shadow-lg hover:shadow-xl transition-shadow card-hover">
                             <div class="-mt-6">
                                 <div class="inline-flex items-center justify-center p-3 bg-primary rounded-md shadow-lg">
                                     <i class="fas fa-users text-white text-xl"></i>
@@ -176,7 +446,7 @@
                     </div>
 
                     <div class="pt-6">
-                        <div class="flow-root bg-white rounded-lg px-6 pb-8 shadow-lg hover:shadow-xl transition-shadow">
+                        <div class="flow-root bg-white rounded-lg px-6 pb-8 shadow-lg hover:shadow-xl transition-shadow card-hover">
                             <div class="-mt-6">
                                 <div class="inline-flex items-center justify-center p-3 bg-primary rounded-md shadow-lg">
                                     <i class="fas fa-chart-bar text-white text-xl"></i>
@@ -198,34 +468,34 @@
             </div>
 
             <!-- Benefits Section -->
-            <div class="mt-32">
-                <div class="bg-primary rounded-2xl">
-                    <div class="max-w-7xl mx-auto py-16 px-4 sm:px-6 lg:px-8">
+            <div class="mt-20 sm:mt-32">
+                <div class="gradient-bg rounded-2xl">
+                    <div class="max-w-7xl mx-auto py-12 sm:py-16 px-4 sm:px-6 lg:px-8">
                         <div class="text-center">
-                            <h2 class="text-3xl font-bold text-white">Why Choose Nyina wa Jambo?</h2>
-                            <p class="mt-4 text-lg text-blue-100">Built specifically for Rwandan pharmacies with local expertise</p>
+                            <h2 class="text-2xl sm:text-3xl font-bold text-white">Why Choose Nyina wa Jambo?</h2>
+                            <p class="mt-4 text-base sm:text-lg text-green-100">Built specifically for Rwandan pharmacies with local expertise</p>
                         </div>
-                        <div class="mt-12 grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-3">
+                        <div class="mt-8 sm:mt-12 grid grid-cols-1 gap-6 sm:gap-8 sm:grid-cols-2 lg:grid-cols-3">
                             <div class="text-center">
                                 <div class="inline-flex items-center justify-center w-12 h-12 bg-white rounded-full">
                                     <i class="fas fa-shield-alt text-primary text-xl"></i>
                                 </div>
                                 <h3 class="mt-4 text-lg font-medium text-white">Secure & Reliable</h3>
-                                <p class="mt-2 text-blue-100">Enterprise-grade security with regular backups and 99.9% uptime guarantee.</p>
+                                <p class="mt-2 text-green-100">Enterprise-grade security with regular backups and 99.9% uptime guarantee.</p>
                             </div>
                             <div class="text-center">
                                 <div class="inline-flex items-center justify-center w-12 h-12 bg-white rounded-full">
                                     <i class="fas fa-mobile-alt text-primary text-xl"></i>
                                 </div>
                                 <h3 class="mt-4 text-lg font-medium text-white">Mobile Friendly</h3>
-                                <p class="mt-2 text-blue-100">Access your pharmacy data anywhere, anytime with our responsive design.</p>
+                                <p class="mt-2 text-green-100">Access your pharmacy data anywhere, anytime with our responsive design.</p>
                             </div>
                             <div class="text-center">
                                 <div class="inline-flex items-center justify-center w-12 h-12 bg-white rounded-full">
                                     <i class="fas fa-headset text-primary text-xl"></i>
                                 </div>
                                 <h3 class="mt-4 text-lg font-medium text-white">Local Support</h3>
-                                <p class="mt-2 text-blue-100">Dedicated support team that understands Rwandan pharmacy regulations.</p>
+                                <p class="mt-2 text-green-100">Dedicated support team that understands Rwandan pharmacy regulations.</p>
                             </div>
                         </div>
                     </div>
@@ -233,13 +503,13 @@
             </div>
 
             <!-- Testimonials Section -->
-            <div class="mt-32">
-                <div class="text-center mb-16">
-                    <h2 class="text-3xl font-bold text-gray-900">Trusted by pharmacy owners across Rwanda</h2>
-                    <p class="mt-4 text-lg text-gray-600">See what our customers say about our platform</p>
+            <div class="mt-20 sm:mt-32">
+                <div class="text-center mb-12 sm:mb-16">
+                    <h2 class="text-2xl sm:text-3xl font-bold text-gray-900">Trusted by pharmacy owners across Rwanda</h2>
+                    <p class="mt-4 text-base sm:text-lg text-gray-600">See what our customers say about our platform</p>
                 </div>
-                <div class="grid grid-cols-1 gap-8 lg:grid-cols-3">
-                    <div class="bg-white rounded-lg shadow-lg p-6">
+                <div class="grid grid-cols-1 gap-6 sm:gap-8 lg:grid-cols-3">
+                    <div class="bg-white rounded-lg shadow-lg p-6 card-hover">
                         <div class="flex items-center mb-4">
                             <div class="w-12 h-12 bg-primary rounded-full flex items-center justify-center">
                                 <span class="text-white font-bold text-lg">JM</span>
@@ -258,7 +528,7 @@
                             <i class="fas fa-star"></i>
                         </div>
                     </div>
-                    <div class="bg-white rounded-lg shadow-lg p-6">
+                    <div class="bg-white rounded-lg shadow-lg p-6 card-hover">
                         <div class="flex items-center mb-4">
                             <div class="w-12 h-12 bg-primary rounded-full flex items-center justify-center">
                                 <span class="text-white font-bold text-lg">AM</span>
@@ -277,7 +547,7 @@
                             <i class="fas fa-star"></i>
                         </div>
                     </div>
-                    <div class="bg-white rounded-lg shadow-lg p-6">
+                    <div class="bg-white rounded-lg shadow-lg p-6 card-hover">
                         <div class="flex items-center mb-4">
                             <div class="w-12 h-12 bg-primary rounded-full flex items-center justify-center">
                                 <span class="text-white font-bold text-lg">PM</span>
@@ -300,16 +570,16 @@
             </div>
 
             <!-- CTA Section -->
-            <div class="mt-32">
+            <div class="mt-20 sm:mt-32">
                 <div class="bg-gray-50 rounded-2xl">
-                    <div class="max-w-7xl mx-auto py-16 px-4 sm:px-6 lg:px-8 text-center">
-                        <h2 class="text-3xl font-bold text-gray-900">Ready to modernize your pharmacy?</h2>
-                        <p class="mt-4 text-lg text-gray-600">Join hundreds of Rwandan pharmacies already using our platform</p>
-                        <div class="mt-8 flex flex-col sm:flex-row gap-4 justify-center">
-                            <button onclick="showDashboard()" class="bg-primary text-white px-8 py-3 rounded-md hover:bg-primary-dark transition-colors font-medium">
+                    <div class="max-w-7xl mx-auto py-12 sm:py-16 px-4 sm:px-6 lg:px-8 text-center">
+                        <h2 class="text-2xl sm:text-3xl font-bold text-gray-900">Ready to modernize your pharmacy?</h2>
+                        <p class="mt-4 text-base sm:text-lg text-gray-600">Join hundreds of Rwandan pharmacies already using our platform</p>
+                        <div class="mt-6 sm:mt-8 flex flex-col sm:flex-row gap-4 justify-center mobile-stack mobile-gap-4">
+                            <button onclick="showDashboard()" class="bg-primary text-white px-6 sm:px-8 py-3 rounded-md hover:bg-primary-dark transition-colors font-medium btn-hover">
                                 Start Free Trial
                             </button>
-                            <button class="border border-gray-300 text-gray-700 px-8 py-3 rounded-md hover:bg-gray-50 transition-colors font-medium">
+                            <button class="border border-gray-300 text-gray-700 px-6 sm:px-8 py-3 rounded-md hover:bg-gray-50 transition-colors font-medium btn-hover">
                                 Schedule Demo
                             </button>
                         </div>
@@ -325,7 +595,7 @@
                 <div class="grid grid-cols-1 md:grid-cols-4 gap-8">
                     <div class="col-span-1 md:col-span-2">
                         <div class="flex items-center">
-                            <i class="fas fa-pills text-primary text-2xl mr-3"></i>
+                            <i class="fas fa-heartbeat text-primary text-2xl mr-3"></i>
                             <h3 class="text-xl font-bold">Nyina wa Jambo Pharmacy</h3>
                         </div>
                         <p class="mt-4 text-gray-400 max-w-md">
@@ -375,295 +645,298 @@
     </div>
 
     <!-- Dashboard Page -->
-    <div id="dashboardPage" class="min-h-screen" style="display: none;">
-        <!-- Navigation Header -->
-        <nav class="bg-white shadow-sm border-b border-gray-200">
-            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                <div class="flex justify-between h-16">
-                    <div class="flex items-center">
-                        <a href="#" onclick="showLandingPage()" class="text-xl font-bold text-primary">
-                            <i class="fas fa-pills mr-2"></i>Nyina wa Jambo Pharmacy
-                        </a>
-                    </div>
-                    <div class="flex items-center space-x-4">
-                        <a href="#" onclick="showLandingPage()" class="text-gray-700 hover:text-primary px-3 py-2 rounded-md">
-                            <i class="fas fa-home mr-1"></i>Home
-                        </a>
-                        <a href="#" onclick="showDashboard()" class="bg-primary text-white px-3 py-2 rounded-md">
-                            <i class="fas fa-tachometer-alt mr-1"></i>Dashboard
-                        </a>
-                        <!-- Role-based navigation links -->
-                        <div id="roleBasedNav" class="hidden md:flex items-center space-x-4">
-                            <a href="medicines.html" class="text-gray-700 hover:text-primary px-3 py-2 rounded-md admin-only receptionist-only">
-                                <i class="fas fa-pills mr-1"></i>Medicines
-                            </a>
-                            <a href="suppliers.html" class="text-gray-700 hover:text-primary px-3 py-2 rounded-md admin-only">
-                                <i class="fas fa-truck mr-1"></i>Suppliers
-                            </a>
-                            <a href="customers.html" class="text-gray-700 hover:text-primary px-3 py-2 rounded-md admin-only receptionist-only">
-                                <i class="fas fa-users mr-1"></i>Customers
-                            </a>
-                            <a href="orders.html" class="text-gray-700 hover:text-primary px-3 py-2 rounded-md admin-only receptionist-only">
-                                <i class="fas fa-shopping-cart mr-1"></i>Orders
-                            </a>
-                            <a href="reports.html" class="text-gray-700 hover:text-primary px-3 py-2 rounded-md admin-only">
-                                <i class="fas fa-chart-bar mr-1"></i>Reports
-                            </a>
-                        </div>
-                        <!-- User menu -->
-                        <div id="userMenu" class="relative">
-                            <span id="currentUser" class="text-gray-700 px-3 py-2"></span>
-                            <button onclick="logout()" class="text-gray-700 hover:text-red-600 px-3 py-2 rounded-md">
-                                <i class="fas fa-sign-out-alt mr-1"></i>Logout
+    <div id="dashboardPage" class="flex h-screen bg-gray-100" style="display: none;">
+        <!-- Sidebar -->
+        <aside id="sidebar" class="w-64 bg-primary text-white flex-shrink-0 lg:block hidden transition-all duration-300 fixed lg:relative z-50 h-full">
+            <div class="p-6">
+                <a href="#" onclick="showLandingPage()" class="text-2xl font-bold text-white flex items-center">
+                    <i class="fas fa-heartbeat mr-3"></i>
+                    <span>Nyina wa Jambo</span>
+                </a>
+            </div>
+            <nav class="mt-6">
+                <a href="#" onclick="showDashboard()" class="flex items-center px-6 py-3 text-white bg-primary-dark">
+                    <i class="fas fa-tachometer-alt w-6"></i>
+                    <span class="ml-3">Dashboard</span>
+                </a>
+                <a href="medicines.html" class="flex items-center px-6 py-3 text-gray-200 hover:bg-primary-dark admin-only receptionist-only">
+                    <i class="fas fa-pills w-6"></i>
+                    <span class="ml-3">Medicines</span>
+                </a>
+                <a href="suppliers.html" class="flex items-center px-6 py-3 text-gray-200 hover:bg-primary-dark admin-only">
+                    <i class="fas fa-truck w-6"></i>
+                    <span class="ml-3">Suppliers</span>
+                </a>
+                <a href="customers.html" class="flex items-center px-6 py-3 text-gray-200 hover:bg-primary-dark admin-only receptionist-only">
+                    <i class="fas fa-users w-6"></i>
+                    <span class="ml-3">Customers</span>
+                </a>
+                <a href="orders.html" class="flex items-center px-6 py-3 text-gray-200 hover:bg-primary-dark admin-only receptionist-only">
+                    <i class="fas fa-shopping-cart w-6"></i>
+                    <span class="ml-3">Orders</span>
+                </a>
+                <a href="reports.html" class="flex items-center px-6 py-3 text-gray-200 hover:bg-primary-dark admin-only">
+                    <i class="fas fa-chart-bar w-6"></i>
+                    <span class="ml-3">Reports</span>
+                </a>
+            </nav>
+            <div class="absolute bottom-0 w-full p-6">
+                <button onclick="logout()" class="w-full flex items-center justify-center px-4 py-2 text-white bg-primary-dark rounded-md hover:bg-red-500 transition-colors">
+                    <i class="fas fa-sign-out-alt w-6"></i>
+                    <span class="ml-3">Logout</span>
+                </button>
+            </div>
+        </aside>
+
+        <!-- Main content -->
+        <div class="flex-1 flex flex-col overflow-hidden">
+            <!-- Top bar -->
+            <header class="bg-white shadow-sm flex justify-between items-center p-4">
+                <button id="menu-toggle" class="text-gray-700 lg:hidden">
+                    <i class="fas fa-bars text-xl"></i>
+                </button>
+                <h1 class="text-xl font-bold text-gray-800 hidden sm:block">Dashboard</h1>
+                <div class="relative flex items-center space-x-4">
+                    <span id="currentUser" class="text-gray-700 text-sm hidden md:block"></span>
+                    <img id="userAvatar" src="https://via.placeholder.com/40" alt="User Avatar" class="w-10 h-10 rounded-full cursor-pointer">
+                    <div id="userDropdown" class="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg z-50 hidden top-full">
+                        <div class="py-1">
+                            <div class="px-4 py-2 text-sm text-gray-500 border-b">
+                                <span id="userInfo"></span>
+                            </div>
+                            <button onclick="logout()" class="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                                <i class="fas fa-sign-out-alt mr-2"></i>Logout
                             </button>
                         </div>
                     </div>
                 </div>
-            </div>
-        </nav>
+            </header>
 
-        <!-- Main Content -->
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-            <!-- Page Header -->
-            <div class="mb-8">
-                <h1 class="text-3xl font-bold text-gray-900">Dashboard Overview</h1>
-                <p class="text-gray-600 mt-2">Welcome to your pharmacy management dashboard</p>
-            </div>
+            <!-- Main content area -->
+            <main class="flex-1 overflow-x-hidden overflow-y-auto bg-gray-100 p-4 sm:p-6 lg:p-8">
+                <!-- Page Header -->
+                <div class="mb-6 sm:mb-8">
+                    <h1 class="text-2xl sm:text-3xl font-bold text-gray-900">Pharmacy Dashboard</h1>
+                    <p class="text-gray-600 mt-2">Welcome to your pharmacy management dashboard</p>
+                </div>
 
-            <!-- Stats Cards -->
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-                <div class="bg-white rounded-lg shadow-sm p-6">
-                    <div class="flex items-center">
-                        <div class="p-3 rounded-full bg-blue-100">
-                            <i class="fas fa-pills text-blue-600 text-xl"></i>
+                <!-- Stats Cards -->
+                <div class="dashboard-stats-grid mb-6 sm:mb-8">
+                    <div class="bg-white rounded-lg shadow-sm p-4 sm:p-6 card-hover">
+                        <div class="flex items-center">
+                            <div class="p-3 rounded-full bg-green-100">
+                                <i class="fas fa-pills text-green-600 text-lg sm:text-xl"></i>
+                            </div>
+                            <div class="ml-4">
+                                <p class="text-xs sm:text-sm font-medium text-gray-600">Total Medicines</p>
+                                <p id="totalMedicines" class="text-xl sm:text-2xl font-semibold text-gray-900">0</p>
+                            </div>
                         </div>
-                        <div class="ml-4">
-                            <p class="text-sm font-medium text-gray-600">Total Medicines</p>
-                            <p id="totalMedicines" class="text-2xl font-semibold text-gray-900">0</p>
+                    </div>
+                    <div class="bg-white rounded-lg shadow-sm p-4 sm:p-6 card-hover">
+                        <div class="flex items-center">
+                            <div class="p-3 rounded-full bg-blue-100">
+                                <i class="fas fa-truck text-blue-600 text-lg sm:text-xl"></i>
+                            </div>
+                            <div class="ml-4">
+                                <p class="text-xs sm:text-sm font-medium text-gray-600">Active Suppliers</p>
+                                <p id="totalSuppliers" class="text-xl sm:text-2xl font-semibold text-gray-900">0</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="bg-white rounded-lg shadow-sm p-4 sm:p-6 card-hover">
+                        <div class="flex items-center">
+                            <div class="p-3 rounded-full bg-purple-100">
+                                <i class="fas fa-users text-purple-600 text-lg sm:text-xl"></i>
+                            </div>
+                            <div class="ml-4">
+                                <p class="text-xs sm:text-sm font-medium text-gray-600">Total Patients</p>
+                                <p id="totalCustomers" class="text-xl sm:text-2xl font-semibold text-gray-900">0</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="bg-white rounded-lg shadow-sm p-4 sm:p-6 card-hover">
+                        <div class="flex items-center">
+                            <div class="p-3 rounded-full bg-yellow-100">
+                                <i class="fas fa-file-medical text-yellow-600 text-lg sm:text-xl"></i>
+                            </div>
+                            <div class="ml-4">
+                                <p class="text-xs sm:text-sm font-medium text-gray-600">Total Treatments</p>
+                                <p id="totalOrders" class="text-xl sm:text-2xl font-semibold text-gray-900">0</p>
+                            </div>
                         </div>
                     </div>
                 </div>
-                <div class="bg-white rounded-lg shadow-sm p-6">
-                    <div class="flex items-center">
-                        <div class="p-3 rounded-full bg-green-100">
-                            <i class="fas fa-truck text-green-600 text-xl"></i>
-                        </div>
-                        <div class="ml-4">
-                            <p class="text-sm font-medium text-gray-600">Active Suppliers</p>
-                            <p id="totalSuppliers" class="text-2xl font-semibold text-gray-900">0</p>
-                        </div>
-                    </div>
-                </div>
-                <div class="bg-white rounded-lg shadow-sm p-6">
-                    <div class="flex items-center">
-                        <div class="p-3 rounded-full bg-purple-100">
-                            <i class="fas fa-users text-purple-600 text-xl"></i>
-                        </div>
-                        <div class="ml-4">
-                            <p class="text-sm font-medium text-gray-600">Total Customers</p>
-                            <p id="totalCustomers" class="text-2xl font-semibold text-gray-900">0</p>
-                        </div>
-                    </div>
-                </div>
-                <div class="bg-white rounded-lg shadow-sm p-6">
-                    <div class="flex items-center">
-                        <div class="p-3 rounded-full bg-yellow-100">
-                            <i class="fas fa-shopping-cart text-yellow-600 text-xl"></i>
-                        </div>
-                        <div class="ml-4">
-                            <p class="text-sm font-medium text-gray-600">Total Orders</p>
-                            <p id="totalOrders" class="text-2xl font-semibold text-gray-900">0</p>
-                        </div>
-                    </div>
-                </div>
-            </div>
 
-            <!-- Additional Stats -->
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-                <div class="bg-white rounded-lg shadow-sm p-6">
-                    <div class="flex items-center">
-                        <div class="p-3 rounded-full bg-red-100">
-                            <i class="fas fa-exclamation-triangle text-red-600 text-xl"></i>
+                <!-- Additional Stats -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4 sm:gap-6 mb-6 sm:mb-8">
+                    <div class="bg-white rounded-lg shadow-sm p-4 sm:p-6">
+                        <div class="flex items-center">
+                            <div class="p-3 rounded-full bg-red-100">
+                                <i class="fas fa-exclamation-triangle text-red-600 text-lg sm:text-xl"></i>
+                            </div>
+                            <div class="ml-4">
+                                <p class="text-xs sm:text-sm font-medium text-gray-600">Low Stock Items</p>
+                                <p id="lowStockCount" class="text-xl sm:text-2xl font-semibold text-gray-900">0</p>
+                            </div>
                         </div>
-                        <div class="ml-4">
-                            <p class="text-sm font-medium text-gray-600">Low Stock Items</p>
-                            <p id="lowStockCount" class="text-2xl font-semibold text-gray-900">0</p>
+                    </div>
+                    <div class="bg-white rounded-lg shadow-sm p-4 sm:p-6">
+                        <div class="flex items-center">
+                            <div class="p-3 rounded-full bg-orange-100">
+                                <i class="fas fa-clock text-orange-600 text-lg sm:text-xl"></i>
+                            </div>
+                            <div class="ml-4">
+                                <p class="text-xs sm:text-sm font-medium text-gray-600">Expiring Soon</p>
+                                <p id="expiringSoonCount" class="text-xl sm:text-2xl font-semibold text-gray-900">0</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="bg-white rounded-lg shadow-sm p-4 sm:p-6">
+                        <div class="flex items-center">
+                            <div class="p-3 rounded-full bg-indigo-100">
+                                <i class="fas fa-chart-line text-indigo-600 text-lg sm:text-xl"></i>
+                            </div>
+                            <div class="ml-4">
+                                <p class="text-xs sm:text-sm font-medium text-gray-600">Total Revenue</p>
+                                <p id="totalRevenue" class="text-xl sm:text-2xl font-semibold text-gray-900">0 RWF</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="bg-white rounded-lg shadow-sm p-4 sm:p-6">
+                        <div class="flex items-center">
+                            <div class="p-3 rounded-full bg-emerald-100">
+                                <i class="fas fa-dollar-sign text-emerald-600 text-lg sm:text-xl"></i>
+                            </div>
+                            <div class="ml-4">
+                                <p class="text-xs sm:text-sm font-medium text-gray-600">Today's Revenue</p>
+                                <p id="todayRevenue" class="text-xl sm:text-2xl font-semibold text-gray-900">0 RWF</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="bg-white rounded-lg shadow-sm p-4 sm:p-6">
+                        <div class="flex items-center">
+                            <div class="p-3 rounded-full bg-teal-100">
+                                <i class="fas fa-exchange-alt text-teal-600 text-lg sm:text-xl"></i>
+                            </div>
+                            <div class="ml-4">
+                                <p class="text-xs sm:text-sm font-medium text-gray-600">Stock Movements</p>
+                                <p id="stockMovements" class="text-xl sm:text-2xl font-semibold text-gray-900">0</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="bg-white rounded-lg shadow-sm p-4 sm:p-6">
+                        <div class="flex items-center">
+                            <div class="p-3 rounded-full bg-rose-100">
+                                <i class="fas fa-chart-pie text-rose-600 text-lg sm:text-xl"></i>
+                            </div>
+                            <div class="ml-4">
+                                <p class="text-xs sm:text-sm font-medium text-gray-600">Pending Orders</p>
+                                <p id="pendingOrders" class="text-xl sm:text-2xl font-semibold text-gray-900">0</p>
+                            </div>
                         </div>
                     </div>
                 </div>
-                <div class="bg-white rounded-lg shadow-sm p-6">
-                    <div class="flex items-center">
-                        <div class="p-3 rounded-full bg-orange-100">
-                            <i class="fas fa-clock text-orange-600 text-xl"></i>
-                        </div>
-                        <div class="ml-4">
-                            <p class="text-sm font-medium text-gray-600">Expiring Soon</p>
-                            <p id="expiringSoonCount" class="text-2xl font-semibold text-gray-900">0</p>
-                        </div>
-                    </div>
-                </div>
-                <div class="bg-white rounded-lg shadow-sm p-6">
-                    <div class="flex items-center">
-                        <div class="p-3 rounded-full bg-indigo-100">
-                            <i class="fas fa-chart-line text-indigo-600 text-xl"></i>
-                        </div>
-                        <div class="ml-4">
-                            <p class="text-sm font-medium text-gray-600">Total Revenue</p>
-                            <p id="totalRevenue" class="text-2xl font-semibold text-gray-900">0 RWF</p>
-                        </div>
-                    </div>
-                </div>
-                <div class="bg-white rounded-lg shadow-sm p-6">
-                    <div class="flex items-center">
-                        <div class="p-3 rounded-full bg-emerald-100">
-                            <i class="fas fa-dollar-sign text-emerald-600 text-xl"></i>
-                        </div>
-                        <div class="ml-4">
-                            <p class="text-sm font-medium text-gray-600">Today's Revenue</p>
-                            <p id="todayRevenue" class="text-2xl font-semibold text-gray-900">0 RWF</p>
-                        </div>
-                    </div>
-                </div>
-                <div class="bg-white rounded-lg shadow-sm p-6">
-                    <div class="flex items-center">
-                        <div class="p-3 rounded-full bg-teal-100">
-                            <i class="fas fa-exchange-alt text-teal-600 text-xl"></i>
-                        </div>
-                        <div class="ml-4">
-                            <p class="text-sm font-medium text-gray-600">Stock Movements</p>
-                            <p id="stockMovements" class="text-2xl font-semibold text-gray-900">0</p>
-                        </div>
-                    </div>
-                </div>
-                <div class="bg-white rounded-lg shadow-sm p-6">
-                    <div class="flex items-center">
-                        <div class="p-3 rounded-full bg-rose-100">
-                            <i class="fas fa-chart-pie text-rose-600 text-xl"></i>
-                        </div>
-                        <div class="ml-4">
-                            <p class="text-sm font-medium text-gray-600">Pending Orders</p>
-                            <p id="pendingOrders" class="text-2xl font-semibold text-gray-900">0</p>
-                        </div>
-                    </div>
-                </div>
-            </div>
 
-            <!-- Summary Cards -->
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-                <div class="bg-white rounded-lg shadow-sm p-6">
-                    <h3 class="text-lg font-semibold text-gray-900 mb-4">Medicine Categories</h3>
-                    <div id="categoriesSummary" class="space-y-2">
-                        <!-- Categories will be loaded here -->
+                <!-- Summary Cards -->
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6 mb-6 sm:mb-8">
+                    <div class="bg-white rounded-lg shadow-sm p-4 sm:p-6">
+                        <h3 class="text-lg sm:text-xl font-semibold text-gray-900 mb-4">Medicine Categories</h3>
+                        <div id="categoriesSummary" class="space-y-2">
+                            <!-- Categories will be loaded here -->
+                        </div>
+                    </div>
+                    <div class="bg-white rounded-lg shadow-sm p-4 sm:p-6">
+                        <h3 class="text-lg sm:text-xl font-semibold text-gray-900 mb-4">Top Suppliers</h3>
+                        <div id="suppliersSummary" class="space-y-2">
+                            <!-- Suppliers will be loaded here -->
+                        </div>
+                    </div>
+                    <div class="bg-white rounded-lg shadow-sm p-4 sm:p-6">
+                        <h3 class="text-lg sm:text-xl font-semibold text-gray-900 mb-4">Recent Orders</h3>
+                        <div id="ordersSummary" class="space-y-2">
+                            <!-- Orders will be loaded here -->
+                        </div>
                     </div>
                 </div>
-                <div class="bg-white rounded-lg shadow-sm p-6">
-                    <h3 class="text-lg font-semibold text-gray-900 mb-4">Top Suppliers</h3>
-                    <div id="suppliersSummary" class="space-y-2">
-                        <!-- Suppliers will be loaded here -->
+
+                <!-- Quick Actions -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 mb-6 sm:mb-8">
+                    <a href="medicines.html" class="block bg-white rounded-lg shadow-sm p-4 sm:p-6 hover:shadow-md transition-shadow">
+                        <div class="flex items-center">
+                            <div class="p-3 rounded-full bg-blue-100">
+                                <i class="fas fa-pills text-blue-600 text-lg sm:text-xl"></i>
+                            </div>
+                            <div class="ml-4 flex-1">
+                                <h3 class="text-base sm:text-lg font-medium text-gray-900">Manage Medicines</h3>
+                                <p class="text-xs sm:text-sm text-gray-500">Add, edit, and track medicine inventory</p>
+                            </div>
+                            <i class="fas fa-arrow-right text-gray-400 ml-2"></i>
+                        </div>
+                    </a>
+
+                    <a href="suppliers.html" class="block bg-white rounded-lg shadow-sm p-4 sm:p-6 hover:shadow-md transition-shadow">
+                        <div class="flex items-center">
+                            <div class="p-3 rounded-full bg-green-100">
+                                <i class="fas fa-truck text-green-600 text-lg sm:text-xl"></i>
+                            </div>
+                            <div class="ml-4 flex-1">
+                                <h3 class="text-base sm:text-lg font-medium text-gray-900">Manage Suppliers</h3>
+                                <p class="text-xs sm:text-sm text-gray-500">Handle supplier relationships and orders</p>
+                            </div>
+                            <i class="fas fa-arrow-right text-gray-400 ml-2"></i>
+                        </div>
+                    </a>
+
+                    <a href="customers.html" class="block bg-white rounded-lg shadow-sm p-4 sm:p-6 hover:shadow-md transition-shadow">
+                        <div class="flex items-center">
+                            <div class="p-3 rounded-full bg-purple-100">
+                                <i class="fas fa-users text-purple-600 text-lg sm:text-xl"></i>
+                            </div>
+                            <div class="ml-4 flex-1">
+                                <h3 class="text-base sm:text-lg font-medium text-gray-900">Manage Customers</h3>
+                                <p class="text-xs sm:text-sm text-gray-500">Track customer information and history</p>
+                            </div>
+                            <i class="fas fa-arrow-right text-gray-400 ml-2"></i>
+                        </div>
+                    </a>
+
+                    <a href="orders.html" class="block bg-white rounded-lg shadow-sm p-4 sm:p-6 hover:shadow-md transition-shadow">
+                        <div class="flex items-center">
+                            <div class="p-3 rounded-full bg-yellow-100">
+                                <i class="fas fa-shopping-cart text-yellow-600 text-lg sm:text-xl"></i>
+                            </div>
+                            <div class="ml-4 flex-1">
+                                <h3 class="text-base sm:text-lg font-medium text-gray-900">Process Orders</h3>
+                                <p class="text-xs sm:text-sm text-gray-500">Create and manage customer orders</p>
+                            </div>
+                            <i class="fas fa-arrow-right text-gray-400 ml-2"></i>
+                        </div>
+                    </a>
+
+                    <a href="reports.html" class="block bg-white rounded-lg shadow-sm p-4 sm:p-6 hover:shadow-md transition-shadow">
+                        <div class="flex items-center">
+                            <div class="p-3 rounded-full bg-red-100">
+                                <i class="fas fa-chart-bar text-red-600 text-lg sm:text-xl"></i>
+                            </div>
+                            <div class="ml-4 flex-1">
+                                <h3 class="text-base sm:text-lg font-medium text-gray-900">View Reports</h3>
+                                <p class="text-xs sm:text-sm text-gray-500">Analytics and comprehensive reports</p>
+                            </div>
+                            <i class="fas fa-arrow-right text-gray-400 ml-2"></i>
+                        </div>
+                    </a>
+                </div>
+
+                <!-- Recent Activity -->
+                <div class="bg-white rounded-lg shadow-sm p-4 sm:p-6">
+                    <h3 class="text-lg sm:text-xl font-semibold text-gray-900 mb-4">Recent Activity</h3>
+                    <div id="recentActivity" class="space-y-3">
+                        <!-- Activity items will be loaded here -->
                     </div>
                 </div>
-                <div class="bg-white rounded-lg shadow-sm p-6">
-                    <h3 class="text-lg font-semibold text-gray-900 mb-4">Recent Orders</h3>
-                    <div id="ordersSummary" class="space-y-2">
-                        <!-- Orders will be loaded here -->
-                    </div>
-                </div>
-            </div>
-
-            <!-- Quick Actions -->
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
-                <a href="medicines.html" class="block bg-white rounded-lg shadow-sm p-6 hover:shadow-md transition-shadow">
-                    <div class="flex items-center">
-                        <div class="p-3 rounded-full bg-blue-100">
-                            <i class="fas fa-pills text-blue-600 text-xl"></i>
-                        </div>
-                        <div class="ml-4">
-                            <h3 class="text-lg font-medium text-gray-900">Manage Medicines</h3>
-                            <p class="text-sm text-gray-500">Add, edit, and track medicine inventory</p>
-                        </div>
-                        <i class="fas fa-arrow-right text-gray-400 ml-auto"></i>
-                    </div>
-                </a>
-
-                <a href="suppliers.html" class="block bg-white rounded-lg shadow-sm p-6 hover:shadow-md transition-shadow">
-                    <div class="flex items-center">
-                        <div class="p-3 rounded-full bg-green-100">
-                            <i class="fas fa-truck text-green-600 text-xl"></i>
-                        </div>
-                        <div class="ml-4">
-                            <h3 class="text-lg font-medium text-gray-900">Manage Suppliers</h3>
-                            <p class="text-sm text-gray-500">Handle supplier relationships and orders</p>
-                        </div>
-                        <i class="fas fa-arrow-right text-gray-400 ml-auto"></i>
-                    </div>
-                </a>
-
-                <a href="customers.html" class="block bg-white rounded-lg shadow-sm p-6 hover:shadow-md transition-shadow">
-                    <div class="flex items-center">
-                        <div class="p-3 rounded-full bg-purple-100">
-                            <i class="fas fa-users text-purple-600 text-xl"></i>
-                        </div>
-                        <div class="ml-4">
-                            <h3 class="text-lg font-medium text-gray-900">Manage Customers</h3>
-                            <p class="text-sm text-gray-500">Track customer information and history</p>
-                        </div>
-                        <i class="fas fa-arrow-right text-gray-400 ml-auto"></i>
-                    </div>
-                </a>
-
-                <a href="orders.html" class="block bg-white rounded-lg shadow-sm p-6 hover:shadow-md transition-shadow">
-                    <div class="flex items-center">
-                        <div class="p-3 rounded-full bg-yellow-100">
-                            <i class="fas fa-shopping-cart text-yellow-600 text-xl"></i>
-                        </div>
-                        <div class="ml-4">
-                            <h3 class="text-lg font-medium text-gray-900">Process Orders</h3>
-                            <p class="text-sm text-gray-500">Create and manage customer orders</p>
-                        </div>
-                        <i class="fas fa-arrow-right text-gray-400 ml-auto"></i>
-                    </div>
-                </a>
-
-                <a href="reports.html" class="block bg-white rounded-lg shadow-sm p-6 hover:shadow-md transition-shadow">
-                    <div class="flex items-center">
-                        <div class="p-3 rounded-full bg-red-100">
-                            <i class="fas fa-chart-bar text-red-600 text-xl"></i>
-                        </div>
-                        <div class="ml-4">
-                            <h3 class="text-lg font-medium text-gray-900">View Reports</h3>
-                            <p class="text-sm text-gray-500">Analytics and comprehensive reports</p>
-                        </div>
-                        <i class="fas fa-arrow-right text-gray-400 ml-auto"></i>
-                    </div>
-                </a>
-
-            </div>
-
-            <!-- Recent Activity -->
-            <div class="bg-white rounded-lg shadow-sm p-6">
-                <h3 class="text-lg font-semibold text-gray-900 mb-4">Recent Activity</h3>
-                <div id="recentActivity" class="space-y-3">
-                    <!-- Activity items will be loaded here -->
-                </div>
-            </div>
+            </main>
         </div>
-
-        <!-- Dashboard Footer -->
-        <footer class="bg-white border-t border-gray-200 mt-12">
-            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-                <div class="flex flex-col sm:flex-row justify-between items-center">
-                    <div class="flex items-center">
-                        <i class="fas fa-pills text-primary mr-2"></i>
-                        <span class="text-sm text-gray-600">Nyina wa Jambo Pharmacy Management System</span>
-                    </div>
-                    <div class="flex items-center space-x-6 mt-4 sm:mt-0">
-                        <span class="text-xs text-gray-400">&copy; 2025 All rights reserved</span>
-                        <a href="#" class="text-xs text-gray-400 hover:text-primary transition-colors">Support</a>
-                        <a href="#" class="text-xs text-gray-400 hover:text-primary transition-colors">Documentation</a>
-                    </div>
-                </div>
-            </div>
-        </footer>
     </div>
 
     <!-- Notification -->
@@ -677,99 +950,240 @@
         }
 
         function showDashboard() {
-            // Check authentication before showing dashboard
+            console.log('showDashboard called');
+            
             if (!isAuthenticated()) {
+                console.log('User not authenticated, redirecting to login');
                 showNotification('Please login to access the dashboard', 'warning');
-                window.location.href = 'login.html';
+                setTimeout(() => {
+                    window.location.href = 'login.html';
+                }, 1000);
                 return;
             }
 
             const user = getCurrentUser();
+            console.log('Authenticated user:', user);
+            
+            if (!user) {
+                console.log('User data not found, redirecting to login');
+                showNotification('Session expired. Please login again.', 'warning');
+                logout();
+                return;
+            }
+
             if (user.role === 'customer') {
+                console.log('Customer user, redirecting to customer portal');
                 window.location.href = 'customer-portal.html';
                 return;
             }
 
+            console.log('Showing dashboard for user:', user.role);
             document.getElementById("landingPage").style.display = "none";
-            document.getElementById("dashboardPage").style.display = "block";
+            document.getElementById("dashboardPage").style.display = "flex";
             
-            // Update navigation for authenticated users
             updateNavigation();
             loadDashboardData();
         }
 
         function updateNavigation() {
             const user = getCurrentUser();
+            console.log('Updating navigation for user:', user);
+            
             if (user) {
-                // Show role-based navigation
-                document.getElementById('roleBasedNav').classList.remove('hidden');
-                
-                // Update current user display
-                document.getElementById('currentUser').textContent = `${user.fullName} (${user.role})`;
-                
+                // For dashboard page
+                const currentUserElement = document.getElementById('currentUser');
+                if (currentUserElement) {
+                    currentUserElement.textContent = `${user.fullName}`;
+                }
+                const userInfoElement = document.getElementById('userInfo');
+                if (userInfoElement) {
+                    userInfoElement.textContent = `${user.fullName} (${user.role})`;
+                }
+                const userAvatar = document.getElementById('userAvatar');
+                if (userAvatar) {
+                    userAvatar.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(user.fullName)}&background=16a34a&color=fff&bold=true`;
+                }
+
                 // Show/hide elements based on role
                 const adminElements = document.querySelectorAll('.admin-only');
                 const receptionistElements = document.querySelectorAll('.receptionist-only');
                 
                 adminElements.forEach(element => {
-                    element.style.display = isAdmin() ? 'inline-flex' : 'none';
+                    element.style.display = (user.role === 'admin') ? 'flex' : 'none';
                 });
                 
                 receptionistElements.forEach(element => {
-                    element.style.display = isReceptionist() ? 'inline-flex' : 'none';
+                    element.style.display = (user.role === 'receptionist' || user.role === 'admin') ? 'flex' : 'none';
                 });
                 
-                // Update login button to show user info and logout
+                // For landing page header when logged in
                 const loginBtn = document.getElementById('loginBtn');
                 if (loginBtn) {
                     loginBtn.innerHTML = `
-                        <i class="fas fa-user mr-2"></i>${user.fullName}
-                        <i class="fas fa-caret-down ml-2"></i>
+                        <i class="fas fa-tachometer-alt mr-0 sm:mr-2"></i>
+                        <span class="hidden sm:inline">Dashboard</span>
                     `;
-                    loginBtn.onclick = () => {
+                    loginBtn.onclick = showDashboard;
+                    loginBtn.title = `Go to Dashboard`;
+                }
+                const homeBtn = document.getElementById('homeBtn');
+                if(homeBtn){
+                    homeBtn.innerHTML = `
+                        <i class="fas fa-user mr-0 sm:mr-2"></i>
+                        <span class="hidden sm:inline">${user.fullName}</span>
+                    `;
+                    homeBtn.title = `Logged in as ${user.fullName}`;
+                    homeBtn.onclick = () => {
                         if (confirm('Do you want to logout?')) {
                             logout();
                         }
-                    };
+                    }
                 }
+
+            } else {
+                console.log('No user found for navigation update');
+                updateNavigationForGuest();
             }
         }
 
         // Event listeners
         document.addEventListener("DOMContentLoaded", function () {
+            checkAuthenticationOnLoad();
+            
             var homeBtn = document.getElementById("homeBtn");
             if (homeBtn) homeBtn.onclick = showLandingPage;
+            
             var loginBtn = document.getElementById("loginBtn");
-            if (loginBtn) loginBtn.onclick = () => window.location.href = 'login.html';
-            var dashboardBtn = document.getElementById("dashboardBtn");
-            if (dashboardBtn) dashboardBtn.onclick = showDashboard;
+            if (loginBtn) loginBtn.onclick = () => {
+                if (isAuthenticated()) {
+                    showDashboard();
+                } else {
+                    window.location.href = 'login.html';
+                }
+            };
+            
             var getStartedBtn = document.getElementById("getStartedBtn");
-            if (getStartedBtn) getStartedBtn.onclick = showDashboard;
+            if (getStartedBtn) getStartedBtn.onclick = () => {
+                if (isAuthenticated()) {
+                    showDashboard();
+                } else {
+                    window.location.href = 'login.html';
+                }
+            };
+
+            // Sidebar toggle
+            const menuToggle = document.getElementById('menu-toggle');
+            const sidebar = document.getElementById('sidebar');
+            if (menuToggle && sidebar) {
+                menuToggle.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    sidebar.classList.toggle('hidden');
+                });
+            }
+
+            // User dropdown
+            const userAvatar = document.getElementById('userAvatar');
+            const userDropdown = document.getElementById('userDropdown');
+            if (userAvatar && userDropdown) {
+                userAvatar.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    userDropdown.classList.toggle('hidden');
+                });
+            }
+
+            // Close dropdown/sidebar when clicking outside
+            document.addEventListener('click', function(e) {
+                const sidebar = document.getElementById('sidebar');
+                const menuToggle = document.getElementById('menu-toggle');
+                if (sidebar && !sidebar.classList.contains('hidden') && !sidebar.contains(e.target) && !menuToggle.contains(e.target)) {
+                    sidebar.classList.add('hidden');
+                }
+                
+                const userDropdown = document.getElementById('userDropdown');
+                const userAvatar = document.getElementById('userAvatar');
+                if (userDropdown && !userDropdown.classList.contains('hidden') && !userAvatar.contains(e.target)) {
+                    userDropdown.classList.add('hidden');
+                }
+            });
         });
 
-        // Load dashboard data
+        // Check authentication on page load and redirect accordingly
+        function checkAuthenticationOnLoad() {
+            setTimeout(() => {
+                const urlParams = new URLSearchParams(window.location.search);
+                const forceHome = urlParams.get('home');
+                const showDash = urlParams.get('dashboard');
+                
+                if (isAuthenticated()) {
+                    const user = getCurrentUser();
+                    console.log('User authenticated on page load:', user);
+                    
+                    if (user.role === 'customer') {
+                        window.location.href = 'customer-portal.html';
+                        return;
+                    }
+                    
+                    if ((user.role === 'admin' || user.role === 'receptionist') && !forceHome) {
+                        showDashboard();
+                        return;
+                    }
+                    
+                    if (forceHome) {
+                        showLandingPage();
+                        updateNavigation();
+                        return;
+                    }
+                } else {
+                    console.log('User not authenticated on page load');
+                    
+                    if (showDash) {
+                        showNotification('Please login to access the dashboard', 'warning');
+                        setTimeout(() => {
+                            window.location.href = 'login.html';
+                        }, 1500);
+                        return;
+                    }
+                }
+                
+                showLandingPage();
+                updateNavigationForGuest();
+            }, 100);
+        }
+
+        function updateNavigationForGuest() {
+            const loginBtn = document.getElementById('loginBtn');
+            if (loginBtn && !isAuthenticated()) {
+                loginBtn.innerHTML = '<i class="fas fa-sign-in-alt mr-0 sm:mr-2"></i><span class="hidden sm:inline">Login</span>';
+                loginBtn.onclick = () => window.location.href = 'login.html';
+            }
+            const homeBtn = document.getElementById('homeBtn');
+            if(homeBtn){
+                homeBtn.innerHTML = `
+                    <i class="fas fa-home mr-0 sm:mr-2"></i>
+                    <span class="hidden sm:inline">Home</span>
+                `;
+                homeBtn.onclick = showLandingPage;
+            }
+        }
+
         async function loadDashboardData() {
             try {
-                // Load all data in parallel
                 const [medicines, suppliers, customers, orders, stockMovements] = await Promise.all([
                     fetchMedicines(),
                     fetchSuppliers(),
                     fetchCustomers(),
                     fetchOrders(),
-                    fetchStockMovements().catch(() => []) // Fallback to empty array if function doesn't exist
+                    fetchStockMovements().catch(() => [])
                 ]);
 
-                // Update basic stats
                 document.getElementById("totalMedicines").textContent = medicines.length;
                 document.getElementById("totalSuppliers").textContent = suppliers.length;
                 document.getElementById("totalCustomers").textContent = customers.length;
                 document.getElementById("totalOrders").textContent = orders.length;
 
-                // Calculate additional stats
                 const lowStockMedicines = medicines.filter(m => (m.stock || 0) <= 10);
                 document.getElementById("lowStockCount").textContent = lowStockMedicines.length;
 
-                // Calculate expiring soon (within 30 days)
                 const today = new Date();
                 const thirtyDaysFromNow = new Date();
                 thirtyDaysFromNow.setDate(today.getDate() + 30);
@@ -781,37 +1195,23 @@
                 });
                 document.getElementById("expiringSoonCount").textContent = expiringSoon.length;
 
-                // Calculate total revenue from completed orders
                 const completedOrders = orders.filter(order => order.status === 'completed');
-                const totalRevenue = completedOrders.reduce((total, order) => {
-                    return total + (parseFloat(order.total || 0));
-                }, 0);
+                const totalRevenue = completedOrders.reduce((total, order) => total + (parseFloat(order.total || 0)), 0);
                 document.getElementById("totalRevenue").textContent = `${Math.round(totalRevenue).toLocaleString()} RWF`;
 
-                // Calculate today's revenue
                 const todayStr = today.toISOString().split('T')[0];
-                const todaysOrders = completedOrders.filter(order => {
-                    const orderDate = order.order_date || order.created_at?.split('T')[0];
-                    return orderDate === todayStr;
-                });
-                const todayRevenue = todaysOrders.reduce((total, order) => {
-                    return total + (parseFloat(order.total || 0));
-                }, 0);
+                const todaysOrders = completedOrders.filter(order => (order.order_date || order.created_at?.split('T')[0]) === todayStr);
+                const todayRevenue = todaysOrders.reduce((total, order) => total + (parseFloat(order.total || 0)), 0);
                 document.getElementById("todayRevenue").textContent = `${Math.round(todayRevenue).toLocaleString()} RWF`;
 
-                // Calculate pending orders
                 const pendingOrders = orders.filter(order => order.status === 'pending');
                 document.getElementById("pendingOrders").textContent = pendingOrders.length;
 
-                // Stock movements count (keeping existing functionality)
                 document.getElementById("stockMovements").textContent = stockMovements.length;
 
-                // Update summary sections
                 updateCategoriesSummary(medicines);
                 updateSuppliersSummary(suppliers);
                 updateOrdersSummary(orders);
-
-                // Update recent activity
                 updateRecentActivity(orders, medicines, stockMovements);
 
             } catch (error) {
@@ -828,9 +1228,7 @@
             });
 
             const categoriesContainer = document.getElementById("categoriesSummary");
-            const sortedCategories = Object.entries(categories)
-                .sort((a, b) => b[1] - a[1])
-                .slice(0, 5);
+            const sortedCategories = Object.entries(categories).sort((a, b) => b[1] - a[1]).slice(0, 5);
 
             if (sortedCategories.length === 0) {
                 categoriesContainer.innerHTML = '<p class="text-gray-500">No categories found</p>';
@@ -886,7 +1284,6 @@
             const activityContainer = document.getElementById("recentActivity");
             const activities = [];
 
-            // Add recent orders
             const recentOrders = orders.slice(-3).reverse();
             recentOrders.forEach(order => {
                 activities.push({
@@ -898,7 +1295,6 @@
                 });
             });
 
-            // Add low stock alerts
             const lowStockMedicines = medicines.filter(m => (m.stock || 0) <= 10).slice(0, 3);
             lowStockMedicines.forEach(medicine => {
                 activities.push({
@@ -910,7 +1306,6 @@
                 });
             });
 
-            // Add expiring soon alerts
             const today = new Date();
             const thirtyDaysFromNow = new Date();
             thirtyDaysFromNow.setDate(today.getDate() + 30);
@@ -933,7 +1328,6 @@
                 });
             });
 
-            // Add recent stock movements
             const recentMovements = stockMovements.slice(-2).reverse();
             recentMovements.forEach(movement => {
                 const type = movement.movement_type === 'in' ? 'Stock In' : 'Stock Out';
@@ -952,7 +1346,6 @@
                 return;
             }
 
-            // Sort activities and take the most recent ones
             const recentActivities = activities.slice(0, 8);
 
             activityContainer.innerHTML = recentActivities.map(activity => `
@@ -973,8 +1366,35 @@
             `).join("");
         }
 
-        // Notification function
+        function getCurrentUser() {
+            try {
+                const session = localStorage.getItem('userSession');
+                console.log('Retrieved session from localStorage:', session);
+                
+                if (!session) {
+                    console.log('No session found in localStorage');
+                    return null;
+                }
+                
+                const user = JSON.parse(session);
+                console.log('Parsed user from session:', user);
+                return user;
+            } catch (error) {
+                console.error('Error parsing user session:', error);
+                localStorage.removeItem('userSession');
+                return null;
+            }
+        }
+
+        function isAuthenticated() {
+            const user = getCurrentUser();
+            const isAuth = user !== null;
+            console.log('Authentication check result:', isAuth, user);
+            return isAuth;
+        }
+
         function showNotification(message, type = "info") {
+            console.log('Showing notification:', message, type);
             const notification = document.getElementById("notification");
             notification.textContent = message;
             notification.className = `notification show ${type}`;
@@ -984,80 +1404,5 @@
             }, 3000);
         }
     </script>
-
-    <style>
-        :root {
-            --primary: #3b82f6;
-            --primary-dark: #2563eb;
-        }
-
-        .bg-primary {
-            background-color: var(--primary);
-        }
-
-        .text-primary {
-            color: var(--primary);
-        }
-
-        .hover\\:bg-primary-dark:hover {
-            background-color: var(--primary-dark);
-        }
-
-        .notification {
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            padding: 1rem 1.5rem;
-            border-radius: 0.5rem;
-            color: white;
-            font-weight: 500;
-            transform: translateX(100%);
-            transition: transform 0.3s ease;
-            z-index: 1001;
-        }
-
-        .notification.show {
-            transform: translateX(0);
-        }
-
-        .notification.success {
-            background-color: #10b981;
-        }
-
-        .notification.error {
-            background-color: #ef4444;
-        }
-
-        .notification.info {
-            background-color: #3b82f6;
-        }
-
-        /* Smooth scrolling */
-        html {
-            scroll-behavior: smooth;
-        }
-
-        /* Landing page animations */
-        @keyframes fadeInUp {
-            from {
-                opacity: 0;
-                transform: translateY(30px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
-        .animate-fade-in-up {
-            animation: fadeInUp 0.6s ease-out;
-        }
-
-        /* Hover effects */
-        .hover-lift:hover {
-            transform: translateY(-2px);
-            transition: transform 0.2s ease;
-        }
-    </style>
 </body>
 </html>

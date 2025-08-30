@@ -9,6 +9,31 @@
     <script src="supabase.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
+        :root {
+            --primary: #3b82f6;
+            --primary-dark: #2563eb;
+        }
+
+        .bg-primary {
+            background-color: var(--primary);
+        }
+
+        .text-primary {
+            color: var(--primary);
+        }
+
+        .hover\\:bg-primary-dark:hover {
+            background-color: var(--primary-dark);
+        }
+
+        .border-primary {
+            border-color: var(--primary);
+        }
+
+        .ring-primary {
+            --tw-ring-color: var(--primary);
+        }
+
         .notification {
             position: fixed;
             top: 20px;
@@ -28,133 +53,147 @@
         .notification.info { background-color: #3b82f6; }
     </style>
 </head>
-<body class="bg-gray-50">
-    <!-- Notification Container -->
-    <div id="notificationContainer"></div>
+<body class="bg-gray-100">
+    <div class="flex h-screen bg-gray-100">
+        <!-- Sidebar -->
+        <aside id="sidebar" class="w-64 bg-primary text-white flex-shrink-0 hidden lg:block">
+            <div class="p-6">
+                <a href="index.html?home=true" class="text-2xl font-bold text-white flex items-center">
+                    <i class="fas fa-pills mr-3"></i>
+                    <span>Nyina wa Jambo</span>
+                </a>
+            </div>
+            <nav class="mt-6">
+                <a href="customer-portal.html" class="flex items-center py-3 px-6 bg-green-600 text-white">
+                    <i class="fas fa-user-circle w-6 text-center"></i>
+                    <span class="ml-4">My Portal</span>
+                </a>
+            </nav>
+            <div class="absolute bottom-0 w-full p-6">
+                <button onclick="logout()" class="w-full flex items-center justify-center py-2 px-4 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors">
+                    <i class="fas fa-sign-out-alt mr-2"></i>
+                    <span>Logout</span>
+                </button>
+            </div>
+        </aside>
 
-    <!-- Navigation Header -->
-    <nav class="bg-white shadow-sm border-b border-gray-200">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="flex justify-between h-16">
-                <div class="flex items-center">
-                    <i class="fas fa-pills text-primary text-2xl mr-3"></i>
-                    <h1 class="text-xl font-bold text-primary">Customer Portal</h1>
-                </div>
-                <div class="flex items-center space-x-4">
-                    <span id="welcomeUser" class="text-gray-700"></span>
-                    <button onclick="logout()" class="text-gray-700 hover:text-red-600 px-3 py-2 rounded-md">
-                        <i class="fas fa-sign-out-alt mr-1"></i>Logout
+        <!-- Main content -->
+        <div class="flex-1 flex flex-col overflow-hidden">
+            <!-- Top bar -->
+            <header class="bg-white shadow-sm flex justify-between items-center p-4">
+                <button id="menu-toggle" class="text-gray-700 lg:hidden">
+                    <i class="fas fa-bars text-xl"></i>
+                </button>
+                <h1 class="text-xl font-semibold text-gray-800 hidden lg:block">Customer Portal</h1>
+                <div class="relative">
+                    <button id="userAvatar" class="flex items-center space-x-2">
+                        <img src="" alt="User Avatar" class="w-10 h-10 rounded-full">
+                        <span id="currentUser" class="text-gray-700 font-medium hidden md:block"></span>
                     </button>
+                    <div id="userDropdown" class="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg z-50 hidden">
+                        <div class="py-1">
+                            <div class="px-4 py-2 text-sm text-gray-500 border-b">
+                                <span id="userInfo"></span>
+                            </div>
+                            <a href="index.html?home=true" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                                <i class="fas fa-home mr-2"></i>Home Page
+                            </a>
+                            <button onclick="logout()" class="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                                <i class="fas fa-sign-out-alt mr-2"></i>Logout
+                            </button>
+                        </div>
+                    </div>
                 </div>
-            </div>
-        </div>
-    </nav>
+            </header>
 
-    <!-- Main Content -->
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <!-- Welcome Section -->
-        <div class="bg-white rounded-lg shadow-sm p-6 mb-6">
-            <h2 class="text-2xl font-bold text-gray-900 mb-2">Welcome to Your Customer Portal</h2>
-            <p class="text-gray-600">View your order history and browse available medicines.</p>
-        </div>
+            <!-- Main content area -->
+            <main class="flex-1 overflow-x-hidden overflow-y-auto bg-gray-100 p-6">
+                <div class="container mx-auto">
+                    <!-- Welcome Section -->
+                    <div class="bg-white rounded-lg shadow-sm p-6 mb-6">
+                        <h2 id="welcomeUser" class="text-2xl font-bold text-gray-900 mb-2">Welcome to Your Customer Portal</h2>
+                        <p class="text-gray-600">View your order history and browse available medicines.</p>
+                    </div>
 
-        <!-- Stats Cards -->
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-            <div class="bg-white rounded-lg shadow-sm p-6">
-                <div class="flex items-center">
-                    <div class="p-3 rounded-full bg-blue-100">
-                        <i class="fas fa-shopping-cart text-blue-600 text-xl"></i>
+                    <!-- Stats Cards -->
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                        <div class="bg-white rounded-lg shadow-sm p-6">
+                            <div class="flex items-center">
+                                <div class="p-3 rounded-full bg-blue-100">
+                                    <i class="fas fa-shopping-cart text-blue-600 text-xl"></i>
+                                </div>
+                                <div class="ml-4">
+                                    <p class="text-sm font-medium text-gray-600">Total Orders</p>
+                                    <p id="totalOrders" class="text-2xl font-semibold text-gray-900">0</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="bg-white rounded-lg shadow-sm p-6">
+                            <div class="flex items-center">
+                                <div class="p-3 rounded-full bg-green-100">
+                                    <i class="fas fa-check-circle text-green-600 text-xl"></i>
+                                </div>
+                                <div class="ml-4">
+                                    <p class="text-sm font-medium text-gray-600">Completed Orders</p>
+                                    <p id="completedOrders" class="text-2xl font-semibold text-gray-900">0</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="bg-white rounded-lg shadow-sm p-6">
+                            <div class="flex items-center">
+                                <div class="p-3 rounded-full bg-yellow-100">
+                                    <i class="fas fa-clock text-yellow-600 text-xl"></i>
+                                </div>
+                                <div class="ml-4">
+                                    <p class="text-sm font-medium text-gray-600">Pending Orders</p>
+                                    <p id="pendingOrders" class="text-2xl font-semibold text-gray-900">0</p>
+                                </div>
+                            </div>
+                        </div>
                     </div>
-                    <div class="ml-4">
-                        <p class="text-sm font-medium text-gray-600">Total Orders</p>
-                        <p id="totalOrders" class="text-2xl font-semibold text-gray-900">0</p>
-                    </div>
-                </div>
-            </div>
-            <div class="bg-white rounded-lg shadow-sm p-6">
-                <div class="flex items-center">
-                    <div class="p-3 rounded-full bg-green-100">
-                        <i class="fas fa-check-circle text-green-600 text-xl"></i>
-                    </div>
-                    <div class="ml-4">
-                        <p class="text-sm font-medium text-gray-600">Completed Orders</p>
-                        <p id="completedOrders" class="text-2xl font-semibold text-gray-900">0</p>
-                    </div>
-                </div>
-            </div>
-            <div class="bg-white rounded-lg shadow-sm p-6">
-                <div class="flex items-center">
-                    <div class="p-3 rounded-full bg-yellow-100">
-                        <i class="fas fa-clock text-yellow-600 text-xl"></i>
-                    </div>
-                    <div class="ml-4">
-                        <p class="text-sm font-medium text-gray-600">Pending Orders</p>
-                        <p id="pendingOrders" class="text-2xl font-semibold text-gray-900">0</p>
-                    </div>
-                </div>
-            </div>
-        </div>
 
-        <!-- Two Column Layout -->
-        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
-            <!-- Order History -->
-            <div class="bg-white rounded-lg shadow-sm">
-                <div class="p-6 border-b border-gray-200">
-                    <h3 class="text-lg font-semibold text-gray-900">Your Order History</h3>
-                </div>
-                <div class="p-6">
-                    <div id="orderHistory" class="space-y-4">
-                        <!-- Orders will be loaded here -->
-                    </div>
-                </div>
-            </div>
+                    <!-- Two Column Layout -->
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                        <!-- Order History -->
+                        <div class="bg-white rounded-lg shadow-sm">
+                            <div class="p-6 border-b border-gray-200">
+                                <h3 class="text-lg font-semibold text-gray-900">Your Order History</h3>
+                            </div>
+                            <div class="p-6">
+                                <div id="orderHistory" class="space-y-4">
+                                    <!-- Orders will be loaded here -->
+                                </div>
+                            </div>
+                        </div>
 
-            <!-- Available Medicines -->
-            <div class="bg-white rounded-lg shadow-sm">
-                <div class="p-6 border-b border-gray-200">
-                    <h3 class="text-lg font-semibold text-gray-900">Available Medicines</h3>
-                    <div class="mt-4">
-                        <input
-                            type="text"
-                            id="medicineSearch"
-                            placeholder="Search medicines..."
-                            class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-primary focus:border-primary"
-                        />
+                        <!-- Available Medicines -->
+                        <div class="bg-white rounded-lg shadow-sm">
+                            <div class="p-6 border-b border-gray-200">
+                                <h3 class="text-lg font-semibold text-gray-900">Available Medicines</h3>
+                                <div class="mt-4">
+                                    <input type="text" id="medicineSearch" placeholder="Search medicines..." class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-primary focus:border-primary" />
+                                </div>
+                            </div>
+                            <div class="p-6">
+                                <div id="medicinesList" class="space-y-4">
+                                    <!-- Medicines will be loaded here -->
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
-                <div class="p-6">
-                    <div id="medicinesList" class="space-y-4">
-                        <!-- Medicines will be loaded here -->
-                    </div>
-                </div>
-            </div>
+            </main>
         </div>
     </div>
 
-    <script>
-        // Notification system
-        function showNotification(message, type = 'info') {
-            const container = document.getElementById('notificationContainer');
-            const notification = document.createElement('div');
-            notification.className = `notification ${type}`;
-            notification.innerHTML = `
-                <span>${message}</span>
-                <button onclick="this.parentElement.remove()" class="ml-3">
-                    <i class="fas fa-times"></i>
-                </button>
-            `;
-            
-            container.appendChild(notification);
-            setTimeout(() => notification.classList.add('show'), 100);
-            setTimeout(() => {
-                notification.classList.remove('show');
-                setTimeout(() => notification.remove(), 300);
-            }, 5000);
-        }
+    <!-- Notification -->
+    <div id="notification" class="notification"></div>
 
-        // Initialize page
+    <script>
+        let customerOrders = [];
+        let availableMedicines = [];
+
         document.addEventListener('DOMContentLoaded', async function() {
-            // Check if user is authenticated and is a customer
             if (!isAuthenticated()) {
                 window.location.href = 'login.html';
                 return;
@@ -165,7 +204,7 @@
                 showNotification('Access denied. Customer portal only.', 'error');
                 setTimeout(() => {
                     if (user.role === 'admin' || user.role === 'receptionist') {
-                        window.location.href = 'index.html';
+                        window.location.href = 'index.html?dashboard=true';
                     } else {
                         logout();
                     }
@@ -173,85 +212,103 @@
                 return;
             }
 
-            // Display welcome message
+            updateNavigation();
+            setupEventListeners();
+            
             document.getElementById('welcomeUser').textContent = `Welcome, ${user.fullName}`;
-
-            // Load customer data
             await loadCustomerData();
-
-            // Setup search functionality
             document.getElementById('medicineSearch').addEventListener('input', filterMedicines);
         });
 
-        let customerOrders = [];
-        let availableMedicines = [];
+        function updateNavigation() {
+            const user = getCurrentUser();
+            if (user) {
+                document.getElementById('currentUser').textContent = `${user.fullName}`;
+                document.getElementById('userInfo').textContent = `${user.fullName} (${user.role})`;
+                document.getElementById('userAvatar').src = `https://ui-avatars.com/api/?name=${encodeURIComponent(user.fullName)}&background=16a34a&color=fff&bold=true`;
+            }
+        }
+
+        function setupEventListeners() {
+            // Sidebar toggle
+            const menuToggle = document.getElementById('menu-toggle');
+            const sidebar = document.getElementById('sidebar');
+            menuToggle.addEventListener('click', (e) => {
+                e.stopPropagation();
+                sidebar.classList.toggle('hidden');
+            });
+
+            // User dropdown
+            const userAvatar = document.getElementById('userAvatar');
+            const userDropdown = document.getElementById('userDropdown');
+            userAvatar.addEventListener('click', (e) => {
+                e.stopPropagation();
+                userDropdown.classList.toggle('hidden');
+            });
+
+            // Close dropdown/sidebar when clicking outside
+            document.addEventListener('click', function(e) {
+                if (!sidebar.classList.contains('hidden') && !sidebar.contains(e.target) && !menuToggle.contains(e.target)) {
+                    sidebar.classList.add('hidden');
+                }
+                if (!userDropdown.classList.contains('hidden') && !userAvatar.contains(e.target)) {
+                    userDropdown.classList.add('hidden');
+                }
+            });
+        }
 
         async function loadCustomerData() {
             try {
                 const user = getCurrentUser();
-                
-                // Find customer record linked to this user
-                const { data: customer } = await supabase
+                const { data: customer, error: customerError } = await supabase
                     .from('customers')
-                    .select('*')
+                    .select('customer_id, name')
                     .eq('email', user.email)
                     .single();
 
-                if (customer) {
-                    // Load customer's orders
-                    customerOrders = await fetchCustomerOrders(customer.customer_id);
-                    displayOrderHistory(customerOrders);
-                    updateOrderStats(customerOrders);
+                if (customerError || !customer) {
+                    showNotification('Could not find your customer profile.', 'error');
+                    return;
                 }
 
-                // Load available medicines
+                customerOrders = await fetchCustomerOrders(customer.name);
+                displayOrderHistory(customerOrders);
+                updateOrderStats(customerOrders);
+
                 availableMedicines = await fetchMedicines();
                 displayMedicines(availableMedicines);
 
             } catch (error) {
-                console.error('Error loading customer data:', error);
-                showNotification('Error loading data. Please try again.', 'error');
+                showNotification('Error loading your data.', 'error');
             }
         }
 
         async function fetchCustomerOrders(customerName) {
-            try {
-                const { data, error } = await supabase
-                    .from('orders')
-                    .select('*')
-                    .eq('customer_name', customerName)
-                    .order('created_at', { ascending: false });
+            const { data, error } = await supabase
+                .from('orders')
+                .select('*')
+                .eq('customer_name', customerName)
+                .order('created_at', { ascending: false });
 
-                if (error) {
-                    console.error('Error fetching orders:', error);
-                    return [];
-                }
-
-                return data || [];
-            } catch (error) {
-                console.error('Error fetching orders:', error);
+            if (error) {
+                showNotification('Error fetching your orders.', 'error');
                 return [];
             }
+            return data || [];
         }
 
         function updateOrderStats(orders) {
-            const total = orders.length;
-            const completed = orders.filter(o => o.status === 'completed').length;
-            const pending = orders.filter(o => o.status === 'pending').length;
-
-            document.getElementById('totalOrders').textContent = total;
-            document.getElementById('completedOrders').textContent = completed;
-            document.getElementById('pendingOrders').textContent = pending;
+            document.getElementById('totalOrders').textContent = orders.length;
+            document.getElementById('completedOrders').textContent = orders.filter(o => o.status === 'completed').length;
+            document.getElementById('pendingOrders').textContent = orders.filter(o => o.status === 'pending').length;
         }
 
         function displayOrderHistory(orders) {
             const container = document.getElementById('orderHistory');
-            
             if (orders.length === 0) {
                 container.innerHTML = '<p class="text-gray-500 text-center">No orders found.</p>';
                 return;
             }
-
             container.innerHTML = orders.map(order => {
                 const statusColor = {
                     'pending': 'bg-yellow-100 text-yellow-800',
@@ -277,19 +334,16 @@
                             <div>Date: ${order.order_date}</div>
                             <div>Unit Price: ${Math.round(order.unit_price || 0).toLocaleString()} RWF</div>
                         </div>
-                    </div>
-                `;
+                    </div>`;
             }).join('');
         }
 
         function displayMedicines(medicines) {
             const container = document.getElementById('medicinesList');
-            
             if (medicines.length === 0) {
                 container.innerHTML = '<p class="text-gray-500 text-center">No medicines found.</p>';
                 return;
             }
-
             container.innerHTML = medicines.map(medicine => `
                 <div class="border border-gray-200 rounded-lg p-4">
                     <div class="flex justify-between items-start mb-2">
@@ -309,19 +363,43 @@
                         <span>Supplier: ${medicine.supplier || 'N/A'}</span>
                         ${medicine.sale_on ? `<span class="px-2 py-1 rounded ${medicine.sale_on === 'Private' ? 'bg-blue-100 text-blue-800' : 'bg-purple-100 text-purple-800'}">${medicine.sale_on}</span>` : ''}
                     </div>
-                </div>
-            `).join('');
+                </div>`).join('');
         }
 
         function filterMedicines() {
             const searchTerm = document.getElementById('medicineSearch').value.toLowerCase();
-            const filtered = availableMedicines.filter(medicine => 
+            const filtered = availableMedicines.filter(medicine =>
                 medicine.name.toLowerCase().includes(searchTerm) ||
                 (medicine.category && medicine.category.toLowerCase().includes(searchTerm)) ||
                 (medicine.description && medicine.description.toLowerCase().includes(searchTerm))
             );
             displayMedicines(filtered);
         }
+
+        function showNotification(message, type = "info") {
+            const notification = document.getElementById("notification");
+            notification.textContent = message;
+            notification.className = `notification show ${type}`;
+            setTimeout(() => notification.classList.remove("show"), 3000);
+        }
     </script>
+
+    <style>
+        :root {
+            --primary: #16a34a; /* Green-600 */
+        }
+        .bg-primary { background-color: var(--primary); }
+        .text-primary { color: var(--primary); }
+        .border-primary { border-color: var(--primary); }
+        .ring-primary { --tw-ring-color: var(--primary); }
+        .hover\:bg-green-600:hover { background-color: #15803d; } /* Green-700 */
+
+        .notification { position: fixed; top: 20px; right: 20px; padding: 1rem 1.5rem; border-radius: 0.5rem; color: white; font-weight: 500; transform: translateX(120%); opacity: 0; transition: transform 0.3s ease, opacity 0.3s ease; z-index: 1001; }
+        .notification.show { transform: translateX(0); opacity: 1; }
+        .notification.success { background-color: #10b981; }
+        .notification.warning { background-color: #f59e0b; }
+        .notification.error { background-color: #ef4444; }
+        .notification.info { background-color: #3b82f6; }
+    </style>
 </body>
 </html>

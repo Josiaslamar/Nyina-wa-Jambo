@@ -27,10 +27,139 @@
       .animate-pulse-slow { animation: pulse 3s infinite; }
     </style>
   </head>
-  <body class="bg-gray-50">
-    <!-- Dashboard -->
-    <div id="dashboardPage" class="min-h-screen bg-gray-50">
-      <!-- ...existing dashboard HTML and scripts from your index.html... -->
+  <body class="bg-gray-100">
+    <div class="flex h-screen bg-gray-100">
+        <!-- Sidebar -->
+        <aside id="sidebar" class="w-64 bg-primary text-white flex-shrink-0 hidden lg:block">
+            <div class="p-6">
+                <a href="index.html?home=true" class="text-2xl font-bold text-white flex items-center">
+                    <i class="fas fa-pills mr-3"></i>
+                    <span>Nyina wa Jambo</span>
+                </a>
+            </div>
+            <nav class="mt-6">
+                <a href="index.html?dashboard=true" class="flex items-center py-3 px-6 bg-green-600 text-white">
+                    <i class="fas fa-tachometer-alt w-6 text-center"></i>
+                    <span class="ml-4">Dashboard</span>
+                </a>
+                <a href="medicines.html" class="flex items-center py-3 px-6 text-gray-300 hover:bg-green-600 hover:text-white transition-colors receptionist-only">
+                    <i class="fas fa-capsules w-6 text-center"></i>
+                    <span class="ml-4">Medicines</span>
+                </a>
+                <a href="suppliers.html" class="flex items-center py-3 px-6 text-gray-300 hover:bg-green-600 hover:text-white transition-colors admin-only">
+                    <i class="fas fa-truck w-6 text-center"></i>
+                    <span class="ml-4">Suppliers</span>
+                </a>
+                <a href="customers.html" class="flex items-center py-3 px-6 text-gray-300 hover:bg-green-600 hover:text-white transition-colors receptionist-only">
+                    <i class="fas fa-users w-6 text-center"></i>
+                    <span class="ml-4">Customers</span>
+                </a>
+                <a href="orders.html" class="flex items-center py-3 px-6 text-gray-300 hover:bg-green-600 hover:text-white transition-colors receptionist-only">
+                    <i class="fas fa-shopping-cart w-6 text-center"></i>
+                    <span class="ml-4">Orders</span>
+                </a>
+                <a href="reports.html" class="flex items-center py-3 px-6 text-gray-300 hover:bg-green-600 hover:text-white transition-colors admin-only">
+                    <i class="fas fa-chart-line w-6 text-center"></i>
+                    <span class="ml-4">Reports</span>
+                </a>
+            </nav>
+            <div class="absolute bottom-0 w-full p-6">
+                <button onclick="logout()" class="w-full flex items-center justify-center py-2 px-4 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors">
+                    <i class="fas fa-sign-out-alt mr-2"></i>
+                    <span>Logout</span>
+                </button>
+            </div>
+        </aside>
+
+        <!-- Main content -->
+        <div class="flex-1 flex flex-col overflow-hidden">
+            <!-- Top bar -->
+            <header class="bg-white shadow-sm flex justify-between items-center p-4">
+                <button id="menu-toggle" class="text-gray-700 lg:hidden">
+                    <i class="fas fa-bars text-xl"></i>
+                </button>
+                <h1 class="text-xl font-semibold text-gray-800 hidden lg:block">Dashboard</h1>
+                <div class="relative">
+                    <button id="userAvatar" class="flex items-center space-x-2">
+                        <img src="" alt="User Avatar" class="w-10 h-10 rounded-full">
+                        <span id="currentUser" class="text-gray-700 font-medium hidden md:block"></span>
+                    </button>
+                    <div id="userDropdown" class="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg z-50 hidden">
+                        <div class="py-1">
+                            <div class="px-4 py-2 text-sm text-gray-500 border-b">
+                                <span id="userInfo"></span>
+                            </div>
+                             <a href="index.html?home=true" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                                <i class="fas fa-home mr-2"></i>Home Page
+                            </a>
+                            <button onclick="logout()" class="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                                <i class="fas fa-sign-out-alt mr-2"></i>Logout
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </header>
+
+            <!-- Main content area -->
+            <main class="flex-1 overflow-x-hidden overflow-y-auto bg-gray-100 p-6">
+                <div id="dashboardPage" class="min-h-screen bg-gray-50">
+                  <!-- ...existing dashboard HTML and scripts from your index.html... -->
+                </div>
+            </main>
+        </div>
     </div>
-  </body>
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            if (!isAuthenticated()) {
+                window.location.href = 'login.html';
+                return;
+            }
+            updateNavigation();
+            setupEventListeners();
+        });
+
+        function updateNavigation() {
+            const user = getCurrentUser();
+            if (user) {
+                document.getElementById('currentUser').textContent = `${user.fullName}`;
+                document.getElementById('userInfo').textContent = `${user.fullName} (${user.role})`;
+                document.getElementById('userAvatar').src = `https://ui-avatars.com/api/?name=${encodeURIComponent(user.fullName)}&background=16a34a&color=fff&bold=true`;
+
+                const adminElements = document.querySelectorAll('.admin-only');
+                adminElements.forEach(el => el.style.display = (user.role === 'admin') ? 'flex' : 'none');
+                
+                const receptionistElements = document.querySelectorAll('.receptionist-only');
+                receptionistElements.forEach(el => el.style.display = (user.role === 'receptionist' || user.role === 'admin') ? 'flex' : 'none');
+            }
+        }
+
+        function setupEventListeners() {
+            // Sidebar toggle
+            const menuToggle = document.getElementById('menu-toggle');
+            const sidebar = document.getElementById('sidebar');
+            menuToggle.addEventListener('click', (e) => {
+                e.stopPropagation();
+                sidebar.classList.toggle('hidden');
+            });
+
+            // User dropdown
+            const userAvatar = document.getElementById('userAvatar');
+            const userDropdown = document.getElementById('userDropdown');
+            userAvatar.addEventListener('click', (e) => {
+                e.stopPropagation();
+                userDropdown.classList.toggle('hidden');
+            });
+
+            // Close dropdown/sidebar when clicking outside
+            document.addEventListener('click', function(e) {
+                if (!sidebar.classList.contains('hidden') && !sidebar.contains(e.target) && !menuToggle.contains(e.target)) {
+                    sidebar.classList.add('hidden');
+                }
+                if (!userDropdown.classList.contains('hidden') && !userAvatar.contains(e.target)) {
+                    userDropdown.classList.add('hidden');
+                }
+            });
+        }
+    </script>
+</body>
 </html>

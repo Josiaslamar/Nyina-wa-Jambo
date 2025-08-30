@@ -9,108 +9,143 @@
     <script src="supabase.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 </head>
-<body class="bg-gray-50">
-    <!-- Navigation Header -->
-    <nav class="bg-white shadow-sm border-b border-gray-200">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="flex justify-between h-16">
-                <div class="flex items-center">
-                    <a href="index.html" class="text-xl font-bold text-primary">
-                        <i class="fas fa-pills mr-2"></i>Nyina wa Jambo Pharmacy
-                    </a>
-                </div>
-                <div class="flex items-center space-x-4">
-                    <a href="index.html" class="text-gray-700 hover:text-primary px-3 py-2 rounded-md">
-                        <i class="fas fa-home mr-1"></i>Dashboard
-                    </a>
-                    <a href="medicines.html" class="text-gray-700 hover:text-primary px-3 py-2 rounded-md">
-                        <i class="fas fa-pills mr-1"></i>Medicines
-                    </a>
-                    <a href="suppliers.html" class="text-gray-700 hover:text-primary px-3 py-2 rounded-md">
-                        <i class="fas fa-truck mr-1"></i>Suppliers
-                    </a>
-                    <a href="customers.html" class="text-gray-700 hover:text-primary px-3 py-2 rounded-md">
-                        <i class="fas fa-users mr-1"></i>Customers
-                    </a>
-                    <a href="orders.html" class="bg-primary text-white px-3 py-2 rounded-md">
-                        <i class="fas fa-shopping-cart mr-1"></i>Orders
-                    </a>
-                    <a href="reports.html" class="text-gray-700 hover:text-primary px-3 py-2 rounded-md">
-                        <i class="fas fa-chart-bar mr-1"></i>Reports
-                    </a>
-                </div>
+<body class="bg-gray-100">
+    <div class="flex h-screen bg-gray-100">
+        <!-- Sidebar -->
+        <aside id="sidebar" class="w-64 bg-primary text-white flex-shrink-0 hidden lg:block">
+            <div class="p-6">
+                <a href="index.html?home=true" class="text-2xl font-bold text-white flex items-center">
+                    <i class="fas fa-pills mr-3"></i>
+                    <span>Nyina wa Jambo</span>
+                </a>
             </div>
-        </div>
-    </nav>
-
-    <!-- Main Content -->
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <!-- Page Header -->
-        <div class="mb-8">
-            <div class="flex justify-between items-center">
-                <div>
-                    <h1 class="text-3xl font-bold text-gray-900">Orders Management</h1>
-                    <p class="text-gray-600 mt-2">Manage pharmacy orders and transactions</p>
-                </div>
-                <button id="addOrderBtn" class="bg-primary text-white px-6 py-3 rounded-lg hover:bg-primary-dark transition-colors">
-                    <i class="fas fa-plus mr-2"></i>New Order
+            <nav class="mt-6">
+                <a href="index.html?dashboard=true" class="flex items-center py-3 px-6 text-gray-300 hover:bg-green-600 hover:text-white transition-colors">
+                    <i class="fas fa-tachometer-alt w-6 text-center"></i>
+                    <span class="ml-4">Dashboard</span>
+                </a>
+                <a href="medicines.html" class="flex items-center py-3 px-6 text-gray-300 hover:bg-green-600 hover:text-white transition-colors receptionist-only">
+                    <i class="fas fa-capsules w-6 text-center"></i>
+                    <span class="ml-4">Medicines</span>
+                </a>
+                <a href="suppliers.html" class="flex items-center py-3 px-6 text-gray-300 hover:bg-green-600 hover:text-white transition-colors admin-only">
+                    <i class="fas fa-truck w-6 text-center"></i>
+                    <span class="ml-4">Suppliers</span>
+                </a>
+                <a href="customers.html" class="flex items-center py-3 px-6 text-gray-300 hover:bg-green-600 hover:text-white transition-colors receptionist-only">
+                    <i class="fas fa-users w-6 text-center"></i>
+                    <span class="ml-4">Customers</span>
+                </a>
+                <a href="orders.html" class="flex items-center py-3 px-6 bg-green-600 text-white receptionist-only">
+                    <i class="fas fa-shopping-cart w-6 text-center"></i>
+                    <span class="ml-4">Orders</span>
+                </a>
+                <a href="reports.html" class="flex items-center py-3 px-6 text-gray-300 hover:bg-green-600 hover:text-white transition-colors admin-only">
+                    <i class="fas fa-chart-line w-6 text-center"></i>
+                    <span class="ml-4">Reports</span>
+                </a>
+            </nav>
+            <div class="absolute bottom-0 w-full p-6">
+                <button onclick="logout()" class="w-full flex items-center justify-center py-2 px-4 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors">
+                    <i class="fas fa-sign-out-alt mr-2"></i>
+                    <span>Logout</span>
                 </button>
             </div>
-        </div>
+        </aside>
 
-        <!-- Filters -->
-        <div class="bg-white rounded-lg shadow-sm p-6 mb-6">
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-2">Search Orders</label>
-                    <input
-                        type="text"
-                        id="orderSearch"
-                        placeholder="Search by customer name..."
-                        class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-primary focus:border-primary"
-                    />
-                </div>
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-2">Filter by Status</label>
-                    <select
-                        id="statusFilter"
-                        class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-primary focus:border-primary"
-                    >
-                        <option value="">All Statuses</option>
-                        <option value="pending">Pending</option>
-                        <option value="processing">Processing</option>
-                        <option value="completed">Completed</option>
-                        <option value="cancelled">Cancelled</option>
-                    </select>
-                </div>
-                <div class="flex items-end">
-                    <button id="exportBtn" class="bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700 transition-colors">
-                        <i class="fas fa-download mr-2"></i>Export to Excel
+        <!-- Main content -->
+        <div class="flex-1 flex flex-col overflow-hidden">
+            <!-- Top bar -->
+            <header class="bg-white shadow-sm flex justify-between items-center p-4">
+                <button id="menu-toggle" class="text-gray-700 lg:hidden">
+                    <i class="fas fa-bars text-xl"></i>
+                </button>
+                <h1 class="text-xl font-semibold text-gray-800 hidden lg:block">Orders Management</h1>
+                <div class="relative">
+                    <button id="userAvatar" class="flex items-center space-x-2">
+                        <img src="" alt="User Avatar" class="w-10 h-10 rounded-full">
+                        <span id="currentUser" class="text-gray-700 font-medium hidden md:block"></span>
                     </button>
+                    <div id="userDropdown" class="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg z-50 hidden">
+                        <div class="py-1">
+                            <div class="px-4 py-2 text-sm text-gray-500 border-b">
+                                <span id="userInfo"></span>
+                            </div>
+                             <a href="index.html?home=true" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                                <i class="fas fa-home mr-2"></i>Home Page
+                            </a>
+                            <button onclick="logout()" class="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                                <i class="fas fa-sign-out-alt mr-2"></i>Logout
+                            </button>
+                        </div>
+                    </div>
                 </div>
-            </div>
-        </div>
+            </header>
 
-        <!-- Orders Table -->
-        <div class="bg-white rounded-lg shadow-sm overflow-hidden">
-            <div class="overflow-x-auto">
-                <table class="min-w-full divide-y divide-gray-200">
-                    <thead class="bg-gray-50">
-                        <tr>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Order ID</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Customer</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Total</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Items</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody id="ordersTable" class="bg-white divide-y divide-gray-200">
-                        <!-- Table content will be loaded here -->
-                    </tbody>
-                </table>
-            </div>
+            <!-- Main content area -->
+            <main class="flex-1 overflow-x-hidden overflow-y-auto bg-gray-100 p-6">
+                <div class="container mx-auto">
+                    <!-- Page Header -->
+                    <div class="mb-8">
+                        <div class="flex justify-between items-center">
+                            <div>
+                                <h1 class="text-3xl font-bold text-gray-900">Orders Management</h1>
+                                <p class="text-gray-600 mt-2">Manage pharmacy orders and transactions</p>
+                            </div>
+                            <button id="addOrderBtn" class="bg-primary text-white px-6 py-3 rounded-lg hover:bg-green-600 transition-colors shadow-md">
+                                <i class="fas fa-plus mr-2"></i>New Order
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Filters -->
+                    <div class="bg-white rounded-lg shadow-sm p-6 mb-6">
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Search Orders</label>
+                                <input type="text" id="orderSearch" placeholder="Search by customer name..." class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-primary focus:border-primary" />
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Filter by Status</label>
+                                <select id="statusFilter" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-primary focus:border-primary">
+                                    <option value="">All Statuses</option>
+                                    <option value="pending">Pending</option>
+                                    <option value="processing">Processing</option>
+                                    <option value="completed">Completed</option>
+                                    <option value="cancelled">Cancelled</option>
+                                </select>
+                            </div>
+                            <div class="flex items-end">
+                                <button id="exportBtn" class="bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700 transition-colors">
+                                    <i class="fas fa-download mr-2"></i>Export to Excel
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Orders Table -->
+                    <div class="bg-white rounded-lg shadow-sm overflow-hidden">
+                        <div class="overflow-x-auto">
+                            <table class="min-w-full divide-y divide-gray-200">
+                                <thead class="bg-gray-50">
+                                    <tr>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Order ID</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Customer</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Total</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Items</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="ordersTable" class="bg-white divide-y divide-gray-200">
+                                    <!-- Table content will be loaded here -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </main>
         </div>
     </div>
 
@@ -127,21 +162,13 @@
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-2">Customer</label>
-                        <select
-                            id="orderCustomer"
-                            required
-                            class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-primary focus:border-primary"
-                        >
+                        <select id="orderCustomer" required class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-primary focus:border-primary">
                             <option value="">Select Customer</option>
                         </select>
                     </div>
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-2">Status</label>
-                        <select
-                            id="orderStatus"
-                            required
-                            class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-primary focus:border-primary"
-                        >
+                        <select id="orderStatus" required class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-primary focus:border-primary">
                             <option value="pending">Pending</option>
                             <option value="processing">Processing</option>
                             <option value="completed">Completed</option>
@@ -169,7 +196,7 @@
                     <button type="button" id="cancelOrder" class="px-4 py-2 text-gray-600 hover:text-gray-800">
                         Cancel
                     </button>
-                    <button type="submit" class="bg-primary text-white px-6 py-2 rounded-md hover:bg-primary-dark">
+                    <button type="submit" class="bg-primary text-white px-6 py-2 rounded-md hover:bg-green-600">
                         Create Order
                     </button>
                 </div>
@@ -185,40 +212,84 @@
         let availableCustomers = [];
         let orderItems = [];
 
-        // Auto-fetch data when page loads
         document.addEventListener("DOMContentLoaded", function () {
+            if (!isAuthenticated()) {
+                window.location.href = 'login.html';
+                return;
+            }
+
+            const user = getCurrentUser();
+            if (!user || (user.role !== 'admin' && user.role !== 'receptionist')) {
+                showNotification('Access denied. Admin or receptionist privileges required.', 'error');
+                setTimeout(() => logout(), 2000);
+                return;
+            }
+
+            updateNavigation();
             renderOrders();
             loadCustomers();
             loadMedicines();
             setupEventListeners();
         });
 
-        // Event Listeners
-        function setupEventListeners() {
-            // Search and filter
-            document.getElementById("orderSearch").addEventListener("input", renderOrders);
-            document.getElementById("statusFilter").addEventListener("change", renderOrders);
+        function updateNavigation() {
+            const user = getCurrentUser();
+            if (user) {
+                document.getElementById('currentUser').textContent = `${user.fullName}`;
+                document.getElementById('userInfo').textContent = `${user.fullName} (${user.role})`;
+                document.getElementById('userAvatar').src = `https://ui-avatars.com/api/?name=${encodeURIComponent(user.fullName)}&background=16a34a&color=fff&bold=true`;
 
-            // Modal events
-            document.getElementById("addOrderBtn").addEventListener("click", openOrderModal);
-            document.getElementById("closeOrderModal").addEventListener("click", closeOrderModal);
-            document.getElementById("cancelOrder").addEventListener("click", closeOrderModal);
-            document.getElementById("orderForm").addEventListener("submit", saveOrder);
-            document.getElementById("addMedicineItem").addEventListener("click", addMedicineItem);
-
-            // Export functionality
-            document.getElementById("exportBtn").addEventListener("click", exportToExcel);
+                const adminElements = document.querySelectorAll('.admin-only');
+                adminElements.forEach(el => el.style.display = (user.role === 'admin') ? 'flex' : 'none');
+                
+                const receptionistElements = document.querySelectorAll('.receptionist-only');
+                receptionistElements.forEach(el => el.style.display = (user.role === 'receptionist' || user.role === 'admin') ? 'flex' : 'none');
+            }
         }
 
-        // Load data
+        function setupEventListeners() {
+            document.getElementById('orderSearch').addEventListener('input', renderOrders);
+            document.getElementById('statusFilter').addEventListener('change', renderOrders);
+            document.getElementById('addOrderBtn').addEventListener('click', openOrderModal);
+            document.getElementById('closeOrderModal').addEventListener('click', closeOrderModal);
+            document.getElementById('cancelOrder').addEventListener('click', closeOrderModal);
+            document.getElementById('orderForm').addEventListener('submit', saveOrder);
+            document.getElementById('addMedicineItem').addEventListener('click', addMedicineItem);
+            document.getElementById('exportBtn').addEventListener('click', exportToExcel);
+
+            // Sidebar toggle
+            const menuToggle = document.getElementById('menu-toggle');
+            const sidebar = document.getElementById('sidebar');
+            menuToggle.addEventListener('click', (e) => {
+                e.stopPropagation();
+                sidebar.classList.toggle('hidden');
+            });
+
+            // User dropdown
+            const userAvatar = document.getElementById('userAvatar');
+            const userDropdown = document.getElementById('userDropdown');
+            userAvatar.addEventListener('click', (e) => {
+                e.stopPropagation();
+                userDropdown.classList.toggle('hidden');
+            });
+
+            // Close dropdown/sidebar when clicking outside
+            document.addEventListener('click', function(e) {
+                if (!sidebar.classList.contains('hidden') && !sidebar.contains(e.target) && !menuToggle.contains(e.target)) {
+                    sidebar.classList.add('hidden');
+                }
+                if (!userDropdown.classList.contains('hidden') && !userAvatar.contains(e.target)) {
+                    userDropdown.classList.add('hidden');
+                }
+            });
+        }
+
         async function loadCustomers() {
             try {
                 availableCustomers = await fetchCustomers();
                 const customerSelect = document.getElementById("orderCustomer");
                 customerSelect.innerHTML = '<option value="">Select Customer</option>' +
-                    availableCustomers.map(customer => 
-                        `<option value="${customer.id}">${customer.name}</option>`
-                    ).join("");
+                    availableCustomers.map(customer => `<option value="${customer.id}">${customer.name}</option>`).join("");
             } catch (error) {
                 console.error('Error loading customers:', error);
             }
@@ -232,21 +303,16 @@
             }
         }
 
-        // Render orders table
         async function renderOrders() {
             const tbody = document.getElementById("ordersTable");
-            if (!tbody) return;
+            const searchTerm = document.getElementById("orderSearch").value.toLowerCase();
+            const statusFilter = document.getElementById("statusFilter").value;
 
-            const searchTerm = document.getElementById("orderSearch")?.value.toLowerCase() || "";
-            const statusFilter = document.getElementById("statusFilter")?.value || "";
-
-            // Show loading state
             tbody.innerHTML = '<tr><td colspan="7" class="px-6 py-4 text-center text-gray-500">Loading orders...</td></tr>';
 
             try {
                 const orders = await fetchOrders();
-                
-                let filteredOrders = orders.filter((order) => {
+                let filteredOrders = orders.filter(order => {
                     const customerName = order.customer_name || '';
                     const matchesSearch = customerName.toLowerCase().includes(searchTerm);
                     const matchesStatus = !statusFilter || order.status === statusFilter;
@@ -258,7 +324,7 @@
                     return;
                 }
 
-                tbody.innerHTML = filteredOrders.map((order) => {
+                tbody.innerHTML = filteredOrders.map(order => {
                     const statusClass = {
                         'pending': 'bg-yellow-100 text-yellow-800',
                         'processing': 'bg-blue-100 text-blue-800',
@@ -266,59 +332,40 @@
                         'cancelled': 'bg-red-100 text-red-800'
                     }[order.status] || 'bg-gray-100 text-gray-800';
 
-                    // Calculate item count - for now assume 1 item per order
                     const itemCount = order.quantity || 1;
 
                     return `
                         <tr class="hover:bg-gray-50">
-                            <td class="px-6 py-4 whitespace-nowrap font-medium text-gray-900">
-                                #${order.id}
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap text-gray-900">
-                                ${order.customer_name || 'N/A'}
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap text-gray-900">
-                                ${order.order_date || 'N/A'}
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap text-gray-900">
-                                ${Math.round(order.total || 0).toLocaleString()} RWF
-                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap font-medium text-gray-900">#${order.id}</td>
+                            <td class="px-6 py-4 whitespace-nowrap text-gray-900">${order.customer_name || 'N/A'}</td>
+                            <td class="px-6 py-4 whitespace-nowrap text-gray-900">${order.order_date ? new Date(order.order_date).toLocaleDateString() : 'N/A'}</td>
+                            <td class="px-6 py-4 whitespace-nowrap text-gray-900">${Math.round(order.total || 0).toLocaleString()} RWF</td>
                             <td class="px-6 py-4 whitespace-nowrap">
                                 <span class="px-2 py-1 text-xs font-semibold rounded-full ${statusClass}">
                                     ${order.status.charAt(0).toUpperCase() + order.status.slice(1)}
                                 </span>
                             </td>
-                            <td class="px-6 py-4 whitespace-nowrap text-gray-900">
-                                ${itemCount} item${itemCount !== 1 ? 's' : ''}
-                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-gray-900">${itemCount} item${itemCount !== 1 ? 's' : ''}</td>
                             <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                                <button onclick="viewOrder(${order.id})" class="text-indigo-600 hover:text-indigo-900 mr-3">
-                                    <i class="fas fa-eye"></i>
-                                </button>
-                                <button onclick="deleteOrderLocal(${order.id})" class="text-red-600 hover:text-red-900">
-                                    <i class="fas fa-trash"></i>
-                                </button>
+                                <button onclick="viewOrder(${order.id})" class="text-indigo-600 hover:text-indigo-900 mr-3"><i class="fas fa-eye"></i></button>
+                                <button onclick="deleteOrderLocal(${order.id})" class="text-red-600 hover:text-red-900"><i class="fas fa-trash"></i></button>
                             </td>
                         </tr>
                     `;
                 }).join("");
-
             } catch (error) {
                 console.error('Error loading orders:', error);
                 tbody.innerHTML = '<tr><td colspan="7" class="px-6 py-4 text-center text-red-500">Error loading orders. Please try again.</td></tr>';
             }
         }
 
-        // Modal functions
         function openOrderModal() {
             const modal = document.getElementById("orderModal");
             const form = document.getElementById("orderForm");
-            
             form.reset();
             orderItems = [];
             updateOrderMedicines();
             updateOrderTotal();
-            
             modal.classList.add("show");
         }
 
@@ -329,35 +376,23 @@
         function addMedicineItem() {
             const container = document.getElementById("orderMedicines");
             const itemIndex = orderItems.length;
-            
-            const medicineItem = {
-                medicineId: "",
-                quantity: 1,
-                price: 0
-            };
-            
+            const medicineItem = { medicineId: "", quantity: 1, price: 0 };
             orderItems.push(medicineItem);
-            
+
             const itemDiv = document.createElement("div");
             itemDiv.className = "flex space-x-3 items-end";
             itemDiv.innerHTML = `
                 <div class="flex-1">
                     <select class="w-full px-3 py-2 border border-gray-300 rounded-md" onchange="updateMedicineItem(${itemIndex}, 'medicineId', this.value)">
                         <option value="">Select Medicine</option>
-                        ${availableMedicines.map(med => 
-                            `<option value="${med.id}" data-price="${med.price}">${med.name} - ${Math.round(med.price).toLocaleString()} RWF</option>`
-                        ).join("")}
+                        ${availableMedicines.map(med => `<option value="${med.id}" data-price="${med.price}">${med.name} - ${Math.round(med.price).toLocaleString()} RWF</option>`).join("")}
                     </select>
                 </div>
                 <div class="w-24">
-                    <input type="number" min="1" value="1" class="w-full px-3 py-2 border border-gray-300 rounded-md" 
-                           onchange="updateMedicineItem(${itemIndex}, 'quantity', this.value)">
+                    <input type="number" min="1" value="1" class="w-full px-3 py-2 border border-gray-300 rounded-md" onchange="updateMedicineItem(${itemIndex}, 'quantity', this.value)">
                 </div>
-                <button type="button" onclick="removeMedicineItem(${itemIndex})" class="px-3 py-2 text-red-600 hover:text-red-800">
-                    <i class="fas fa-trash"></i>
-                </button>
+                <button type="button" onclick="removeMedicineItem(${itemIndex})" class="px-3 py-2 text-red-600 hover:text-red-800"><i class="fas fa-trash"></i></button>
             `;
-            
             container.appendChild(itemDiv);
         }
 
@@ -385,15 +420,12 @@
         }
 
         function updateOrderTotal() {
-            const total = orderItems.reduce((sum, item) => {
-                return sum + (item.price * item.quantity);
-            }, 0);
+            const total = orderItems.reduce((sum, item) => sum + (item.price * item.quantity), 0);
             document.getElementById("orderTotal").textContent = Math.round(total).toLocaleString();
         }
 
         async function saveOrder(e) {
             e.preventDefault();
-
             const customerId = document.getElementById("orderCustomer").value;
             const status = document.getElementById("orderStatus").value;
 
@@ -401,8 +433,7 @@
                 showNotification("Please select a customer", "error");
                 return;
             }
-
-            if (orderItems.length === 0) {
+            if (orderItems.length === 0 || orderItems.every(item => !item.medicineId)) {
                 showNotification("Please add at least one medicine", "error");
                 return;
             }
@@ -425,59 +456,12 @@
                 closeOrderModal();
                 showNotification("Order created successfully!", "success");
             } catch (error) {
-                console.error('Error saving order:', error);
-                showNotification("Error creating order. Please try again.", "error");
+                showNotification("Error creating order.", "error");
             }
         }
 
         async function viewOrder(id) {
-            try {
-                const orders = await fetchOrders();
-                const order = orders.find(o => o.id === id);
-                
-                if (!order) {
-                    showNotification("Order not found!", "error");
-                    return;
-                }
-
-                // Create and show order details modal
-                const modalHtml = `
-                    <div id="orderViewModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
-                        <div class="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
-                            <div class="mt-3 text-center">
-                                <h3 class="text-lg font-medium text-gray-900 mb-4">Order Details</h3>
-                                <div class="text-left space-y-3">
-                                    <div><strong>Order ID:</strong> #${order.id}</div>
-                                    <div><strong>Customer:</strong> ${order.customer_name || 'N/A'}</div>
-                                    <div><strong>Medicine:</strong> ${order.medicine_name || 'N/A'}</div>
-                                    <div><strong>Quantity:</strong> ${order.quantity || 'N/A'}</div>
-                                    <div><strong>Unit Price:</strong> ${Math.round(order.unit_price || 0).toLocaleString()} RWF</div>
-                                    <div><strong>Total:</strong> ${Math.round(order.total || 0).toLocaleString()} RWF</div>
-                                    <div><strong>Status:</strong> ${order.status || 'N/A'}</div>
-                                    <div><strong>Date:</strong> ${order.order_date || 'N/A'}</div>
-                                </div>
-                                <div class="items-center px-4 py-3">
-                                    <button onclick="closeOrderViewModal()" class="px-4 py-2 bg-gray-500 text-white text-base font-medium rounded-md w-full shadow-sm hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-300">
-                                        Close
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                `;
-                
-                document.body.insertAdjacentHTML('beforeend', modalHtml);
-            } catch (error) {
-                console.error('Error viewing order:', error);
-                showNotification("Error loading order details. Please try again.", "error");
-            }
-        }
-
-        function closeOrderViewModal() {
-            const modal = document.getElementById('orderViewModal');
-            if (modal) {
-                modal.remove();
-            }
+            showNotification("Viewing order details feature coming soon!", "info");
         }
 
         async function deleteOrderLocal(id) {
@@ -487,116 +471,43 @@
                     renderOrders();
                     showNotification("Order deleted successfully!", "success");
                 } catch (error) {
-                    console.error('Error deleting order:', error);
-                    showNotification("Error deleting order. Please try again.", "error");
+                    showNotification("Error deleting order.", "error");
                 }
             }
         }
 
         async function exportToExcel() {
-            try {
-                const orders = await fetchOrders();
-                // Export functionality would go here
-                showNotification("Export feature coming soon!", "info");
-            } catch (error) {
-                console.error('Error exporting data:', error);
-                showNotification("Error exporting data. Please try again.", "error");
-            }
+            showNotification("Export feature coming soon!", "info");
         }
 
-        // Notification function
         function showNotification(message, type = "info") {
             const notification = document.getElementById("notification");
             notification.textContent = message;
             notification.className = `notification show ${type}`;
-            
-            setTimeout(() => {
-                notification.classList.remove("show");
-            }, 3000);
+            setTimeout(() => notification.classList.remove("show"), 3000);
         }
     </script>
 
     <style>
         :root {
-            --primary: #3b82f6;
-            --primary-dark: #2563eb;
+            --primary: #16a34a; /* Green-600 */
         }
+        .bg-primary { background-color: var(--primary); }
+        .text-primary { color: var(--primary); }
+        .border-primary { border-color: var(--primary); }
+        .ring-primary { --tw-ring-color: var(--primary); }
+        .hover\:bg-green-600:hover { background-color: #15803d; } /* Green-700 */
 
-        .bg-primary {
-            background-color: var(--primary);
-        }
-
-        .text-primary {
-            color: var(--primary);
-        }
-
-        .hover\\:bg-primary-dark:hover {
-            background-color: var(--primary-dark);
-        }
-
-        .border-primary {
-            border-color: var(--primary);
-        }
-
-        .ring-primary {
-            --tw-ring-color: var(--primary);
-        }
-
-        .modal {
-            display: none;
-            position: fixed;
-            z-index: 1000;
-            left: 0;
-            top: 0;
-            width: 100%;
-            height: 100%;
-            background-color: rgba(0, 0, 0, 0.5);
-        }
-
-        .modal.show {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .modal-content {
-            background: white;
-            padding: 2rem;
-            border-radius: 0.5rem;
-            width: 90%;
-            max-width: 800px;
-            max-height: 90vh;
-            overflow-y: auto;
-        }
-
-        .notification {
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            padding: 1rem 1.5rem;
-            border-radius: 0.5rem;
-            color: white;
-            font-weight: 500;
-            transform: translateX(100%);
-            transition: transform 0.3s ease;
-            z-index: 1001;
-        }
-
-        .notification.show {
-            transform: translateX(0);
-        }
-
-        .notification.success {
-            background-color: #10b981;
-        }
-
-        .notification.error {
-            background-color: #ef4444;
-        }
-
-        .notification.info {
-            background-color: #3b82f6;
-        }
+        .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.5); }
+        .modal.show { display: flex; align-items: center; justify-content: center; }
+        .modal-content { background: white; padding: 2rem; border-radius: 0.5rem; width: 90%; max-width: 800px; max-height: 90vh; overflow-y: auto; }
+        
+        .notification { position: fixed; top: 20px; right: 20px; padding: 1rem 1.5rem; border-radius: 0.5rem; color: white; font-weight: 500; transform: translateX(120%); opacity: 0; transition: transform 0.3s ease, opacity 0.3s ease; z-index: 1001; }
+        .notification.show { transform: translateX(0); opacity: 1; }
+        .notification.success { background-color: #10b981; }
+        .notification.warning { background-color: #f59e0b; }
+        .notification.error { background-color: #ef4444; }
+        .notification.info { background-color: #3b82f6; }
     </style>
 </body>
 </html>
