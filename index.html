@@ -1,1406 +1,1160 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Nyina wa Jambo Pharmacy Management System</title>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Nyina wa Jambo Health Post</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
-    <script src="supabase.js"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.7/dist/umd/supabase.min.js"></script>
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"
+    />
     <style>
-        /* Consistent primary green color scheme */
-        :root {
-            --primary: #16a34a;
-            --primary-dark: #15803d;
-            --primary-light: #22c55e;
-            --primary-50: #f0fdf4;
-            --primary-100: #dcfce7;
-            --primary-600: #16a34a;
-            --primary-700: #15803d;
+      /* Consistent primary green color scheme */
+      :root {
+        --primary: #16a34a;
+        --primary-dark: #15803d;
+        --primary-light: #22c55e;
+        --primary-50: #f0fdf4;
+        --primary-100: #dcfce7;
+        --primary-600: #16a34a;
+        --primary-700: #15803d;
+      }
+
+      .primary {
+        color: var(--primary);
+      }
+      .bg-primary {
+        background-color: var(--primary);
+      }
+      .bg-primary-dark {
+        background-color: var(--primary-dark);
+      }
+      .text-primary {
+        color: var(--primary);
+      }
+      .hover\:text-primary:hover {
+        color: var(--primary);
+      }
+      .border-primary {
+        border-color: var(--primary);
+      }
+      .hover\:border-primary:hover {
+        border-color: var(--primary);
+      }
+
+      /* Consistent gradient background */
+      .gradient-bg {
+        background: linear-gradient(
+          135deg,
+          var(--primary) 0%,
+          var(--primary-light) 100%
+        );
+      }
+
+      /* Role-based visibility */
+      .admin-only {
+        display: none;
+      }
+      .receptionist-only {
+        display: none;
+      }
+      .customer-only {
+        display: none;
+      }
+
+      /* Enhanced responsive design utilities */
+      @media (max-width: 768px) {
+        .mobile-hidden {
+          display: none !important;
         }
-        
-        .primary { color: var(--primary); }
-        .bg-primary { background-color: var(--primary); }
-        .bg-primary-dark { background-color: var(--primary-dark); }
-        .text-primary { color: var(--primary); }
-        .hover\:text-primary:hover { color: var(--primary); }
-        .border-primary { border-color: var(--primary); }
-        .hover\:border-primary:hover { border-color: var(--primary); }
-        
-        /* Consistent gradient background */
-        .gradient-bg {
-            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
+        .mobile-full {
+          width: 100% !important;
         }
-        
-        /* Role-based visibility */
-        .admin-only { display: none; }
-        .receptionist-only { display: none; }
-        .customer-only { display: none; }
-        
-        /* Enhanced responsive design utilities */
-        @media (max-width: 768px) {
-            .mobile-hidden { display: none !important; }
-            .mobile-full { width: 100% !important; }
-            .mobile-stack { flex-direction: column !important; }
-            .mobile-center { text-align: center !important; }
-            .mobile-p-4 { padding: 1rem !important; }
-            .mobile-text-sm { font-size: 0.875rem !important; }
-            .mobile-gap-4 { gap: 1rem !important; }
+        .mobile-stack {
+          flex-direction: column !important;
         }
-        
-        @media (max-width: 640px) {
-            .sm-text-2xl { font-size: 1.5rem !important; }
-            .sm-px-4 { padding-left: 1rem !important; padding-right: 1rem !important; }
-            .sm-py-12 { padding-top: 3rem !important; padding-bottom: 3rem !important; }
+        .mobile-center {
+          text-align: center !important;
         }
-        
-        /* Dashboard responsive grid */
-        .dashboard-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-            gap: 1.5rem;
+        .mobile-p-4 {
+          padding: 1rem !important;
         }
-        
-        /* Responsive grid for features */
+        .mobile-text-sm {
+          font-size: 0.875rem !important;
+        }
+        .mobile-gap-4 {
+          gap: 1rem !important;
+        }
+      }
+
+      @media (max-width: 640px) {
+        .sm-text-2xl {
+          font-size: 1.5rem !important;
+        }
+        .sm-px-4 {
+          padding-left: 1rem !important;
+          padding-right: 1rem !important;
+        }
+        .sm-py-12 {
+          padding-top: 3rem !important;
+          padding-bottom: 3rem !important;
+        }
+      }
+
+      /* Dashboard responsive grid */
+      .dashboard-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        gap: 1.5rem;
+      }
+
+      /* Responsive grid for features */
+      .features-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 2rem;
+      }
+
+      @media (max-width: 640px) {
         .features-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 2rem;
+          grid-template-columns: 1fr;
+          gap: 1.5rem;
         }
-        
-        @media (max-width: 640px) {
-            .features-grid {
-                grid-template-columns: 1fr;
-                gap: 1.5rem;
-            }
+      }
+
+      /* Notification styles */
+      .notification {
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        padding: 12px 20px;
+        border-radius: 8px;
+        color: white;
+        font-weight: 500;
+        z-index: 1000;
+        transform: translateX(400px);
+        transition: transform 0.3s ease;
+        max-width: 90vw;
+        box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+      }
+      .notification.show {
+        transform: translateX(0);
+      }
+      .notification.success {
+        background-color: var(--primary);
+      }
+      .notification.error {
+        background-color: #ef4444;
+      }
+      .notification.warning {
+        background-color: #f59e0b;
+      }
+      .notification.info {
+        background-color: #3b82f6;
+      }
+
+      /* Enhanced mobile responsive navigation */
+      @media (max-width: 1024px) {
+        .nav-links {
+          display: none;
         }
-        
-        /* Notification styles */
-        .notification {
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            padding: 12px 20px;
-            border-radius: 8px;
-            color: white;
-            font-weight: 500;
-            z-index: 1000;
-            transform: translateX(400px);
-            transition: transform 0.3s ease;
-            max-width: 90vw;
-            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+        .mobile-menu-button {
+          display: block;
         }
-        .notification.show { transform: translateX(0); }
-        .notification.success { background-color: var(--primary); }
-        .notification.error { background-color: #ef4444; }
-        .notification.warning { background-color: #f59e0b; }
-        .notification.info { background-color: #3b82f6; }
-        
-        /* Enhanced mobile responsive navigation */
-        @media (max-width: 1024px) {
-            .nav-links { display: none; }
-            .mobile-menu-button { display: block; }
+      }
+
+      @media (max-width: 640px) {
+        .nav-mobile-stack {
+          flex-direction: column;
+          gap: 0.5rem;
         }
-        
-        @media (max-width: 640px) {
-            .nav-mobile-stack {
-                flex-direction: column;
-                gap: 0.5rem;
-            }
-            .nav-mobile-stack > * {
-                width: 100%;
-                text-align: center;
-            }
+        .nav-mobile-stack > * {
+          width: 100%;
+          text-align: center;
         }
-        
-        /* Mobile menu styles */
-        .mobile-menu {
-            display: none;
-            position: absolute;
-            top: 100%;
-            left: 0;
-            right: 0;
-            background: white;
-            border: 1px solid #e5e7eb;
-            border-radius: 0.5rem;
-            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
-            z-index: 1000;
-            margin-top: 0.5rem;
-        }
-        
-        .mobile-menu.show {
-            display: block;
-        }
-        
-        .mobile-menu-item {
-            display: block;
-            padding: 0.75rem 1rem;
-            color: #374151;
-            text-decoration: none;
-            border-bottom: 1px solid #f3f4f6;
-            transition: all 0.2s ease;
-        }
-        
-        .mobile-menu-item:hover {
-            background-color: #f9fafb;
-            color: var(--primary);
-        }
-        
-        .mobile-menu-item:last-child {
-            border-bottom: none;
-        }
-        
-        /* Enhanced responsive grid for dashboard */
+      }
+
+      /* Mobile menu styles */
+      .mobile-menu {
+        display: none;
+        position: absolute;
+        top: 100%;
+        left: 0;
+        right: 0;
+        background: white;
+        border: 1px solid #e5e7eb;
+        border-radius: 0.5rem;
+        box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+        z-index: 1000;
+        margin-top: 0.5rem;
+      }
+
+      .mobile-menu.show {
+        display: block;
+      }
+
+      .mobile-menu-item {
+        display: block;
+        padding: 0.75rem 1rem;
+        color: #374151;
+        text-decoration: none;
+        border-bottom: 1px solid #f3f4f6;
+        transition: all 0.2s ease;
+      }
+
+      .mobile-menu-item:hover {
+        background-color: #f9fafb;
+        color: var(--primary);
+      }
+
+      .mobile-menu-item:last-child {
+        border-bottom: none;
+      }
+
+      /* Enhanced responsive grid for dashboard */
+      .dashboard-stats-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        gap: 1rem;
+      }
+
+      @media (max-width: 640px) {
         .dashboard-stats-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-            gap: 1rem;
+          grid-template-columns: 1fr;
+          gap: 0.75rem;
         }
-        
-        @media (max-width: 640px) {
-            .dashboard-stats-grid {
-                grid-template-columns: 1fr;
-                gap: 0.75rem;
-            }
-        }
-        
-        /* Responsive additional stats */
+      }
+
+      /* Responsive additional stats */
+      .additional-stats-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 1rem;
+      }
+
+      @media (max-width: 768px) {
         .additional-stats-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 1rem;
+          grid-template-columns: repeat(2, 1fr);
+          gap: 0.75rem;
         }
-        
-        @media (max-width: 768px) {
-            .additional-stats-grid {
-                grid-template-columns: repeat(2, 1fr);
-                gap: 0.75rem;
-            }
+      }
+
+      @media (max-width: 640px) {
+        .additional-stats-grid {
+          grid-template-columns: 1fr;
+          gap: 0.5rem;
         }
-        
-        @media (max-width: 640px) {
-            .additional-stats-grid {
-                grid-template-columns: 1fr;
-                gap: 0.5rem;
-            }
-        }
-        
-        /* Responsive summary cards */
+      }
+
+      /* Responsive summary cards */
+      .summary-cards-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 1.5rem;
+      }
+
+      @media (max-width: 768px) {
         .summary-cards-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 1.5rem;
+          grid-template-columns: 1fr;
+          gap: 1rem;
         }
-        
-        @media (max-width: 768px) {
-            .summary-cards-grid {
-                grid-template-columns: 1fr;
-                gap: 1rem;
-            }
-        }
-        
-        /* Responsive quick actions */
+      }
+
+      /* Responsive quick actions */
+      .quick-actions-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 1rem;
+      }
+
+      @media (max-width: 768px) {
         .quick-actions-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 1rem;
+          grid-template-columns: repeat(2, 1fr);
+          gap: 0.75rem;
         }
-        
-        @media (max-width: 768px) {
-            .quick-actions-grid {
-                grid-template-columns: repeat(2, 1fr);
-                gap: 0.75rem;
-            }
+      }
+
+      @media (max-width: 640px) {
+        .quick-actions-grid {
+          grid-template-columns: 1fr;
+          gap: 0.5rem;
         }
-        
-        @media (max-width: 640px) {
-            .quick-actions-grid {
-                grid-template-columns: 1fr;
-                gap: 0.5rem;
-            }
+      }
+
+      /* Mobile-optimized activity items */
+      @media (max-width: 640px) {
+        .activity-item {
+          flex-direction: column;
+          align-items: flex-start;
+          gap: 0.5rem;
         }
-        
-        /* Mobile-optimized activity items */
-        @media (max-width: 640px) {
-            .activity-item {
-                flex-direction: column;
-                align-items: flex-start;
-                gap: 0.5rem;
-            }
-            
-            .activity-icon {
-                align-self: flex-start;
-            }
-            
-            .activity-content {
-                width: 100%;
-            }
-            
-            .activity-time {
-                align-self: flex-end;
-                font-size: 0.75rem;
-            }
+
+        .activity-icon {
+          align-self: flex-start;
         }
-        
-        /* Enhanced card hover effects */
-        .card-hover {
-            transition: all 0.3s ease;
-            cursor: pointer;
+
+        .activity-content {
+          width: 100%;
         }
-        .card-hover:hover {
-            transform: translateY(-4px);
-            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+
+        .activity-time {
+          align-self: flex-end;
+          font-size: 0.75rem;
         }
-        
-        /* Button hover effects */
-        .btn-hover {
-            transition: all 0.2s ease;
+      }
+
+      /* Enhanced card hover effects */
+      .card-hover {
+        transition: all 0.3s ease;
+        cursor: pointer;
+      }
+      .card-hover:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1),
+          0 10px 10px -5px rgba(0, 0, 0, 0.04);
+      }
+
+      /* Button hover effects */
+      .btn-hover {
+        transition: all 0.2s ease;
+      }
+      .btn-hover:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+      }
+
+      /* Smooth animations */
+      .animate-fade-in {
+        animation: fadeIn 0.6s ease-out;
+      }
+
+      .animate-slide-up {
+        animation: slideUp 0.8s ease-out;
+      }
+
+      @keyframes fadeIn {
+        from {
+          opacity: 0;
         }
-        .btn-hover:hover {
-            transform: translateY(-1px);
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        to {
+          opacity: 1;
         }
-        
-        /* Smooth animations */
-        .animate-fade-in {
-            animation: fadeIn 0.6s ease-out;
+      }
+
+      @keyframes slideUp {
+        from {
+          opacity: 0;
+          transform: translateY(30px);
         }
-        
-        .animate-slide-up {
-            animation: slideUp 0.8s ease-out;
+        to {
+          opacity: 1;
+          transform: translateY(0);
         }
-        
-        @keyframes fadeIn {
-            from { opacity: 0; }
-            to { opacity: 1; }
-        }
-        
-        @keyframes slideUp {
-            from { opacity: 0; transform: translateY(30px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
+      }
     </style>
-</head>
-<body class="bg-gray-50">
+  </head>
+  <body class="bg-gray-50">
     <!-- Notification Container -->
     <div id="notificationContainer"></div>
-    
-    <!-- Landing Page -->
-    <div id="landingPage" class="min-h-screen" style="display: none;">
-        <!-- Header -->
-        <header class="bg-white shadow-sm sticky top-0 z-50">
-            <nav class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                <div class="flex justify-between items-center py-4 sm:py-6">
-                    <div class="flex items-center">
-                        <i class="fas fa-heartbeat text-primary text-xl sm:text-2xl mr-2 sm:mr-3"></i>
-                        <h1 class="text-lg sm:text-2xl font-bold text-gray-900">
-                            <span class="hidden sm:inline">Nyina wa Jambo Pharmacy</span>
-                            <span class="sm:hidden">Nyina wa Jambo</span>
-                        </h1>
-                    </div>
-                    <div class="flex items-center space-x-2 sm:space-x-4 nav-mobile-stack">
-                        <button id="homeBtn" class="text-gray-700 hover:text-primary px-2 sm:px-3 py-2 rounded-md transition-colors btn-hover">
-                            <i class="fas fa-home mr-0 sm:mr-2"></i>
-                            <span class="hidden sm:inline">Home</span>
-                        </button>
-                        <button id="loginBtn" class="bg-primary text-white hover:bg-primary-dark px-3 sm:px-4 py-2 rounded-md border border-primary hover:border-primary-dark transition-colors btn-hover">
-                            <i class="fas fa-sign-in-alt mr-0 sm:mr-2"></i>
-                            <span class="hidden sm:inline">Login</span>
-                        </button>
-                    </div>
-                </div>
-            </nav>
-        </header>
-
-        <!-- Hero Section -->
-        <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 sm:py-20 animate-fade-in">
-            <div class="text-center">
-                <h1 class="text-3xl sm:text-4xl md:text-5xl lg:text-6xl tracking-tight font-extrabold text-gray-900">
-                    <span class="block">Comprehensive Pharmacy</span>
-                    <span class="block text-primary">Management System</span>
-                </h1>
-                <p class="mt-3 max-w-md mx-auto text-base text-gray-500 sm:text-lg md:mt-5 md:text-xl md:max-w-3xl">
-                    Streamline your pharmacy operations with our comprehensive management solution. Perfect for pharmacies, dispensaries, health posts, and hospitals. Track inventory, manage patients, and analyze performance all in one place.
-                </p>
-                <div class="mt-5 max-w-md mx-auto sm:flex sm:justify-center md:mt-8 mobile-stack mobile-gap-4">
-                    <div class="rounded-md shadow">
-                        <button id="getStartedBtn" class="w-full flex items-center justify-center px-6 sm:px-8 py-3 border border-transparent text-base font-medium rounded-md text-white bg-primary hover:bg-primary-dark md:py-4 md:text-lg md:px-10 transition-colors btn-hover">
-                            <i class="fas fa-stethoscope mr-2"></i>Get Started
-                        </button>
-                    </div>
-                    <div class="mt-3 rounded-md shadow sm:mt-0 sm:ml-3">
-                        <a href="#features" class="w-full flex items-center justify-center px-6 sm:px-8 py-3 border border-transparent text-base font-medium rounded-md text-primary bg-white hover:bg-gray-50 md:py-4 md:text-lg md:px-10 transition-colors btn-hover">
-                            <i class="fas fa-info-circle mr-2"></i>Learn More
-                        </a>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Stats Section -->
-            <div class="mt-16 sm:mt-20 animate-slide-up">
-                <div class="grid grid-cols-1 gap-6 sm:gap-8 sm:grid-cols-3">
-                    <div class="text-center p-6 bg-white rounded-lg shadow-sm card-hover">
-                        <div class="text-3xl sm:text-4xl font-bold text-primary">99.9%</div>
-                        <div class="mt-2 text-lg text-gray-600">Uptime</div>
-                        <div class="mt-1 text-sm text-gray-500">Reliable system availability</div>
-                    </div>
-                    <div class="text-center p-6 bg-white rounded-lg shadow-sm card-hover">
-                        <div class="text-3xl sm:text-4xl font-bold text-primary">1,200+</div>
-                        <div class="mt-2 text-lg text-gray-600">Healthcare Facilities</div>
-                        <div class="mt-1 text-sm text-gray-500">Trust our platform</div>
-                    </div>
-                    <div class="text-center p-6 bg-white rounded-lg shadow-sm card-hover">
-                        <div class="text-3xl sm:text-4xl font-bold text-primary">24/7</div>
-                        <div class="mt-2 text-lg text-gray-600">Support</div>
-                        <div class="mt-1 text-sm text-gray-500">Always here to help</div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Features Grid -->
-            <div id="features" class="mt-20 sm:mt-32">
-                <div class="text-center mb-12 sm:mb-16">
-                    <h2 class="text-2xl sm:text-3xl font-bold text-gray-900">Everything you need to manage your pharmacy</h2>
-                    <p class="mt-4 text-base sm:text-lg text-gray-600">Comprehensive tools designed for pharmacies, dispensaries, health posts, and hospitals</p>
-                </div>
-                <div class="features-grid">
-                    <div class="pt-6">
-                        <div class="flow-root bg-white rounded-lg px-6 pb-8 shadow-lg hover:shadow-xl transition-shadow card-hover">
-                            <div class="-mt-6">
-                                <div class="inline-flex items-center justify-center p-3 bg-primary rounded-md shadow-lg">
-                                    <i class="fas fa-pills text-white text-xl"></i>
-                                </div>
-                                <h3 class="mt-8 text-lg font-medium text-gray-900 tracking-tight">Medicine & Inventory</h3>
-                                <p class="mt-5 text-base text-gray-500">
-                                    Track medications, medical supplies, and equipment with real-time updates and automated alerts.
-                                </p>
-                                <ul class="mt-4 text-sm text-gray-500 space-y-1">
-                                    <li>• Medication tracking</li>
-                                    <li>• Supply monitoring</li>
-                                    <li>• Stock alerts</li>
-                                    <li>• Category management</li>
-                                </ul>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="pt-6">
-                        <div class="flow-root bg-white rounded-lg px-6 pb-8 shadow-lg hover:shadow-xl transition-shadow card-hover">
-                            <div class="-mt-6">
-                                <div class="inline-flex items-center justify-center p-3 bg-primary rounded-md shadow-lg">
-                                    <i class="fas fa-user-md text-white text-xl"></i>
-                                </div>
-                                <h3 class="mt-8 text-lg font-medium text-gray-900 tracking-tight">Patient Management</h3>
-                                <p class="mt-5 text-base text-gray-500">
-                                    Manage patient records, appointments, and treatment history with secure digital records.
-                                </p>
-                                <ul class="mt-4 text-sm text-gray-500 space-y-1">
-                                    <li>• Patient records</li>
-                                    <li>• Visit history</li>
-                                    <li>• Prescription tracking</li>
-                                    <li>• Appointment scheduling</li>
-                                </ul>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="pt-6">
-                        <div class="flow-root bg-white rounded-lg px-6 pb-8 shadow-lg hover:shadow-xl transition-shadow card-hover">
-                            <div class="-mt-6">
-                                <div class="inline-flex items-center justify-center p-3 bg-primary rounded-md shadow-lg">
-                                    <i class="fas fa-truck text-white text-xl"></i>
-                                </div>
-                                <h3 class="mt-8 text-lg font-medium text-gray-900 tracking-tight">Supplier Relations</h3>
-                                <p class="mt-5 text-base text-gray-500">
-                                    Manage supplier contacts, orders, and maintain strong business relationships.
-                                </p>
-                                <ul class="mt-4 text-sm text-gray-500 space-y-1">
-                                    <li>• Contact management</li>
-                                    <li>• Order tracking</li>
-                                    <li>• Performance metrics</li>
-                                    <li>• Communication tools</li>
-                                </ul>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="pt-6">
-                        <div class="flow-root bg-white rounded-lg px-6 pb-8 shadow-lg hover:shadow-xl transition-shadow card-hover">
-                            <div class="-mt-6">
-                                <div class="inline-flex items-center justify-center p-3 bg-primary rounded-md shadow-lg">
-                                    <i class="fas fa-users text-white text-xl"></i>
-                                </div>
-                                <h3 class="mt-8 text-lg font-medium text-gray-900 tracking-tight">Customer Management</h3>
-                                <p class="mt-5 text-base text-gray-500">
-                                    Keep detailed customer records and track their purchase history.
-                                </p>
-                                <ul class="mt-4 text-sm text-gray-500 space-y-1">
-                                    <li>• Customer profiles</li>
-                                    <li>• Purchase history</li>
-                                    <li>• Visit tracking</li>
-                                    <li>• Loyalty programs</li>
-                                </ul>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="pt-6">
-                        <div class="flow-root bg-white rounded-lg px-6 pb-8 shadow-lg hover:shadow-xl transition-shadow card-hover">
-                            <div class="-mt-6">
-                                <div class="inline-flex items-center justify-center p-3 bg-primary rounded-md shadow-lg">
-                                    <i class="fas fa-chart-bar text-white text-xl"></i>
-                                </div>
-                                <h3 class="mt-8 text-lg font-medium text-gray-900 tracking-tight">Analytics & Reports</h3>
-                                <p class="mt-5 text-base text-gray-500">
-                                    Generate comprehensive reports and gain insights into your business performance.
-                                </p>
-                                <ul class="mt-4 text-sm text-gray-500 space-y-1">
-                                    <li>• Sales analytics</li>
-                                    <li>• Stock reports</li>
-                                    <li>• Performance metrics</li>
-                                    <li>• Export capabilities</li>
-                                </ul>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Benefits Section -->
-            <div class="mt-20 sm:mt-32">
-                <div class="gradient-bg rounded-2xl">
-                    <div class="max-w-7xl mx-auto py-12 sm:py-16 px-4 sm:px-6 lg:px-8">
-                        <div class="text-center">
-                            <h2 class="text-2xl sm:text-3xl font-bold text-white">Why Choose Nyina wa Jambo?</h2>
-                            <p class="mt-4 text-base sm:text-lg text-green-100">Built specifically for Rwandan pharmacies with local expertise</p>
-                        </div>
-                        <div class="mt-8 sm:mt-12 grid grid-cols-1 gap-6 sm:gap-8 sm:grid-cols-2 lg:grid-cols-3">
-                            <div class="text-center">
-                                <div class="inline-flex items-center justify-center w-12 h-12 bg-white rounded-full">
-                                    <i class="fas fa-shield-alt text-primary text-xl"></i>
-                                </div>
-                                <h3 class="mt-4 text-lg font-medium text-white">Secure & Reliable</h3>
-                                <p class="mt-2 text-green-100">Enterprise-grade security with regular backups and 99.9% uptime guarantee.</p>
-                            </div>
-                            <div class="text-center">
-                                <div class="inline-flex items-center justify-center w-12 h-12 bg-white rounded-full">
-                                    <i class="fas fa-mobile-alt text-primary text-xl"></i>
-                                </div>
-                                <h3 class="mt-4 text-lg font-medium text-white">Mobile Friendly</h3>
-                                <p class="mt-2 text-green-100">Access your pharmacy data anywhere, anytime with our responsive design.</p>
-                            </div>
-                            <div class="text-center">
-                                <div class="inline-flex items-center justify-center w-12 h-12 bg-white rounded-full">
-                                    <i class="fas fa-headset text-primary text-xl"></i>
-                                </div>
-                                <h3 class="mt-4 text-lg font-medium text-white">Local Support</h3>
-                                <p class="mt-2 text-green-100">Dedicated support team that understands Rwandan pharmacy regulations.</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Testimonials Section -->
-            <div class="mt-20 sm:mt-32">
-                <div class="text-center mb-12 sm:mb-16">
-                    <h2 class="text-2xl sm:text-3xl font-bold text-gray-900">Trusted by pharmacy owners across Rwanda</h2>
-                    <p class="mt-4 text-base sm:text-lg text-gray-600">See what our customers say about our platform</p>
-                </div>
-                <div class="grid grid-cols-1 gap-6 sm:gap-8 lg:grid-cols-3">
-                    <div class="bg-white rounded-lg shadow-lg p-6 card-hover">
-                        <div class="flex items-center mb-4">
-                            <div class="w-12 h-12 bg-primary rounded-full flex items-center justify-center">
-                                <span class="text-white font-bold text-lg">JM</span>
-                            </div>
-                            <div class="ml-4">
-                                <div class="font-medium text-gray-900">Jean Marie Nkurunziza</div>
-                                <div class="text-sm text-gray-500">Pharmacy Owner, Kigali</div>
-                            </div>
-                        </div>
-                        <p class="text-gray-700 italic">"This system has transformed how we manage our pharmacy. The inventory tracking is exceptional, and we never run out of essential medicines anymore."</p>
-                        <div class="flex mt-4 text-yellow-400">
-                            <i class="fas fa-star"></i>
-                            <i class="fas fa-star"></i>
-                            <i class="fas fa-star"></i>
-                            <i class="fas fa-star"></i>
-                            <i class="fas fa-star"></i>
-                        </div>
-                    </div>
-                    <div class="bg-white rounded-lg shadow-lg p-6 card-hover">
-                        <div class="flex items-center mb-4">
-                            <div class="w-12 h-12 bg-primary rounded-full flex items-center justify-center">
-                                <span class="text-white font-bold text-lg">AM</span>
-                            </div>
-                            <div class="ml-4">
-                                <div class="font-medium text-gray-900">Anne Marie Uwimana</div>
-                                <div class="text-sm text-gray-500">Pharmacy Manager, Butare</div>
-                            </div>
-                        </div>
-                        <p class="text-gray-700 italic">"The reports feature helps us make better business decisions. We can see which medicines are selling well and plan our orders accordingly."</p>
-                        <div class="flex mt-4 text-yellow-400">
-                            <i class="fas fa-star"></i>
-                            <i class="fas fa-star"></i>
-                            <i class="fas fa-star"></i>
-                            <i class="fas fa-star"></i>
-                            <i class="fas fa-star"></i>
-                        </div>
-                    </div>
-                    <div class="bg-white rounded-lg shadow-lg p-6 card-hover">
-                        <div class="flex items-center mb-4">
-                            <div class="w-12 h-12 bg-primary rounded-full flex items-center justify-center">
-                                <span class="text-white font-bold text-lg">PM</span>
-                            </div>
-                            <div class="ml-4">
-                                <div class="font-medium text-gray-900">Paul Mukamana</div>
-                                <div class="text-sm text-gray-500">Head Pharmacist, Musanze</div>
-                            </div>
-                        </div>
-                        <p class="text-gray-700 italic">"Customer management has never been easier. We can track patient visits and medication history, which helps us provide better care."</p>
-                        <div class="flex mt-4 text-yellow-400">
-                            <i class="fas fa-star"></i>
-                            <i class="fas fa-star"></i>
-                            <i class="fas fa-star"></i>
-                            <i class="fas fa-star"></i>
-                            <i class="fas fa-star"></i>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- CTA Section -->
-            <div class="mt-20 sm:mt-32">
-                <div class="bg-gray-50 rounded-2xl">
-                    <div class="max-w-7xl mx-auto py-12 sm:py-16 px-4 sm:px-6 lg:px-8 text-center">
-                        <h2 class="text-2xl sm:text-3xl font-bold text-gray-900">Ready to modernize your pharmacy?</h2>
-                        <p class="mt-4 text-base sm:text-lg text-gray-600">Join hundreds of Rwandan pharmacies already using our platform</p>
-                        <div class="mt-6 sm:mt-8 flex flex-col sm:flex-row gap-4 justify-center mobile-stack mobile-gap-4">
-                            <button onclick="showDashboard()" class="bg-primary text-white px-6 sm:px-8 py-3 rounded-md hover:bg-primary-dark transition-colors font-medium btn-hover">
-                                Start Free Trial
-                            </button>
-                            <button class="border border-gray-300 text-gray-700 px-6 sm:px-8 py-3 rounded-md hover:bg-gray-50 transition-colors font-medium btn-hover">
-                                Schedule Demo
-                            </button>
-                        </div>
-                        <p class="mt-4 text-sm text-gray-500">No credit card required • 30-day free trial • Cancel anytime</p>
-                    </div>
-                </div>
-            </div>
-        </main>
-
-        <!-- Footer -->
-        <footer class="bg-gray-900 text-white">
-            <div class="max-w-7xl mx-auto py-12 px-4 sm:px-6 lg:px-8">
-                <div class="grid grid-cols-1 md:grid-cols-4 gap-8">
-                    <div class="col-span-1 md:col-span-2">
-                        <div class="flex items-center">
-                            <i class="fas fa-heartbeat text-primary text-2xl mr-3"></i>
-                            <h3 class="text-xl font-bold">Nyina wa Jambo Pharmacy</h3>
-                        </div>
-                        <p class="mt-4 text-gray-400 max-w-md">
-                            The leading pharmacy management system in Rwanda. Trusted by hundreds of pharmacies to streamline operations and improve patient care.
-                        </p>
-                        <div class="flex space-x-4 mt-6">
-                            <a href="#" class="text-gray-400 hover:text-white transition-colors">
-                                <i class="fab fa-facebook-f text-xl"></i>
-                            </a>
-                            <a href="#" class="text-gray-400 hover:text-white transition-colors">
-                                <i class="fab fa-twitter text-xl"></i>
-                            </a>
-                            <a href="#" class="text-gray-400 hover:text-white transition-colors">
-                                <i class="fab fa-linkedin-in text-xl"></i>
-                            </a>
-                        </div>
-                    </div>
-                    <div>
-                        <h4 class="font-semibold text-white">Product</h4>
-                        <ul class="mt-4 space-y-2">
-                            <li><a href="#features" class="text-gray-400 hover:text-white transition-colors">Features</a></li>
-                            <li><a href="#" class="text-gray-400 hover:text-white transition-colors">Pricing</a></li>
-                            <li><a href="#" class="text-gray-400 hover:text-white transition-colors">Security</a></li>
-                            <li><a href="#" class="text-gray-400 hover:text-white transition-colors">Updates</a></li>
-                        </ul>
-                    </div>
-                    <div>
-                        <h4 class="font-semibold text-white">Support</h4>
-                        <ul class="mt-4 space-y-2">
-                            <li><a href="#" class="text-gray-400 hover:text-white transition-colors">Help Center</a></li>
-                            <li><a href="#" class="text-gray-400 hover:text-white transition-colors">Contact Us</a></li>
-                            <li><a href="#" class="text-gray-400 hover:text-white transition-colors">Training</a></li>
-                            <li><a href="#" class="text-gray-400 hover:text-white transition-colors">Documentation</a></li>
-                        </ul>
-                    </div>
-                </div>
-                <div class="border-t border-gray-800 mt-12 pt-8 flex flex-col sm:flex-row justify-between items-center">
-                    <p class="text-gray-400">&copy; 2025 Nyina wa Jambo Pharmacy Management System. All rights reserved.</p>
-                    <div class="flex space-x-6 mt-4 sm:mt-0">
-                        <a href="#" class="text-gray-400 hover:text-white transition-colors text-sm">Privacy Policy</a>
-                        <a href="#" class="text-gray-400 hover:text-white transition-colors text-sm">Terms of Service</a>
-                        <a href="#" class="text-gray-400 hover:text-white transition-colors text-sm">Cookie Policy</a>
-                    </div>
-                </div>
-            </div>
-        </footer>
+    <!-- Language Switcher -->
+    <div class="w-full flex justify-end p-4">
+      <select id="languageSwitcher" class="border rounded px-2 py-1">
+        <option value="rw">Kinyarwanda</option>
+        <option value="en">English</option>
+      </select>
     </div>
-
-    <!-- Dashboard Page -->
-    <div id="dashboardPage" class="flex h-screen bg-gray-100" style="display: none;">
-        <!-- Sidebar -->
-        <aside id="sidebar" class="w-64 bg-primary text-white flex-shrink-0 lg:block hidden transition-all duration-300 fixed lg:relative z-50 h-full">
-            <div class="p-6">
-                <a href="#" onclick="showLandingPage()" class="text-2xl font-bold text-white flex items-center">
-                    <i class="fas fa-heartbeat mr-3"></i>
-                    <span>Nyina wa Jambo</span>
-                </a>
+    <!-- Landing Page -->
+    <div id="landingPage" class="min-h-screen" style="display: none">
+      <!-- Header -->
+      <header class="bg-white shadow-sm sticky top-0 z-50">
+        <nav class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div class="flex justify-between items-center py-4 sm:py-6">
+            <div class="flex items-center">
+              <i
+                class="fas fa-heartbeat text-primary text-xl sm:text-2xl mr-2 sm:mr-3"
+              ></i>
+              <h1 class="text-lg sm:text-2xl font-bold text-gray-900">
+                <span class="hidden sm:inline">Nyina wa Jambo Health Post</span>
+                <span class="sm:hidden">Nyina wa Jambo</span>
+              </h1>
             </div>
-            <nav class="mt-6">
-                <a href="#" onclick="showDashboard()" class="flex items-center px-6 py-3 text-white bg-primary-dark">
-                    <i class="fas fa-tachometer-alt w-6"></i>
-                    <span class="ml-3">Dashboard</span>
-                </a>
-                <a href="medicines.html" class="flex items-center px-6 py-3 text-gray-200 hover:bg-primary-dark admin-only receptionist-only">
-                    <i class="fas fa-pills w-6"></i>
-                    <span class="ml-3">Medicines</span>
-                </a>
-                <a href="suppliers.html" class="flex items-center px-6 py-3 text-gray-200 hover:bg-primary-dark admin-only">
-                    <i class="fas fa-truck w-6"></i>
-                    <span class="ml-3">Suppliers</span>
-                </a>
-                <a href="customers.html" class="flex items-center px-6 py-3 text-gray-200 hover:bg-primary-dark admin-only receptionist-only">
-                    <i class="fas fa-users w-6"></i>
-                    <span class="ml-3">Customers</span>
-                </a>
-                <a href="orders.html" class="flex items-center px-6 py-3 text-gray-200 hover:bg-primary-dark admin-only receptionist-only">
-                    <i class="fas fa-shopping-cart w-6"></i>
-                    <span class="ml-3">Orders</span>
-                </a>
-                <a href="reports.html" class="flex items-center px-6 py-3 text-gray-200 hover:bg-primary-dark admin-only">
-                    <i class="fas fa-chart-bar w-6"></i>
-                    <span class="ml-3">Reports</span>
-                </a>
-            </nav>
-            <div class="absolute bottom-0 w-full p-6">
-                <button onclick="logout()" class="w-full flex items-center justify-center px-4 py-2 text-white bg-primary-dark rounded-md hover:bg-red-500 transition-colors">
-                    <i class="fas fa-sign-out-alt w-6"></i>
-                    <span class="ml-3">Logout</span>
-                </button>
+            <div
+              class="flex items-center space-x-2 sm:space-x-4 nav-mobile-stack"
+            >
+              <button
+                onclick="checkSessionAndRedirect()"
+                id="loginBtn"
+                class="bg-primary text-white hover:bg-primary-dark px-3 sm:px-4 py-2 rounded-md border border-primary hover:border-primary-dark transition-colors btn-hover"
+              >
+                <i class="fas fa-sign-in-alt mr-0 sm:mr-2"></i>
+                <span class="hidden sm:inline">Login</span>
+              </button>
+              <button
+                onclick="window.location.href='signup.html'"
+                id="signupBtn"
+                class="bg-primary text-white hover:bg-primary-dark px-3 sm:px-4 py-2 rounded-md border border-primary hover:border-primary-dark transition-colors btn-hover"
+              >
+                <i class="fas fa-sign-in-alt mr-0 sm:mr-2"></i>
+                <span class="hidden sm:inline">Signup</span>
+              </button>
             </div>
-        </aside>
+          </div>
+        </nav>
+      </header>
 
-        <!-- Main content -->
-        <div class="flex-1 flex flex-col overflow-hidden">
-            <!-- Top bar -->
-            <header class="bg-white shadow-sm flex justify-between items-center p-4">
-                <button id="menu-toggle" class="text-gray-700 lg:hidden">
-                    <i class="fas fa-bars text-xl"></i>
-                </button>
-                <h1 class="text-xl font-bold text-gray-800 hidden sm:block">Dashboard</h1>
-                <div class="relative flex items-center space-x-4">
-                    <span id="currentUser" class="text-gray-700 text-sm hidden md:block"></span>
-                    <img id="userAvatar" src="https://via.placeholder.com/40" alt="User Avatar" class="w-10 h-10 rounded-full cursor-pointer">
-                    <div id="userDropdown" class="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg z-50 hidden top-full">
-                        <div class="py-1">
-                            <div class="px-4 py-2 text-sm text-gray-500 border-b">
-                                <span id="userInfo"></span>
-                            </div>
-                            <button onclick="logout()" class="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
-                                <i class="fas fa-sign-out-alt mr-2"></i>Logout
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            </header>
-
-            <!-- Main content area -->
-            <main class="flex-1 overflow-x-hidden overflow-y-auto bg-gray-100 p-4 sm:p-6 lg:p-8">
-                <!-- Page Header -->
-                <div class="mb-6 sm:mb-8">
-                    <h1 class="text-2xl sm:text-3xl font-bold text-gray-900">Pharmacy Dashboard</h1>
-                    <p class="text-gray-600 mt-2">Welcome to your pharmacy management dashboard</p>
-                </div>
-
-                <!-- Stats Cards -->
-                <div class="dashboard-stats-grid mb-6 sm:mb-8">
-                    <div class="bg-white rounded-lg shadow-sm p-4 sm:p-6 card-hover">
-                        <div class="flex items-center">
-                            <div class="p-3 rounded-full bg-green-100">
-                                <i class="fas fa-pills text-green-600 text-lg sm:text-xl"></i>
-                            </div>
-                            <div class="ml-4">
-                                <p class="text-xs sm:text-sm font-medium text-gray-600">Total Medicines</p>
-                                <p id="totalMedicines" class="text-xl sm:text-2xl font-semibold text-gray-900">0</p>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="bg-white rounded-lg shadow-sm p-4 sm:p-6 card-hover">
-                        <div class="flex items-center">
-                            <div class="p-3 rounded-full bg-blue-100">
-                                <i class="fas fa-truck text-blue-600 text-lg sm:text-xl"></i>
-                            </div>
-                            <div class="ml-4">
-                                <p class="text-xs sm:text-sm font-medium text-gray-600">Active Suppliers</p>
-                                <p id="totalSuppliers" class="text-xl sm:text-2xl font-semibold text-gray-900">0</p>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="bg-white rounded-lg shadow-sm p-4 sm:p-6 card-hover">
-                        <div class="flex items-center">
-                            <div class="p-3 rounded-full bg-purple-100">
-                                <i class="fas fa-users text-purple-600 text-lg sm:text-xl"></i>
-                            </div>
-                            <div class="ml-4">
-                                <p class="text-xs sm:text-sm font-medium text-gray-600">Total Patients</p>
-                                <p id="totalCustomers" class="text-xl sm:text-2xl font-semibold text-gray-900">0</p>
-                            </div>
-                        </div>
-                    </div>
-                    <!-- <div class="bg-white rounded-lg shadow-sm p-4 sm:p-6 card-hover">
-                        <div class="flex items-center">
-                            <div class="p-3 rounded-full bg-yellow-100">
-                                <i class="fas fa-file-medical text-yellow-600 text-lg sm:text-xl"></i>
-                            </div>
-                            <div class="ml-4">
-                                <p class="text-xs sm:text-sm font-medium text-gray-600">Total Treatments</p>
-                                <p id="totalOrders" class="text-xl sm:text-2xl font-semibold text-gray-900">0</p>
-                            </div>
-                        </div>
-                    </div> -->
-                </div>
-
-                <!-- Additional Stats -->
-                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4 sm:gap-6 mb-6 sm:mb-8">
-                    <div class="bg-white rounded-lg shadow-sm p-4 sm:p-6">
-                        <div class="flex items-center">
-                            <div class="p-3 rounded-full bg-red-100">
-                                <i class="fas fa-exclamation-triangle text-red-600 text-lg sm:text-xl"></i>
-                            </div>
-                            <div class="ml-4">
-                                <p class="text-xs sm:text-sm font-medium text-gray-600">Low Stock Items</p>
-                                <p id="lowStockCount" class="text-xl sm:text-2xl font-semibold text-gray-900">0</p>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="bg-white rounded-lg shadow-sm p-4 sm:p-6">
-                        <div class="flex items-center">
-                            <div class="p-3 rounded-full bg-orange-100">
-                                <i class="fas fa-clock text-orange-600 text-lg sm:text-xl"></i>
-                            </div>
-                            <div class="ml-4">
-                                <p class="text-xs sm:text-sm font-medium text-gray-600">Expiring Soon</p>
-                                <p id="expiringSoonCount" class="text-xl sm:text-2xl font-semibold text-gray-900">0</p>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="bg-white rounded-lg shadow-sm p-4 sm:p-6">
-                        <div class="flex items-center">
-                            <div class="p-3 rounded-full bg-indigo-100">
-                                <i class="fas fa-chart-line text-indigo-600 text-lg sm:text-xl"></i>
-                            </div>
-                            <div class="ml-4">
-                                <p class="text-xs sm:text-sm font-medium text-gray-600">Total Revenue</p>
-                                <p id="totalRevenue" class="text-xl sm:text-2xl font-semibold text-gray-900">0 RWF</p>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="bg-white rounded-lg shadow-sm p-4 sm:p-6">
-                        <div class="flex items-center">
-                            <div class="p-3 rounded-full bg-emerald-100">
-                                <i class="fas fa-dollar-sign text-emerald-600 text-lg sm:text-xl"></i>
-                            </div>
-                            <div class="ml-4">
-                                <p class="text-xs sm:text-sm font-medium text-gray-600">Today's Revenue</p>
-                                <p id="todayRevenue" class="text-xl sm:text-2xl font-semibold text-gray-900">0 RWF</p>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="bg-white rounded-lg shadow-sm p-4 sm:p-6">
-                        <div class="flex items-center">
-                            <div class="p-3 rounded-full bg-teal-100">
-                                <i class="fas fa-exchange-alt text-teal-600 text-lg sm:text-xl"></i>
-                            </div>
-                            <div class="ml-4">
-                                <p class="text-xs sm:text-sm font-medium text-gray-600">Stock Movements</p>
-                                <p id="stockMovements" class="text-xl sm:text-2xl font-semibold text-gray-900">0</p>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="bg-white rounded-lg shadow-sm p-4 sm:p-6">
-                        <div class="flex items-center">
-                            <div class="p-3 rounded-full bg-rose-100">
-                                <i class="fas fa-chart-pie text-rose-600 text-lg sm:text-xl"></i>
-                            </div>
-                            <div class="ml-4">
-                                <p class="text-xs sm:text-sm font-medium text-gray-600">Pending Orders</p>
-                                <p id="pendingOrders" class="text-xl sm:text-2xl font-semibold text-gray-900">0</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Summary Cards -->
-                <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6 mb-6 sm:mb-8">
-                    <div class="bg-white rounded-lg shadow-sm p-4 sm:p-6">
-                        <h3 class="text-lg sm:text-xl font-semibold text-gray-900 mb-4">Medicine Categories</h3>
-                        <div id="categoriesSummary" class="space-y-2">
-                            <!-- Categories will be loaded here -->
-                        </div>
-                    </div>
-                    <div class="bg-white rounded-lg shadow-sm p-4 sm:p-6">
-                        <h3 class="text-lg sm:text-xl font-semibold text-gray-900 mb-4">Top Suppliers</h3>
-                        <div id="suppliersSummary" class="space-y-2">
-                            <!-- Suppliers will be loaded here -->
-                        </div>
-                    </div>
-                    <div class="bg-white rounded-lg shadow-sm p-4 sm:p-6">
-                        <h3 class="text-lg sm:text-xl font-semibold text-gray-900 mb-4">Recent Orders</h3>
-                        <div id="ordersSummary" class="space-y-2">
-                            <!-- Orders will be loaded here -->
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Quick Actions -->
-                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 mb-6 sm:mb-8">
-                    <a href="medicines.html" class="block bg-white rounded-lg shadow-sm p-4 sm:p-6 hover:shadow-md transition-shadow">
-                        <div class="flex items-center">
-                            <div class="p-3 rounded-full bg-blue-100">
-                                <i class="fas fa-pills text-blue-600 text-lg sm:text-xl"></i>
-                            </div>
-                            <div class="ml-4 flex-1">
-                                <h3 class="text-base sm:text-lg font-medium text-gray-900">Manage Medicines</h3>
-                                <p class="text-xs sm:text-sm text-gray-500">Add, edit, and track medicine inventory</p>
-                            </div>
-                            <i class="fas fa-arrow-right text-gray-400 ml-2"></i>
-                        </div>
-                    </a>
-
-                    <a href="suppliers.html" class="block bg-white rounded-lg shadow-sm p-4 sm:p-6 hover:shadow-md transition-shadow">
-                        <div class="flex items-center">
-                            <div class="p-3 rounded-full bg-green-100">
-                                <i class="fas fa-truck text-green-600 text-lg sm:text-xl"></i>
-                            </div>
-                            <div class="ml-4 flex-1">
-                                <h3 class="text-base sm:text-lg font-medium text-gray-900">Manage Suppliers</h3>
-                                <p class="text-xs sm:text-sm text-gray-500">Handle supplier relationships and orders</p>
-                            </div>
-                            <i class="fas fa-arrow-right text-gray-400 ml-2"></i>
-                        </div>
-                    </a>
-
-                    <a href="customers.html" class="block bg-white rounded-lg shadow-sm p-4 sm:p-6 hover:shadow-md transition-shadow">
-                        <div class="flex items-center">
-                            <div class="p-3 rounded-full bg-purple-100">
-                                <i class="fas fa-users text-purple-600 text-lg sm:text-xl"></i>
-                            </div>
-                            <div class="ml-4 flex-1">
-                                <h3 class="text-base sm:text-lg font-medium text-gray-900">Manage Customers</h3>
-                                <p class="text-xs sm:text-sm text-gray-500">Track customer information and history</p>
-                            </div>
-                            <i class="fas fa-arrow-right text-gray-400 ml-2"></i>
-                        </div>
-                    </a>
-
-                    <a href="orders.html" class="block bg-white rounded-lg shadow-sm p-4 sm:p-6 hover:shadow-md transition-shadow">
-                        <div class="flex items-center">
-                            <div class="p-3 rounded-full bg-yellow-100">
-                                <i class="fas fa-shopping-cart text-yellow-600 text-lg sm:text-xl"></i>
-                            </div>
-                            <div class="ml-4 flex-1">
-                                <h3 class="text-base sm:text-lg font-medium text-gray-900">Process Orders</h3>
-                                <p class="text-xs sm:text-sm text-gray-500">Create and manage customer orders</p>
-                            </div>
-                            <i class="fas fa-arrow-right text-gray-400 ml-2"></i>
-                        </div>
-                    </a>
-
-                    <a href="reports.html" class="block bg-white rounded-lg shadow-sm p-4 sm:p-6 hover:shadow-md transition-shadow">
-                        <div class="flex items-center">
-                            <div class="p-3 rounded-full bg-red-100">
-                                <i class="fas fa-chart-bar text-red-600 text-lg sm:text-xl"></i>
-                            </div>
-                            <div class="ml-4 flex-1">
-                                <h3 class="text-base sm:text-lg font-medium text-gray-900">View Reports</h3>
-                                <p class="text-xs sm:text-sm text-gray-500">Analytics and comprehensive reports</p>
-                            </div>
-                            <i class="fas fa-arrow-right text-gray-400 ml-2"></i>
-                        </div>
-                    </a>
-                </div>
-
-                <!-- Recent Activity -->
-                <div class="bg-white rounded-lg shadow-sm p-4 sm:p-6">
-                    <h3 class="text-lg sm:text-xl font-semibold text-gray-900 mb-4">Recent Activity</h3>
-                    <div id="recentActivity" class="space-y-3">
-                        <!-- Activity items will be loaded here -->
-                    </div>
-                </div>
-            </main>
+      <!-- Hero Section -->
+      <main
+        class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 sm:py-20 animate-fade-in"
+      >
+        <div class="text-center">
+          <h1
+            class="text-3xl sm:text-4xl md:text-5xl lg:text-6xl tracking-tight font-extrabold text-gray-900"
+          >
+            <span class="block main-title"></span>
+            <span class="block text-primary main-subtitle"></span>
+          </h1>
+          <p
+            class="mt-3 max-w-md mx-auto text-base text-gray-700 sm:text-lg md:mt-5 md:text-xl md:max-w-3xl"
+          >
+            <span class="main-intro"></span>
+          </p>
         </div>
+
+        <!-- Stats Section -->
+        <div class="mt-16 sm:mt-20 animate-slide-up">
+          <div class="grid grid-cols-1 gap-6 sm:gap-8 sm:grid-cols-3">
+            <div
+              class="text-center p-6 bg-white rounded-lg shadow-sm card-hover"
+            >
+              <div class="text-3xl sm:text-4xl font-bold text-primary">
+                99.9%
+              </div>
+              <div class="mt-2 text-lg text-gray-600 stat-open-title"></div>
+              <div class="mt-1 text-sm text-gray-500 stat-open-desc"></div>
+            </div>
+            <div
+              class="text-center p-6 bg-white rounded-lg shadow-sm card-hover"
+            >
+              <div class="text-3xl sm:text-4xl font-bold text-primary">
+                1,200+
+              </div>
+              <div class="mt-2 text-lg text-gray-600 stat-patients-title"></div>
+              <div class="mt-1 text-sm text-gray-500 stat-patients-desc"></div>
+            </div>
+            <div
+              class="text-center p-6 bg-white rounded-lg shadow-sm card-hover"
+            >
+              <div class="text-3xl sm:text-4xl font-bold text-primary">
+                24/7
+              </div>
+              <div
+                class="mt-2 text-lg text-gray-600 stat-emergency-title"
+              ></div>
+              <div class="mt-1 text-sm text-gray-500 stat-emergency-desc"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Features Grid -->
+        <div id="features" class="mt-20 sm:mt-32">
+          <div class="text-center mb-12 sm:mb-16">
+            <h2
+              class="text-2xl sm:text-3xl font-bold text-gray-900 services-title"
+            ></h2>
+            <p
+              class="mt-4 text-base sm:text-lg text-gray-600 services-desc"
+            ></p>
+          </div>
+          <div class="features-grid">
+            <div class="pt-6">
+              <div
+                class="flow-root bg-white rounded-lg px-6 pb-8 shadow-lg hover:shadow-xl transition-shadow card-hover"
+              >
+                <div class="-mt-6">
+                  <div
+                    class="inline-flex items-center justify-center p-3 bg-primary rounded-md shadow-lg"
+                  >
+                    <i class="fas fa-user-nurse text-white text-xl"></i>
+                  </div>
+                  <h3
+                    class="mt-8 text-lg font-medium text-gray-900 tracking-tight service1-title"
+                  ></h3>
+                  <p class="mt-5 text-base text-gray-700 service1-desc"></p>
+                  <ul class="mt-4 text-sm text-gray-600 space-y-1">
+                    <li class="service1-bullet1"></li>
+                    <li class="service1-bullet2"></li>
+                    <li class="service1-bullet3"></li>
+                    <li class="service1-bullet4"></li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+
+            <div class="pt-6">
+              <div
+                class="flow-root bg-white rounded-lg px-6 pb-8 shadow-lg hover:shadow-xl transition-shadow card-hover"
+              >
+                <div class="-mt-6">
+                  <div
+                    class="inline-flex items-center justify-center p-3 bg-primary rounded-md shadow-lg"
+                  >
+                    <i class="fas fa-capsules text-white text-xl"></i>
+                  </div>
+                  <h3
+                    class="mt-8 text-lg font-medium text-gray-900 tracking-tight service2-title"
+                  ></h3>
+                  <p class="mt-5 text-base text-gray-700 service2-desc"></p>
+                  <ul class="mt-4 text-sm text-gray-600 space-y-1">
+                    <li class="service2-bullet1"></li>
+                    <li class="service2-bullet2"></li>
+                    <li class="service2-bullet3"></li>
+                    <li class="service2-bullet4"></li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+
+            <div class="pt-6">
+              <div
+                class="flow-root bg-white rounded-lg px-6 pb-8 shadow-lg hover:shadow-xl transition-shadow card-hover"
+              >
+                <div class="-mt-6">
+                  <div
+                    class="inline-flex items-center justify-center p-3 bg-primary rounded-md shadow-lg"
+                  >
+                    <i class="fas fa-users text-white text-xl"></i>
+                  </div>
+                  <h3
+                    class="mt-8 text-lg font-medium text-gray-900 tracking-tight service3-title"
+                  ></h3>
+                  <p class="mt-5 text-base text-gray-700 service3-desc"></p>
+                  <ul class="mt-4 text-sm text-gray-600 space-y-1">
+                    <li class="service3-bullet1"></li>
+                    <li class="service3-bullet2"></li>
+                    <li class="service3-bullet3"></li>
+                    <li class="service3-bullet4"></li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+
+            <div class="pt-6">
+              <div
+                class="flow-root bg-white rounded-lg px-6 pb-8 shadow-lg hover:shadow-xl transition-shadow card-hover"
+              >
+                <div class="-mt-6">
+                  <div
+                    class="inline-flex items-center justify-center p-3 bg-primary rounded-md shadow-lg"
+                  >
+                    <i class="fas fa-heartbeat text-white text-xl"></i>
+                  </div>
+                  <h3
+                    class="mt-8 text-lg font-medium text-gray-900 tracking-tight service4-title"
+                  ></h3>
+                  <p class="mt-5 text-base text-gray-700 service4-desc"></p>
+                  <ul class="mt-4 text-sm text-gray-600 space-y-1">
+                    <li class="service4-bullet1"></li>
+                    <li class="service4-bullet2"></li>
+                    <li class="service4-bullet3"></li>
+                    <li class="service4-bullet4"></li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+
+            <div class="pt-6">
+              <div
+                class="flow-root bg-white rounded-lg px-6 pb-8 shadow-lg hover:shadow-xl transition-shadow card-hover"
+              >
+                <div class="-mt-6">
+                  <div
+                    class="inline-flex items-center justify-center p-3 bg-primary rounded-md shadow-lg"
+                  >
+                    <i class="fas fa-info-circle text-white text-xl"></i>
+                  </div>
+                  <h3
+                    class="mt-8 text-lg font-medium text-gray-900 tracking-tight service5-title"
+                  ></h3>
+                  <p class="mt-5 text-base text-gray-700 service5-desc"></p>
+                  <ul class="mt-4 text-sm text-gray-600 space-y-1">
+                    <li class="service5-bullet1"></li>
+                    <li class="service5-bullet2"></li>
+                    <li class="service5-bullet3"></li>
+                    <li class="service5-bullet4"></li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Benefits Section -->
+        <div class="mt-20 sm:mt-32">
+          <div class="gradient-bg rounded-2xl">
+            <div class="max-w-7xl mx-auto py-12 sm:py-16 px-4 sm:px-6 lg:px-8">
+              <div class="text-center">
+                <h2
+                  class="text-2xl sm:text-3xl font-bold text-white why-title"
+                ></h2>
+                <p
+                  class="mt-4 text-base sm:text-lg text-green-100 why-desc"
+                ></p>
+              </div>
+              <div
+                class="mt-8 sm:mt-12 grid grid-cols-1 gap-6 sm:gap-8 sm:grid-cols-2 lg:grid-cols-3"
+              >
+                <div class="text-center">
+                  <div
+                    class="inline-flex items-center justify-center w-12 h-12 bg-white rounded-full"
+                  >
+                    <i class="fas fa-shield-alt text-primary text-xl"></i>
+                  </div>
+                  <h3 class="mt-4 text-lg font-medium text-white">
+                    Secure & Reliable
+                  </h3>
+                  <p class="mt-2 text-green-100">
+                    Enterprise-grade security with regular backups and 99.9%
+                    uptime guarantee.
+                  </p>
+                </div>
+                <div class="text-center">
+                  <div
+                    class="inline-flex items-center justify-center w-12 h-12 bg-white rounded-full"
+                  >
+                    <i class="fas fa-mobile-alt text-primary text-xl"></i>
+                  </div>
+                  <h3 class="mt-4 text-lg font-medium text-white">
+                    Mobile Friendly
+                  </h3>
+                  <p class="mt-2 text-green-100">
+                    Access your pharmacy data anywhere, anytime with our
+                    responsive design.
+                  </p>
+                </div>
+                <div class="text-center">
+                  <div
+                    class="inline-flex items-center justify-center w-12 h-12 bg-white rounded-full"
+                  >
+                    <i class="fas fa-headset text-primary text-xl"></i>
+                  </div>
+                  <h3 class="mt-4 text-lg font-medium text-white">
+                    Local Support
+                  </h3>
+                  <p class="mt-2 text-green-100">
+                    Dedicated support team that understands Rwandan pharmacy
+                    regulations.
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Testimonials Section -->
+        <div class="mt-20 sm:mt-32">
+          <div class="text-center mb-12 sm:mb-16">
+            <h2
+              class="text-2xl sm:text-3xl font-bold text-gray-900 stories-title"
+            ></h2>
+            <p class="mt-4 text-base sm:text-lg text-gray-600 stories-desc"></p>
+          </div>
+          <div class="grid grid-cols-1 gap-6 sm:gap-8 lg:grid-cols-3">
+            <div class="bg-white rounded-lg shadow-lg p-6 card-hover">
+              <div class="flex items-center mb-4">
+                <div
+                  class="w-12 h-12 bg-primary rounded-full flex items-center justify-center"
+                >
+                  <span class="text-white font-bold text-lg">JM</span>
+                </div>
+                <div class="ml-4">
+                  <div class="font-medium text-gray-900">
+                    Jean Marie Nkurunziza
+                  </div>
+                  <div class="text-sm text-gray-500">
+                    Pharmacy Owner, Kigali
+                  </div>
+                </div>
+              </div>
+              <p class="text-gray-700 italic story1"></p>
+              <div class="flex mt-4 text-yellow-400">
+                <i class="fas fa-star"></i>
+                <i class="fas fa-star"></i>
+                <i class="fas fa-star"></i>
+                <i class="fas fa-star"></i>
+                <i class="fas fa-star"></i>
+              </div>
+            </div>
+            <div class="bg-white rounded-lg shadow-lg p-6 card-hover">
+              <div class="flex items-center mb-4">
+                <div
+                  class="w-12 h-12 bg-primary rounded-full flex items-center justify-center"
+                >
+                  <span class="text-white font-bold text-lg">AM</span>
+                </div>
+                <div class="ml-4">
+                  <div class="font-medium text-gray-900">
+                    Anne Marie Uwimana
+                  </div>
+                  <div class="text-sm text-gray-500">
+                    Pharmacy Manager, Butare
+                  </div>
+                </div>
+              </div>
+              <p class="text-gray-700 italic story2"></p>
+              <div class="flex mt-4 text-yellow-400">
+                <i class="fas fa-star"></i>
+                <i class="fas fa-star"></i>
+                <i class="fas fa-star"></i>
+                <i class="fas fa-star"></i>
+                <i class="fas fa-star"></i>
+              </div>
+            </div>
+            <div class="bg-white rounded-lg shadow-lg p-6 card-hover">
+              <div class="flex items-center mb-4">
+                <div
+                  class="w-12 h-12 bg-primary rounded-full flex items-center justify-center"
+                >
+                  <span class="text-white font-bold text-lg">PM</span>
+                </div>
+                <div class="ml-4">
+                  <div class="font-medium text-gray-900">Paul Mukamana</div>
+                  <div class="text-sm text-gray-500">
+                    Head Pharmacist, Musanze
+                  </div>
+                </div>
+              </div>
+              <p class="text-gray-700 italic story3"></p>
+              <div class="flex mt-4 text-yellow-400">
+                <i class="fas fa-star"></i>
+                <i class="fas fa-star"></i>
+                <i class="fas fa-star"></i>
+                <i class="fas fa-star"></i>
+                <i class="fas fa-star"></i>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- CTA Section -->
+        <div class="mt-20 sm:mt-32">
+          <div class="bg-gray-50 rounded-2xl">
+            <div
+              class="max-w-7xl mx-auto py-12 sm:py-16 px-4 sm:px-6 lg:px-8 text-center"
+            >
+              <h2
+                class="text-2xl sm:text-3xl font-bold text-gray-900 visit-title"
+              ></h2>
+              <p class="mt-4 text-base sm:text-lg text-gray-600 visit-desc"></p>
+            </div>
+          </div>
+        </div>
+      </main>
+
+      <!-- Footer -->
+      <footer class="bg-gray-900 text-white">
+        <div class="max-w-7xl mx-auto py-12 px-4 sm:px-6 lg:px-8">
+          <div class="grid grid-cols-1 md:grid-cols-4 gap-8">
+            <div class="col-span-1 md:col-span-2">
+              <div class="flex items-center">
+                <i class="fas fa-heartbeat text-primary text-2xl mr-3"></i>
+                <h3 class="text-xl font-bold footer-title"></h3>
+              </div>
+              <p class="mt-4 text-gray-400 max-w-md footer-desc"></p>
+              <div class="flex space-x-4 mt-6">
+                <a
+                  href="#"
+                  class="text-gray-400 hover:text-white transition-colors"
+                >
+                  <i class="fab fa-facebook-f text-xl"></i>
+                </a>
+                <a
+                  href="#"
+                  class="text-gray-400 hover:text-white transition-colors"
+                >
+                  <i class="fab fa-twitter text-xl"></i>
+                </a>
+                <a
+                  href="#"
+                  class="text-gray-400 hover:text-white transition-colors"
+                >
+                  <i class="fab fa-linkedin-in text-xl"></i>
+                </a>
+              </div>
+            </div>
+            <div>
+              <h4 class="font-semibold text-white services-menu"></h4>
+              <ul class="mt-4 space-y-2">
+                <li>
+                  <a
+                    href="#features"
+                    class="text-gray-400 hover:text-white transition-colors"
+                    >Our Services</a
+                  >
+                </li>
+                <li>
+                  <a
+                    href="#"
+                    class="text-gray-400 hover:text-white transition-colors"
+                    >Health Advice</a
+                  >
+                </li>
+                <li>
+                  <a
+                    href="#"
+                    class="text-gray-400 hover:text-white transition-colors"
+                    >Emergency Help</a
+                  >
+                </li>
+                <li>
+                  <a
+                    href="#"
+                    class="text-gray-400 hover:text-white transition-colors"
+                    >Community Outreach</a
+                  >
+                </li>
+              </ul>
+            </div>
+            <div>
+              <h4 class="font-semibold text-white contact-menu"></h4>
+              <ul class="mt-4 space-y-2">
+                <li>
+                  <a
+                    href="#"
+                    class="text-gray-400 hover:text-white transition-colors"
+                    >Call Us</a
+                  >
+                </li>
+                <li>
+                  <a
+                    href="#"
+                    class="text-gray-400 hover:text-white transition-colors"
+                    >Visit Us</a
+                  >
+                </li>
+                <li>
+                  <a
+                    href="#"
+                    class="text-gray-400 hover:text-white transition-colors"
+                    >Ask a Nurse</a
+                  >
+                </li>
+                <li>
+                  <a
+                    href="#"
+                    class="text-gray-400 hover:text-white transition-colors"
+                    >Community Events</a
+                  >
+                </li>
+              </ul>
+            </div>
+          </div>
+          <div
+            class="border-t border-gray-800 mt-12 pt-8 flex flex-col sm:flex-row justify-between items-center"
+          >
+            <p class="text-gray-400 copyright"></p>
+            <div class="flex space-x-6 mt-4 sm:mt-0">
+              <a
+                href="#"
+                class="text-gray-400 hover:text-white transition-colors text-sm"
+                >Privacy Policy</a
+              >
+              <a
+                href="#"
+                class="text-gray-400 hover:text-white transition-colors text-sm"
+                >Terms of Service</a
+              >
+              <a
+                href="#"
+                class="text-gray-400 hover:text-white transition-colors text-sm"
+                >Cookie Policy</a
+              >
+            </div>
+          </div>
+        </div>
+      </footer>
     </div>
 
     <!-- Notification -->
     <div id="notification" class="notification"></div>
 
     <script>
-        // Navigation functions
-        function showLandingPage() {
+      // Initialize Supabase client
+      const SUPABASE_URL = "https://jcmscgxrxicwowsezbui.supabase.co";
+      const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImpjbXNjZ3hyeGljd293c2V6YnVpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTY3NjExNzcsImV4cCI6MjA3MjMzNzE3N30.QqfFKCqV4oIsuNw5TAJoCbE7tVu7m8s8g8M6YzwcU68";
+      const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+        auth: {
+          persistSession: true,
+        },
+      });
+
+      // Language translations
+      const translations = {
+        en: {
+          title: "Nyina wa Jambo Health Post",
+          subtitle: "Your Health, Our Priority",
+          intro:
+            "At Nyina wa Jambo Health Post, we believe in caring for every member of our community with respect and compassion. Whether you need a checkup, advice, or urgent help, our doors are always open. We’re here for mothers, children, elders, and everyone in between—because your health matters to us.",
+          openHours: "Open Hours",
+          openDesc: "We are here for you every day",
+          patientsHelped: "Patients Helped",
+          patientsDesc: "Families and neighbors cared for",
+          emergencyHelp: "Emergency Help",
+          emergencyDesc: "Day or night, we’re here",
+          servicesTitle: "Services for a Healthier Community",
+          servicesDesc:
+            "We offer care, advice, and support for everyone in our village",
+          whyTitle: "Why Visit Nyina wa Jambo Health Post?",
+          whyDesc:
+            "We are part of your community, and we care about your well-being",
+          storiesTitle: "Stories from Our Community",
+          storiesDesc: "Hear from neighbors and families who visit us",
+          story1:
+            "Whenever my child is sick, I know I can come here and get help. The nurses are kind and always explain what to do.",
+          story2:
+            "I appreciate the health talks and advice. I learned a lot about nutrition and how to keep my family healthy.",
+          story3:
+            "They helped my mother when she needed medicine and even checked on her at home. We feel supported here.",
+          visitTitle: "Visit Us Today",
+          visitDesc:
+            "We welcome you and your family to Nyina wa Jambo Health Post. Your health is our mission.",
+          footerTitle: "Nyina wa Jambo Health Post",
+          footerDesc:
+            "Nyina wa Jambo Health Post is here for you. We offer care, advice, and support for all families in our community. Thank you for trusting us with your health.",
+          servicesMenu: "Services",
+          contactMenu: "Contact",
+          copyright: "© 2025 Nyina wa Jambo Health Post. All rights reserved.",
+          service1Title: "Patient Care",
+          service1Desc:
+            "We listen, we care, and we help. From regular checkups to advice on staying healthy, our nurses and staff are here for you and your family every day.",
+          service1Bullet1: "• Friendly consultations",
+          service1Bullet2: "• Help for mothers and children",
+          service1Bullet3: "• Support for chronic illnesses",
+          service1Bullet4: "• Follow-up and home visits",
+          service2Title: "Medicines & Supplies",
+          service2Desc:
+            "We provide essential medicines and health supplies with care and clear instructions. If you have questions, just ask—we’re here to help.",
+          service2Bullet1: "• Medicine for common illnesses",
+          service2Bullet2: "• Advice on prescriptions",
+          service2Bullet3: "• Health products for families",
+          service2Bullet4: "• Safe and reliable service",
+          service3Title: "Community Health",
+          service3Desc:
+            "We work together for a healthier village. Join our health talks, vaccination days, and family planning sessions. Everyone is welcome!",
+          service3Bullet1: "• Health education sessions",
+          service3Bullet2: "• Vaccinations for children",
+          service3Bullet3: "• Family planning advice",
+          service3Bullet4: "• Outreach in the community",
+          service4Title: "Emergency Help",
+          service4Desc:
+            "If you or a loved one needs urgent help, come to us. We offer first aid and can guide you to the right hospital if needed—day or night.",
+          service4Bullet1: "• First aid for injuries",
+          service4Bullet2: "• Emergency support",
+          service4Bullet3: "• Referrals to hospitals",
+          service4Bullet4: "• Available 24/7",
+          service5Title: "Health Advice",
+          service5Desc:
+            "We’re happy to answer your questions about health, nutrition, and disease prevention. Our team is here to support you and your family with honest, practical advice.",
+          service5Bullet1: "• Tips for healthy living",
+          service5Bullet2: "• Nutrition guidance",
+          service5Bullet3: "• Disease prevention",
+          service5Bullet4: "• Support for families",
+        },
+        rw: {
+          title: "Ikigo Nderabuzima Nyina wa Jambo",
+          subtitle: "Ubuzima bwawe ni bwo dushyira imbere",
+          intro:
+            "Mu kigo nderabuzima Nyina wa Jambo, twita kuri buri wese mu muryango wacu twubaha kandi tubafitiye impuhwe. Niba ukeneye kwisuzumisha, inama, cyangwa ubufasha bwihutirwa, imiryango yacu irafunguye buri gihe. Twakira ababyeyi, abana, abageze mu zabukuru, n'abandi bose—ubuzima bwawe ni ingenzi kuri twe.",
+          openHours: "Amasaha yo gufungura",
+          openDesc: "Turahari buri munsi",
+          patientsHelped: "Abarwayi twafashije",
+          patientsDesc: "Imiryango n'abaturanyi twitayeho",
+          emergencyHelp: "Ubufasha bw'ubutabazi",
+          emergencyDesc: "Ku manywa na nijoro, turahari",
+          servicesTitle: "Serivisi z'ubuzima bwiza",
+          servicesDesc:
+            "Dutanga ubufasha, inama, n'ubwitange kuri buri wese mu mudugudu wacu",
+          whyTitle: "Impamvu zo gusura Ikigo Nderabuzima Nyina wa Jambo",
+          whyDesc: "Turi mu muryango wawe, kandi twita ku buzima bwawe",
+          storiesTitle: "Inkuru z'abaturage bacu",
+          storiesDesc: "Umva ubuhamya bw'abaturanyi n'imiryango badusura",
+          story1:
+            "Iyo umwana wanjye arwaye, nza hano nkabona ubufasha. Abaforomo ni beza kandi bambwira uko ngomba kwitwara.",
+          story2:
+            "Ndashimira ibiganiro by'ubuzima n'inama. Nize byinshi ku mirire no kurinda umuryango wanjye indwara.",
+          story3:
+            "Bafashije mama igihe akeneye imiti, banamusura mu rugo. Twumva dufashijwe hano.",
+          visitTitle: "Dusuye uyu munsi",
+          visitDesc:
+            "Turakwakira wowe n'umuryango wawe mu kigo nderabuzima Nyina wa Jambo. Ubuzima bwawe ni intego yacu.",
+          footerTitle: "Ikigo Nderabuzima Nyina wa Jambo",
+          footerDesc:
+            "Ikigo nderabuzima Nyina wa Jambo kirahari kuri wowe. Dutanga ubufasha, inama, n'ubwitange ku miryango yose mu muryango wacu. Murakoze kutwizeza ubuzima bwanyu.",
+          servicesMenu: "Serivisi",
+          contactMenu: "Tuvugishe",
+          copyright:
+            "© 2025 Ikigo Nderabuzima Nyina wa Jambo. Uburenganzira bwose burabitswe.",
+          service1Title: "Kwita ku barwayi",
+          service1Desc:
+            "Turumva, twita, kandi dufasha. Uhereye ku kwisuzumisha kenshi kugeza ku nama zo kurinda ubuzima, abaforomo n'abakozi bacu bahari buri munsi kuri wowe n'umuryango wawe.",
+          service1Bullet1: "• Inama z'ubugwaneza",
+          service1Bullet2: "• Ubufasha ku babyeyi n'abana",
+          service1Bullet3: "• Ubufasha ku ndwara zidakira",
+          service1Bullet4: "• Gusura abarwayi mu rugo",
+          service2Title: "Imiti n'ibikoresho",
+          service2Desc:
+            "Dutanga imiti n'ibikoresho by'ubuzima by'ingenzi tubitanga neza kandi tubisobanura. Niba ufite ikibazo, tubaze—turahari kugufasha.",
+          service2Bullet1: "• Imiti y'indwara zisanzwe",
+          service2Bullet2: "• Inama ku miti yanditswe",
+          service2Bullet3: "• Ibikoresho by'ubuzima ku miryango",
+          service2Bullet4: "• Serivisi yizewe kandi itekanye",
+          service3Title: "Ubuzima bw'abaturage",
+          service3Desc:
+            "Dukorana kugira ngo tugire umudugudu ufite ubuzima bwiza. Jya mu biganiro by'ubuzima, iminsi yo gukingira, n'inama ku gutegura umuryango. Buri wese arakirwa!",
+          service3Bullet1: "• Ibiganiro by'ubuzima",
+          service3Bullet2: "• Gukingira abana",
+          service3Bullet3: "• Inama ku gutegura umuryango",
+          service3Bullet4: "• Kugera ku baturage bose",
+          service4Title: "Ubufasha bw'ubutabazi",
+          service4Desc:
+            "Niba wowe cyangwa uwo ukunda akeneye ubufasha bwihutirwa, uza hano. Dutanga ubutabazi bw'ibanze kandi tugufasha kugera ku bitaro bikwiye—ku manywa na nijoro.",
+          service4Bullet1: "• Ubutabazi bw'ibikomere",
+          service4Bullet2: "• Ubufasha bw'ubutabazi",
+          service4Bullet3: "• Kuyobora ku bitaro",
+          service4Bullet4: "• Turahari amasaha 24/7",
+          service5Title: "Inama z'ubuzima",
+          service5Desc:
+            "Twishimiye kugusubiza ibibazo byawe ku buzima, imirire, no kwirinda indwara. Itsinda ryacu rihari kugufasha wowe n'umuryango wawe mu buryo bw'inyakuri kandi bworoshye.",
+          service5Bullet1: "• Inama zo kubaho neza",
+          service5Bullet2: "• Inama ku mirire",
+          service5Bullet3: "• Kwirinda indwara",
+          service5Bullet4: "• Ubufasha ku miryango",
+        },
+      };
+
+      function setLanguage(lang) {
+        const t = translations[lang];
+        document.querySelector(".main-title").textContent = t.title;
+        document.querySelector(".main-subtitle").textContent = t.subtitle;
+        document.querySelector(".main-intro").textContent = t.intro;
+        document.querySelector(".stat-open-title").textContent = t.openHours;
+        document.querySelector(".stat-open-desc").textContent = t.openDesc;
+        document.querySelector(".stat-patients-title").textContent =
+          t.patientsHelped;
+        document.querySelector(".stat-patients-desc").textContent =
+          t.patientsDesc;
+        document.querySelector(".stat-emergency-title").textContent =
+          t.emergencyHelp;
+        document.querySelector(".stat-emergency-desc").textContent =
+          t.emergencyDesc;
+        document.querySelector(".services-title").textContent = t.servicesTitle;
+        document.querySelector(".services-desc").textContent = t.servicesDesc;
+        document.querySelector(".service1-title").textContent = t.service1Title;
+        document.querySelector(".service1-desc").textContent = t.service1Desc;
+        document.querySelector(".service1-bullet1").textContent =
+          t.service1Bullet1;
+        document.querySelector(".service1-bullet2").textContent =
+          t.service1Bullet2;
+        document.querySelector(".service1-bullet3").textContent =
+          t.service1Bullet3;
+        document.querySelector(".service1-bullet4").textContent =
+          t.service1Bullet4;
+        document.querySelector(".service2-title").textContent = t.service2Title;
+        document.querySelector(".service2-desc").textContent = t.service2Desc;
+        document.querySelector(".service2-bullet1").textContent =
+          t.service2Bullet1;
+        document.querySelector(".service2-bullet2").textContent =
+          t.service2Bullet2;
+        document.querySelector(".service2-bullet3").textContent =
+          t.service2Bullet3;
+        document.querySelector(".service2-bullet4").textContent =
+          t.service2Bullet4;
+        document.querySelector(".service3-title").textContent = t.service3Title;
+        document.querySelector(".service3-desc").textContent = t.service3Desc;
+        document.querySelector(".service3-bullet1").textContent =
+          t.service3Bullet1;
+        document.querySelector(".service3-bullet2").textContent =
+          t.service3Bullet2;
+        document.querySelector(".service3-bullet3").textContent =
+          t.service3Bullet3;
+        document.querySelector(".service3-bullet4").textContent =
+          t.service3Bullet4;
+        document.querySelector(".service4-title").textContent = t.service4Title;
+        document.querySelector(".service4-desc").textContent = t.service4Desc;
+        document.querySelector(".service4-bullet1").textContent =
+          t.service4Bullet1;
+        document.querySelector(".service4-bullet2").textContent =
+          t.service4Bullet2;
+        document.querySelector(".service4-bullet3").textContent =
+          t.service4Bullet3;
+        document.querySelector(".service4-bullet4").textContent =
+          t.service4Bullet4;
+        document.querySelector(".service5-title").textContent = t.service5Title;
+        document.querySelector(".service5-desc").textContent = t.service5Desc;
+        document.querySelector(".service5-bullet1").textContent =
+          t.service5Bullet1;
+        document.querySelector(".service5-bullet2").textContent =
+          t.service5Bullet2;
+        document.querySelector(".service5-bullet3").textContent =
+          t.service5Bullet3;
+        document.querySelector(".service5-bullet4").textContent =
+          t.service5Bullet4;
+        document.querySelector(".why-title").textContent = t.whyTitle;
+        document.querySelector(".why-desc").textContent = t.whyDesc;
+        document.querySelector(".stories-title").textContent = t.storiesTitle;
+        document.querySelector(".stories-desc").textContent = t.storiesDesc;
+        document.querySelector(".story1").textContent = t.story1;
+        document.querySelector(".story2").textContent = t.story2;
+        document.querySelector(".story3").textContent = t.story3;
+        document.querySelector(".visit-title").textContent = t.visitTitle;
+        document.querySelector(".visit-desc").textContent = t.visitDesc;
+        document.querySelector(".footer-title").textContent = t.footerTitle;
+        document.querySelector(".footer-desc").textContent = t.footerDesc;
+        document.querySelector(".services-menu").textContent = t.servicesMenu;
+        document.querySelector(".contact-menu").textContent = t.contactMenu;
+        document.querySelector(".copyright").textContent = t.copyright;
+        document.title = t.title;
+      }
+
+      // Check session and redirect if authenticated
+      async function checkSession() {
+        try {
+          const { data: { user }, error } = await supabase.auth.getUser();
+          if (error) {
+            console.error("Session check error:", error.message);
+            return false;
+          }
+          if (user) {
+            window.location.href = "dashboard.html";
+            return true;
+          }
+          return false;
+        } catch (error) {
+          console.error("Session check failed:", error.message);
+          return false;
+        }
+      }
+
+      // Handle login button click
+      async function checkSessionAndRedirect() {
+        const isAuthenticated = await checkSession();
+        if (!isAuthenticated) {
+          window.location.href = "login.html";
+        }
+      }
+
+      document.addEventListener("DOMContentLoaded", function () {
+        checkSession().then((isAuthenticated) => {
+          if (!isAuthenticated) {
             document.getElementById("landingPage").style.display = "block";
-            document.getElementById("dashboardPage").style.display = "none";
-        }
-
-        function showDashboard() {
-            console.log('showDashboard called');
-            
-            if (!isAuthenticated()) {
-                console.log('User not authenticated, redirecting to login');
-                showNotification('Please login to access the dashboard', 'warning');
-                setTimeout(() => {
-                    window.location.href = 'login.html';
-                }, 1000);
-                return;
-            }
-
-            const user = getCurrentUser();
-            console.log('Authenticated user:', user);
-            
-            if (!user) {
-                console.log('User data not found, redirecting to login');
-                showNotification('Session expired. Please login again.', 'warning');
-                logout();
-                return;
-            }
-
-            if (user.role === 'customer') {
-                console.log('Customer user, redirecting to customer portal');
-                window.location.href = 'customer-portal.html';
-                return;
-            }
-
-            console.log('Showing dashboard for user:', user.role);
-            document.getElementById("landingPage").style.display = "none";
-            document.getElementById("dashboardPage").style.display = "flex";
-            
-            updateNavigation();
-            loadDashboardData();
-        }
-
-        function updateNavigation() {
-            const user = getCurrentUser();
-            console.log('Updating navigation for user:', user);
-            
-            if (user) {
-                // For dashboard page
-                const currentUserElement = document.getElementById('currentUser');
-                if (currentUserElement) {
-                    currentUserElement.textContent = `${user.fullName}`;
-                }
-                const userInfoElement = document.getElementById('userInfo');
-                if (userInfoElement) {
-                    userInfoElement.textContent = `${user.fullName} (${user.role})`;
-                }
-                const userAvatar = document.getElementById('userAvatar');
-                if (userAvatar) {
-                    userAvatar.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(user.fullName)}&background=16a34a&color=fff&bold=true`;
-                }
-
-                // Show/hide elements based on role
-                const adminElements = document.querySelectorAll('.admin-only');
-                const receptionistElements = document.querySelectorAll('.receptionist-only');
-                
-                adminElements.forEach(element => {
-                    element.style.display = (user.role === 'admin') ? 'flex' : 'none';
-                });
-                
-                receptionistElements.forEach(element => {
-                    element.style.display = (user.role === 'receptionist' || user.role === 'admin') ? 'flex' : 'none';
-                });
-                
-                // For landing page header when logged in
-                const loginBtn = document.getElementById('loginBtn');
-                if (loginBtn) {
-                    loginBtn.innerHTML = `
-                        <i class="fas fa-tachometer-alt mr-0 sm:mr-2"></i>
-                        <span class="hidden sm:inline">Dashboard</span>
-                    `;
-                    loginBtn.onclick = showDashboard;
-                    loginBtn.title = `Go to Dashboard`;
-                }
-                const homeBtn = document.getElementById('homeBtn');
-                if(homeBtn){
-                    homeBtn.innerHTML = `
-                        <i class="fas fa-user mr-0 sm:mr-2"></i>
-                        <span class="hidden sm:inline">${user.fullName}</span>
-                    `;
-                    homeBtn.title = `Logged in as ${user.fullName}`;
-                    homeBtn.onclick = () => {
-                        if (confirm('Do you want to logout?')) {
-                            logout();
-                        }
-                    }
-                }
-
-            } else {
-                console.log('No user found for navigation update');
-                updateNavigationForGuest();
-            }
-        }
-
-        // Event listeners
-        document.addEventListener("DOMContentLoaded", function () {
-            checkAuthenticationOnLoad();
-            
-            var homeBtn = document.getElementById("homeBtn");
-            if (homeBtn) homeBtn.onclick = showLandingPage;
-            
-            var loginBtn = document.getElementById("loginBtn");
-            if (loginBtn) loginBtn.onclick = () => {
-                if (isAuthenticated()) {
-                    showDashboard();
-                } else {
-                    window.location.href = 'login.html';
-                }
-            };
-            
-            var getStartedBtn = document.getElementById("getStartedBtn");
-            if (getStartedBtn) getStartedBtn.onclick = () => {
-                if (isAuthenticated()) {
-                    showDashboard();
-                } else {
-                    window.location.href = 'login.html';
-                }
-            };
-
-            // Sidebar toggle
-            const menuToggle = document.getElementById('menu-toggle');
-            const sidebar = document.getElementById('sidebar');
-            if (menuToggle && sidebar) {
-                menuToggle.addEventListener('click', (e) => {
-                    e.stopPropagation();
-                    sidebar.classList.toggle('hidden');
-                });
-            }
-
-            // User dropdown
-            const userAvatar = document.getElementById('userAvatar');
-            const userDropdown = document.getElementById('userDropdown');
-            if (userAvatar && userDropdown) {
-                userAvatar.addEventListener('click', (e) => {
-                    e.stopPropagation();
-                    userDropdown.classList.toggle('hidden');
-                });
-            }
-
-            // Close dropdown/sidebar when clicking outside
-            document.addEventListener('click', function(e) {
-                const sidebar = document.getElementById('sidebar');
-                const menuToggle = document.getElementById('menu-toggle');
-                if (sidebar && !sidebar.classList.contains('hidden') && !sidebar.contains(e.target) && !menuToggle.contains(e.target)) {
-                    sidebar.classList.add('hidden');
-                }
-                
-                const userDropdown = document.getElementById('userDropdown');
-                const userAvatar = document.getElementById('userAvatar');
-                if (userDropdown && !userDropdown.classList.contains('hidden') && !userAvatar.contains(e.target)) {
-                    userDropdown.classList.add('hidden');
-                }
-            });
+            setLanguage("rw");
+          }
+          document.getElementById("languageSwitcher").addEventListener("change", function (e) {
+            setLanguage(e.target.value);
+          });
         });
-
-        // Check authentication on page load and redirect accordingly
-        function checkAuthenticationOnLoad() {
-            const urlParams = new URLSearchParams(window.location.search);
-            const forceHome = urlParams.get('home');
-            const showDash = urlParams.get('dashboard');
-            
-            if (isAuthenticated()) {
-                const user = getCurrentUser();
-                console.log('User authenticated on page load:', user);
-                
-                if (user.role === 'customer') {
-                    window.location.href = 'customer-portal.html';
-                    return;
-                }
-                
-                if ((user.role === 'admin' || user.role === 'receptionist') && !forceHome) {
-                    showDashboard();
-                    return;
-                }
-                
-                if (forceHome) {
-                    showLandingPage();
-                    updateNavigation();
-                    return;
-                }
-            } else {
-                console.log('User not authenticated on page load');
-                
-                if (showDash) {
-                    showNotification('Please login to access the dashboard', 'warning');
-                    setTimeout(() => {
-                        window.location.href = 'login.html';
-                    }, 1500);
-                    return;
-                }
-            }
-            
-            showLandingPage();
-            updateNavigationForGuest();
-        }
-
-        function updateNavigationForGuest() {
-            const loginBtn = document.getElementById('loginBtn');
-            if (loginBtn && !isAuthenticated()) {
-                loginBtn.innerHTML = '<i class="fas fa-sign-in-alt mr-0 sm:mr-2"></i><span class="hidden sm:inline">Login</span>';
-                loginBtn.onclick = () => window.location.href = 'login.html';
-            }
-            const homeBtn = document.getElementById('homeBtn');
-            if(homeBtn){
-                homeBtn.innerHTML = `
-                    <i class="fas fa-home mr-0 sm:mr-2"></i>
-                    <span class="hidden sm:inline">Home</span>
-                `;
-                homeBtn.onclick = showLandingPage;
-            }
-        }
-
-        async function loadDashboardData() {
-            try {
-                const [medicines, suppliers, customers, orders, stockMovements] = await Promise.all([
-                    fetchMedicines(),
-                    fetchSuppliers(),
-                    fetchCustomers(),
-                    fetchOrders(),
-                    fetchStockMovements().catch(() => [])
-                ]);
-
-                document.getElementById("totalMedicines").textContent = medicines.length;
-                document.getElementById("totalSuppliers").textContent = suppliers.length;
-                document.getElementById("totalCustomers").textContent = customers.length;
-                // document.getElementById("totalOrders").textContent = orders.length;
-
-                const lowStockMedicines = medicines.filter(m => (m.stock || 0) <= 10);
-                document.getElementById("lowStockCount").textContent = lowStockMedicines.length;
-
-                const today = new Date();
-                const thirtyDaysFromNow = new Date();
-                thirtyDaysFromNow.setDate(today.getDate() + 30);
-                
-                const expiringSoon = medicines.filter(m => {
-                    if (!m.expiry_date) return false;
-                    const expiryDate = new Date(m.expiry_date);
-                    return expiryDate <= thirtyDaysFromNow && expiryDate >= today;
-                });
-                document.getElementById("expiringSoonCount").textContent = expiringSoon.length;
-
-                const completedOrders = orders.filter(order => order.status === 'completed');
-                const totalRevenue = completedOrders.reduce((total, order) => total + (parseFloat(order.total || 0)), 0);
-                document.getElementById("totalRevenue").textContent = `${Math.round(totalRevenue).toLocaleString()} RWF`;
-
-                const todayStr = today.toISOString().split('T')[0];
-                const todaysOrders = completedOrders.filter(order => (order.order_date || order.created_at?.split('T')[0]) === todayStr);
-                const todayRevenue = todaysOrders.reduce((total, order) => total + (parseFloat(order.total || 0)), 0);
-                document.getElementById("todayRevenue").textContent = `${Math.round(todayRevenue).toLocaleString()} RWF`;
-
-                const pendingOrders = orders.filter(order => order.status === 'pending');
-                document.getElementById("pendingOrders").textContent = pendingOrders.length;
-
-                document.getElementById("stockMovements").textContent = stockMovements.length;
-
-                updateCategoriesSummary(medicines);
-                updateSuppliersSummary(suppliers);
-                updateOrdersSummary(orders);
-                updateRecentActivity(orders, medicines, stockMovements);
-
-            } catch (error) {
-                console.error('Error loading dashboard data:', error);
-                showNotification("Error loading dashboard data. Please check your connection.", "error");
-            }
-        }
-
-        function updateCategoriesSummary(medicines) {
-            const categories = {};
-            medicines.forEach(medicine => {
-                const category = medicine.category || 'Uncategorized';
-                categories[category] = (categories[category] || 0) + 1;
-            });
-
-            const categoriesContainer = document.getElementById("categoriesSummary");
-            const sortedCategories = Object.entries(categories).sort((a, b) => b[1] - a[1]).slice(0, 5);
-
-            if (sortedCategories.length === 0) {
-                categoriesContainer.innerHTML = '<p class="text-gray-500">No categories found</p>';
-                return;
-            }
-
-            categoriesContainer.innerHTML = sortedCategories.map(([category, count]) => `
-                <div class="flex justify-between items-center">
-                    <span class="text-sm text-gray-600">${category}</span>
-                    <span class="text-sm font-medium text-gray-900">${count}</span>
-                </div>
-            `).join("");
-        }
-
-        function updateSuppliersSummary(suppliers) {
-            const suppliersContainer = document.getElementById("suppliersSummary");
-            const topSuppliers = suppliers.slice(0, 5);
-
-            if (topSuppliers.length === 0) {
-                suppliersContainer.innerHTML = '<p class="text-gray-500">No suppliers found</p>';
-                return;
-            }
-
-            suppliersContainer.innerHTML = topSuppliers.map(supplier => `
-                <div class="flex justify-between items-center">
-                    <span class="text-sm text-gray-600">${supplier.name}</span>
-                    <span class="text-xs text-gray-400">${supplier.contact_person || 'N/A'}</span>
-                </div>
-            `).join("");
-        }
-
-        function updateOrdersSummary(orders) {
-            const ordersContainer = document.getElementById("ordersSummary");
-            const recentOrders = orders.slice(-5).reverse();
-
-            if (recentOrders.length === 0) {
-                ordersContainer.innerHTML = '<p class="text-gray-500">No orders found</p>';
-                return;
-            }
-
-            ordersContainer.innerHTML = recentOrders.map(order => `
-                <div class="flex justify-between items-center">
-                    <div>
-                        <span class="text-sm text-gray-600">#${order.id}</span>
-                        <span class="text-xs text-gray-400 block">${order.customerName || 'N/A'}</span>
-                    </div>
-                    <span class="text-sm font-medium text-gray-900">${(order.totalAmount || 0).toLocaleString()} RWF</span>
-                </div>
-            `).join("");
-        }
-
-        function updateRecentActivity(orders, medicines, stockMovements = []) {
-            const activityContainer = document.getElementById("recentActivity");
-            const activities = [];
-
-            const recentOrders = orders.slice(-3).reverse();
-            recentOrders.forEach(order => {
-                activities.push({
-                    action: "New order created",
-                    details: `Order #${order.id} for ${order.customerName || 'Customer'} - ${(order.totalAmount || 0).toLocaleString()} RWF`,
-                    time: "Recently",
-                    icon: "shopping-bag",
-                    color: "blue"
-                });
-            });
-
-            const lowStockMedicines = medicines.filter(m => (m.stock || 0) <= 10).slice(0, 3);
-            lowStockMedicines.forEach(medicine => {
-                activities.push({
-                    action: "Low stock alert",
-                    details: `${medicine.name} (${medicine.stock || 0} remaining)`,
-                    time: "Now",
-                    icon: "exclamation-triangle",
-                    color: "red"
-                });
-            });
-
-            const today = new Date();
-            const thirtyDaysFromNow = new Date();
-            thirtyDaysFromNow.setDate(today.getDate() + 30);
-            
-            const expiringSoon = medicines.filter(m => {
-                if (!m.expiry_date) return false;
-                const expiryDate = new Date(m.expiry_date);
-                return expiryDate <= thirtyDaysFromNow && expiryDate >= today;
-            }).slice(0, 2);
-
-            expiringSoon.forEach(medicine => {
-                const expiryDate = new Date(medicine.expiry_date);
-                const daysUntilExpiry = Math.ceil((expiryDate - today) / (1000 * 60 * 60 * 24));
-                activities.push({
-                    action: "Expiring soon",
-                    details: `${medicine.name} expires in ${daysUntilExpiry} days`,
-                    time: "Alert",
-                    icon: "clock",
-                    color: "orange"
-                });
-            });
-
-            const recentMovements = stockMovements.slice(-2).reverse();
-            recentMovements.forEach(movement => {
-                const type = movement.movement_type === 'in' ? 'Stock In' : 'Stock Out';
-                const medicine = medicines.find(m => m.id === movement.medicine_id);
-                activities.push({
-                    action: type,
-                    details: `${medicine ? medicine.name : 'Medicine'} - ${movement.quantity} units`,
-                    time: "Recently",
-                    icon: movement.movement_type === 'in' ? "plus-circle" : "minus-circle",
-                    color: movement.movement_type === 'in' ? "green" : "yellow"
-                });
-            });
-
-            if (activities.length === 0) {
-                activityContainer.innerHTML = '<p class="text-gray-500">No recent activity</p>';
-                return;
-            }
-
-            const recentActivities = activities.slice(0, 8);
-
-            activityContainer.innerHTML = recentActivities.map(activity => `
-                <div class="flex items-center">
-                    <div class="flex-shrink-0">
-                        <div class="p-2 rounded-full bg-${activity.color}-100">
-                            <i class="fas fa-${activity.icon} text-${activity.color}-600"></i>
-                        </div>
-                    </div>
-                    <div class="ml-3 flex-1">
-                        <p class="text-sm font-medium text-gray-900">${activity.action}</p>
-                        <p class="text-sm text-gray-500">${activity.details}</p>
-                    </div>
-                    <div class="flex-shrink-0">
-                        <span class="text-xs text-gray-400">${activity.time}</span>
-                    </div>
-                </div>
-            `).join("");
-        }
-
-        function getCurrentUser() {
-            try {
-                const session = localStorage.getItem('userSession');
-                console.log('Retrieved session from localStorage:', session);
-                
-                if (!session) {
-                    console.log('No session found in localStorage');
-                    return null;
-                }
-                
-                const user = JSON.parse(session);
-                console.log('Parsed user from session:', user);
-                return user;
-            } catch (error) {
-                console.error('Error parsing user session:', error);
-                localStorage.removeItem('userSession');
-                return null;
-            }
-        }
-
-        function isAuthenticated() {
-            const user = getCurrentUser();
-            const isAuth = user !== null;
-            console.log('Authentication check result:', isAuth, user);
-            return isAuth;
-        }
-
-        function showNotification(message, type = "info") {
-            console.log('Showing notification:', message, type);
-            const notification = document.getElementById("notification");
-            notification.textContent = message;
-            notification.className = `notification show ${type}`;
-            
-            setTimeout(() => {
-                notification.classList.remove("show");
-            }, 3000);
-        }
+      });
     </script>
-</body>
+  </body>
 </html>

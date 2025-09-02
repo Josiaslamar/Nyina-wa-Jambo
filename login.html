@@ -1,385 +1,233 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Login - Nyina wa Jambo Pharmacy</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
     <script src="supabase.js"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" />
     <style>
-        .gradient-bg {
-            background: linear-gradient(135deg, #16a34a 0%, #22c55e 100%);
-        }
-        .login-card {
-            backdrop-filter: blur(10px);
-            background: rgba(255, 255, 255, 0.95);
-        }
-        .input-focus:focus {
-            border-color: #16a34a;
-            box-shadow: 0 0 0 3px rgba(34, 197, 94, 0.1);
-        }
-        .notification {
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            padding: 12px 20px;
-            border-radius: 8px;
-            color: white;
-            font-weight: 500;
-            z-index: 1000;
-            transform: translateX(400px);
-            transition: transform 0.3s ease;
-        }
-        .notification.show {
-            transform: translateX(0);
-        }
-        .notification.success { background-color: #10b981; }
-        .notification.error { background-color: #ef4444; }
-        .notification.warning { background-color: #f59e0b; }
-        .notification.info { background-color: #3b82f6; }
+      .gradient-bg {
+        background: linear-gradient(135deg, #16a34a 0%, #22c55e 100%);
+      }
+      .login-card {
+        backdrop-filter: blur(10px);
+        background: rgba(255, 255, 255, 0.95);
+      }
+      .input-focus:focus {
+        border-color: #16a34a;
+        box-shadow: 0 0 0 3px rgba(34, 197, 94, 0.1);
+      }
+      .notification {
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        padding: 12px 20px;
+        border-radius: 8px;
+        color: white;
+        font-weight: 500;
+        z-index: 1000;
+        transform: translateX(400px);
+        transition: transform 0.3s ease;
+      }
+      .notification.show {
+        transform: translateX(0);
+      }
+      .notification.success {
+        background-color: #10b981;
+      }
+      .notification.error {
+        background-color: #ef4444;
+      }
     </style>
-</head>
-<body class="min-h-screen gradient-bg flex items-center justify-center p-4">
-    <!-- Notification Container -->
+  </head>
+  <body class="min-h-screen gradient-bg flex items-center justify-center p-4">
     <div id="notificationContainer"></div>
-
-    <!-- Login Form -->
     <div class="login-card max-w-md w-full rounded-2xl shadow-2xl p-8">
-        <!-- Header -->
-        <div class="text-center mb-8">
-            <div class="flex items-center justify-center mb-4">
-                <i class="fas fa-pills text-green-600 text-4xl mr-3"></i>
-                <h1 class="text-2xl font-bold text-gray-900">Nyina wa Jambo</h1>
-            </div>
-            <p class="text-gray-600">Pharmacy Management System</p>
+      <div class="text-center mb-8">
+        <div class="flex items-center justify-center mb-4">
+          <i class="fas fa-pills text-green-600 text-4xl mr-3"></i>
+          <h1 class="text-2xl font-bold text-gray-900">Nyina wa Jambo</h1>
         </div>
-
-        <!-- Login Form -->
-        <form id="loginForm" class="space-y-6">
-            <div>
-                <label for="username" class="block text-sm font-medium text-gray-700 mb-2">
-                    <i class="fas fa-user mr-2"></i>Username or Email
-                </label>
-                <input
-                    type="text"
-                    id="username"
-                    name="username"
-                    required
-                    class="input-focus w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none transition-colors"
-                    placeholder="Enter your username or email"
-                    autocomplete="username"
-                />
-            </div>
-
-            <div>
-                <label for="password" class="block text-sm font-medium text-gray-700 mb-2">
-                    <i class="fas fa-lock mr-2"></i>Password
-                </label>
-                <div class="relative">
-                    <input
-                        type="password"
-                        id="password"
-                        name="password"
-                        required
-                        class="input-focus w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none transition-colors pr-12"
-                        placeholder="Enter your password"
-                        autocomplete="current-password"
-                    />
-                    <button
-                        type="button"
-                        id="togglePassword"
-                        class="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700"
-                    >
-                        <i class="fas fa-eye" id="togglePasswordIcon"></i>
-                    </button>
-                </div>
-            </div>
-
-            <div class="flex items-center justify-between">
-                <div class="flex items-center">
-                    <input
-                        type="checkbox"
-                        id="rememberMe"
-                        name="rememberMe"
-                        class="h-4 w-4 text-green-600 focus:ring-green-500 border-gray-300 rounded"
-                    />
-                    <label for="rememberMe" class="ml-2 block text-sm text-gray-700">
-                        Remember me
-                    </label>
-                </div>
-                <a href="#" class="text-sm text-green-600 hover:text-green-500">
-                    Forgot password?
-                </a>
-            </div>
-
+        <p class="text-gray-600">Pharmacy Management System</p>
+      </div>
+      <form id="loginForm" class="space-y-6">
+        <div>
+          <label for="email" class="block text-sm font-medium text-gray-700 mb-2">
+            <i class="fas fa-envelope mr-2"></i>Email
+          </label>
+          <input
+            type="email"
+            id="email"
+            name="email"
+            required
+            class="input-focus w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none transition-colors"
+            placeholder="Enter your email"
+            autocomplete="email"
+          />
+        </div>
+        <div>
+          <label for="password" class="block text-sm font-medium text-gray-700 mb-2">
+            <i class="fas fa-lock mr-2"></i>Password
+          </label>
+          <div class="relative">
+            <input
+              type="password"
+              id="password"
+              name="password"
+              required
+              class="input-focus w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none transition-colors pr-12"
+              placeholder="Enter your password"
+              autocomplete="current-password"
+            />
             <button
-                type="submit"
-                id="loginButton"
-                class="w-full bg-green-600 text-white py-3 px-4 rounded-lg hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 transition-colors font-medium"
+              type="button"
+              id="togglePassword"
+              class="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700"
             >
-                <span id="loginButtonText">
-                    <i class="fas fa-sign-in-alt mr-2"></i>Sign In
-                </span>
-                <span id="loginButtonLoading" class="hidden">
-                    <i class="fas fa-spinner fa-spin mr-2"></i>Signing in...
-                </span>
+              <i class="fas fa-eye" id="togglePasswordIcon"></i>
             </button>
-        </form>
-
-        <!-- Role Demo Credentials -->
-        <div class="mt-8 p-4 bg-gray-50 rounded-lg">
-            <h3 class="text-sm font-semibold text-gray-700 mb-3">Demo Credentials:</h3>
-            <div class="text-xs space-y-1 text-gray-600">
-                <div><strong>Admin:</strong> admin / password123</div>
-                <div><strong>Receptionist:</strong> receptionist1 / password123</div>
-                <div><strong>Staff:</strong> receptionist2 / password123</div>
-            </div>
+          </div>
         </div>
-
-        <!-- Back to Home -->
-        <div class="mt-6 text-center">
-            <a href="index.html" class="text-sm text-gray-600 hover:text-green-600 transition-colors">
-                <i class="fas fa-arrow-left mr-2"></i>Back to Homepage
-            </a>
+        <div class="flex items-center">
+          <input
+            type="checkbox"
+            id="rememberMe"
+            name="rememberMe"
+            class="h-4 w-4 text-green-600 focus:ring-green-500 border-gray-300 rounded"
+          />
+          <label for="rememberMe" class="ml-2 block text-sm text-gray-700">
+            Remember me
+          </label>
         </div>
+        <button
+          type="submit"
+          id="loginButton"
+          class="w-full bg-green-600 text-white py-3 px-4 rounded-lg hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 transition-colors font-medium"
+        >
+          <span id="loginButtonText">
+            <i class="fas fa-sign-in-alt mr-2"></i>Sign In
+          </span>
+          <span id="loginButtonLoading" class="hidden">
+            <i class="fas fa-spinner fa-spin mr-2"></i>Signing in...
+          </span>
+        </button>
+      </form>
+      <div class="mt-8 p-4 bg-gray-50 rounded-lg">
+        <h3 class="text-sm font-semibold text-gray-700 mb-3">Demo Credentials:</h3>
+        <div class="text-xs space-y-1 text-gray-600">
+          <div><strong>Admin:</strong> admin@example.com / password123</div>
+          <div><strong>Receptionist:</strong> receptionist1@example.com / password123</div>
+          <div><strong>Staff:</strong> receptionist2@example.com / password123</div>
+        </div>
+      </div>
+      <div class="mt-6 text-center">
+        <a
+          href="index.html"
+          class="text-sm text-gray-600 hover:text-green-600 transition-colors"
+        >
+          <i class="fas fa-arrow-left mr-2"></i>Back to Homepage
+        </a>
+      </div>
     </div>
-
     <script>
-        // Notification system
-        function showNotification(message, type = 'info') {
-            const container = document.getElementById('notificationContainer');
-            const notification = document.createElement('div');
-            notification.className = `notification ${type}`;
-            notification.innerHTML = `
-                <span>${message}</span>
-                <button onclick="this.parentElement.remove()" class="ml-3">
-                    <i class="fas fa-times"></i>
-                </button>
-            `;
-            
-            container.appendChild(notification);
-            
-            // Show notification
-            setTimeout(() => notification.classList.add('show'), 100);
-            
-            // Auto remove after 5 seconds
-            setTimeout(() => {
-                notification.classList.remove('show');
-                setTimeout(() => notification.remove(), 300);
-            }, 5000);
+      function showNotification(message, type = "info") {
+        showSuccess(message, document.getElementById("notificationContainer"));
+      }
+
+      document.getElementById("togglePassword").addEventListener("click", function () {
+        const password = document.getElementById("password");
+        const icon = document.getElementById("togglePasswordIcon");
+        if (password.type === "password") {
+          password.type = "text";
+          icon.className = "fas fa-eye-slash";
+        } else {
+          password.type = "password";
+          icon.className = "fas fa-eye";
+        }
+      });
+
+      function validateEmail(email) {
+        return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+      }
+
+      document.getElementById("loginForm").addEventListener("submit", async function (e) {
+        e.preventDefault();
+        const email = document.getElementById("email").value.trim();
+        const password = document.getElementById("password").value;
+        const rememberMe = document.getElementById("rememberMe").checked;
+        const loginButton = document.getElementById("loginButton");
+        const loginButtonText = document.getElementById("loginButtonText");
+        const loginButtonLoading = document.getElementById("loginButtonLoading");
+
+        if (!email || !password) {
+          showNotification("Please fill in all fields", "error");
+          return;
+        }
+        if (!validateEmail(email)) {
+          showNotification("Please enter a valid email address", "error");
+          return;
         }
 
-        // Toggle password visibility
-        document.getElementById('togglePassword').addEventListener('click', function() {
-            const password = document.getElementById('password');
-            const icon = document.getElementById('togglePasswordIcon');
-            
-            if (password.type === 'password') {
-                password.type = 'text';
-                icon.className = 'fas fa-eye-slash';
-            } else {
-                password.type = 'password';
-                icon.className = 'fas fa-eye';
-            }
-        });
+        loginButton.disabled = true;
+        loginButtonText.classList.add("hidden");
+        loginButtonLoading.classList.remove("hidden");
 
-        // Login form handler
-        document.getElementById('loginForm').addEventListener('submit', async function(e) {
-            e.preventDefault();
-            
-            const username = document.getElementById('username').value.trim();
-            const password = document.getElementById('password').value;
-            const rememberMe = document.getElementById('rememberMe').checked;
-            
-            if (!username || !password) {
-                showNotification('Please fill in all fields', 'error');
-                return;
+        try {
+          const user = await signIn(email, password, rememberMe);
+          const profile = await getUserProfile();
+          if (!profile) throw new Error("User profile not found");
+          showNotification(`Welcome back, ${profile.full_name}!`, "success");
+          setTimeout(() => {
+            switch (profile.role) {
+              case "admin":
+              case "receptionist":
+                window.location.href = "dashboard.html";
+                break;
+              case "customer":
+                window.location.href = "customer-portal.html";
+                break;
+              default:
+                window.location.href = "index.html";
             }
+          }, 300);
+        } catch (error) {
+          showNotification(error.message || "Login failed. Please try again.", "error");
+        } finally {
+          loginButton.disabled = false;
+          loginButtonText.classList.remove("hidden");
+          loginButtonLoading.classList.add("hidden");
+        }
+      });
 
-            // Show loading state
-            const loginButton = document.getElementById('loginButton');
-            const loginButtonText = document.getElementById('loginButtonText');
-            const loginButtonLoading = document.getElementById('loginButtonLoading');
-            
-            loginButton.disabled = true;
-            loginButtonText.classList.add('hidden');
-            loginButtonLoading.classList.remove('hidden');
-
-            try {
-                // Authenticate user with Supabase
-                const isAuthenticated = await authenticateUser(username, password);
-                
-                if (isAuthenticated) {
-                    // Get user role and redirect accordingly
-                    const user = await getUserByUsernameOrEmail(username);
-                    
-                    if (user) {
-                        // Store user session
-                        const sessionData = {
-                            userId: user.id,
-                            username: user.username,
-                            fullName: user.full_name,
-                            role: user.role,
-                            email: user.email,
-                            loginTime: new Date().toISOString()
-                        };
-                        
-                        // Store in localStorage (in production, use secure session management)
-                        localStorage.setItem('userSession', JSON.stringify(sessionData));
-                        console.log('Session stored successfully:', sessionData);
-                        
-                        if (rememberMe) {
-                            localStorage.setItem('rememberUser', username);
-                        }
-                        
-                        showNotification(`Welcome back, ${user.full_name}!`, 'success');
-                        
-                        // Update last login
-                        await updateLastLogin(user.id);
-                        
-                        // Ensure localStorage is written before redirect
-                        await new Promise(resolve => setTimeout(resolve, 100));
-                        
-                        // Redirect based on role
-                        setTimeout(() => {
-                            console.log('Redirecting user with role:', user.role);
-                            switch(user.role) {
-                                case 'admin':
-                                    console.log('Redirecting admin to dashboard');
-                                    window.location.href = 'index.html';
-                                    break;
-                                case 'receptionist':
-                                    console.log('Redirecting receptionist to dashboard');
-                                    window.location.href = 'index.html';
-                                    break;
-                                case 'customer':
-                                    console.log('Redirecting customer to portal');
-                                    window.location.href = 'customer-portal.html';
-                                    break;
-                                default:
-                                    console.log('Redirecting default user to dashboard');
-                                    window.location.href = 'index.html';
-                            }
-                        }, 1000); // Reduced timeout for faster redirect
-                    } else {
-                        showNotification('User data not found', 'error');
-                    }
-                } else {
-                    showNotification('Invalid username/email or password', 'error');
-                }
-            } catch (error) {
-                console.error('Login error:', error);
-                showNotification('Login failed. Please try again.', 'error');
-            } finally {
-                // Reset button state
-                loginButton.disabled = false;
-                loginButtonText.classList.remove('hidden');
-                loginButtonLoading.classList.add('hidden');
+      document.addEventListener("DOMContentLoaded", async function () {
+        try {
+          const isAuth = await isAuthenticated();
+          if (isAuth) {
+            const profile = await getUserProfile();
+            if (profile) {
+              switch (profile.role) {
+                case "customer":
+                  window.location.href = "customer-portal.html";
+                  break;
+                default:
+                  window.location.href = "dashboard.html";
+              }
             }
-        });
-
-        // Auto-fill remembered username and check authentication
-        document.addEventListener('DOMContentLoaded', function() {
-            // Check if user is already authenticated
-            const session = localStorage.getItem('userSession');
-            if (session) {
-                try {
-                    const user = JSON.parse(session);
-                    console.log('User already authenticated, redirecting:', user);
-                    
-                    // Redirect based on role
-                    setTimeout(() => {
-                        switch(user.role) {
-                            case 'customer':
-                                window.location.href = 'customer-portal.html';
-                                break;
-                            default:
-                                window.location.href = 'index.html';
-                        }
-                    }, 500);
-                    return;
-                } catch (error) {
-                    console.error('Error parsing existing session:', error);
-                    localStorage.removeItem('userSession');
-                }
-            }
-            
-            // Auto-fill remembered username if not authenticated
-            const rememberedUser = localStorage.getItem('rememberUser');
+          } else {
+            const rememberedUser = localStorage.getItem("rememberUser");
             if (rememberedUser) {
-                document.getElementById('username').value = rememberedUser;
-                document.getElementById('rememberMe').checked = true;
-                document.getElementById('password').focus();
+              document.getElementById("email").value = rememberedUser;
+              document.getElementById("rememberMe").checked = true;
+              document.getElementById("password").focus();
             }
-        });
-
-        // Authentication functions
-        async function authenticateUser(usernameOrEmail, password) {
-            try {
-                // In a real application, you would use proper password hashing
-                // For demo purposes, we'll use a simple comparison
-                
-                const { data: users, error } = await supabase
-                    .from('users')
-                    .select('*')
-                    .or(`username.eq.${usernameOrEmail},email.eq.${usernameOrEmail}`)
-                    .eq('is_active', true)
-                    .single();
-
-                if (error || !users) {
-                    return false;
-                }
-
-                // In production, use bcrypt or similar for password verification
-                // For demo, we'll check if password is 'password123'
-                return password === 'password123';
-                
-            } catch (error) {
-                console.error('Authentication error:', error);
-                return false;
-            }
+          }
+        } catch (error) {
+          console.error("Session check error:", error);
         }
-
-        async function getUserByUsernameOrEmail(usernameOrEmail) {
-            try {
-                const { data: user, error } = await supabase
-                    .from('users')
-                    .select('*')
-                    .or(`username.eq.${usernameOrEmail},email.eq.${usernameOrEmail}`)
-                    .eq('is_active', true)
-                    .single();
-
-                if (error) {
-                    console.error('Error fetching user:', error);
-                    return null;
-                }
-
-                return user;
-            } catch (error) {
-                console.error('Error fetching user:', error);
-                return null;
-            }
-        }
-
-        async function updateLastLogin(userId) {
-            try {
-                const { error } = await supabase
-                    .from('users')
-                    .update({ 
-                        last_login: new Date().toISOString(),
-                        updated_at: new Date().toISOString()
-                    })
-                    .eq('id', userId);
-
-                if (error) {
-                    console.error('Error updating last login:', error);
-                }
-            } catch (error) {
-                console.error('Error updating last login:', error);
-            }
-        }
+      });
     </script>
-</body>
+  </body>
 </html>

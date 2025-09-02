@@ -3,163 +3,746 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Dashboard - Concorde Pharmacy</title>
+    <title>Dashboard - Nyina wa Jambo Pharmacy</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.3.0/exceljs.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
-  <!-- Supabase JS CDN -->
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.7/dist/umd/supabase.min.js"></script>
-  <script src="supabase.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.7/dist/umd/supabase.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" />
     <style>
       @import url("https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap");
-      body { font-family: "Inter", sans-serif; }
-      .gradient-bg { background: linear-gradient(135deg, #16a34a 0%, #22c55e 100%); }
-      .card-hover { transition: all 0.3s ease; }
-      .card-hover:hover { transform: translateY(-5px); box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1); }
-      .fade-in { animation: fadeIn 0.6s ease-in; }
-      .slide-up { animation: slideUp 0.8s ease-out; }
-      @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-      @keyframes slideUp { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
-      .stats-card { background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%); }
-      .low-stock { background-color: #fef2f2; border-left: 4px solid #ef4444; }
-      .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.5); }
-      .modal.show { display: flex; align-items: center; justify-content: center; }
-      .animate-pulse-slow { animation: pulse 3s infinite; }
+      body {
+        font-family: "Inter", sans-serif;
+      }
+      .gradient-bg {
+        background: linear-gradient(135deg, #16a34a 0%, #22c55e 100%);
+      }
+      .card-hover {
+        transition: all 0.3s ease;
+      }
+      .card-hover:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+      }
+      .fade-in {
+        animation: fadeIn 0.6s ease-in;
+      }
+      .slide-up {
+        animation: slideUp 0.8s ease-out;
+      }
+      @keyframes fadeIn {
+        from {
+          opacity: 0;
+        }
+        to {
+          opacity: 1;
+        }
+      }
+      @keyframes slideUp {
+        from {
+          opacity: 0;
+          transform: translateY(30px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+      .stats-card {
+        background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+      }
+      .low-stock {
+        background-color: #fef2f2;
+        border-left: 4px solid #ef4444;
+      }
+      .modal {
+        display: none;
+        position: fixed;
+        z-index: 1000;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.5);
+      }
+      .modal.show {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+      .animate-pulse-slow {
+        animation: pulse 3s infinite;
+      }
+      .notification {
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        padding: 16px 20px;
+        border-radius: 8px;
+        color: white;
+        font-weight: 500;
+        opacity: 0;
+        transform: translateX(100%);
+        transition: all 0.3s ease;
+        z-index: 9999;
+        max-width: 400px;
+      }
+      .notification.show {
+        opacity: 1;
+        transform: translateX(0);
+      }
+      .notification.error {
+        background-color: #ef4444;
+      }
+      .notification.success {
+        background-color: #22c55e;
+      }
+      .loading {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        padding: 2rem;
+        color: #6b7280;
+      }
     </style>
   </head>
   <body class="bg-gray-100">
     <div class="flex h-screen bg-gray-100">
-        <!-- Sidebar -->
-        <aside id="sidebar" class="w-64 bg-primary text-white flex-shrink-0 hidden lg:block">
-            <div class="p-6">
-                <a href="index.html?home=true" class="text-2xl font-bold text-white flex items-center">
-                    <i class="fas fa-pills mr-3"></i>
-                    <span>Nyina wa Jambo</span>
-                </a>
-            </div>
-            <nav class="mt-6">
-                <a href="index.html?dashboard=true" class="flex items-center py-3 px-6 bg-green-600 text-white">
-                    <i class="fas fa-tachometer-alt w-6 text-center"></i>
-                    <span class="ml-4">Dashboard</span>
-                </a>
-                <a href="medicines.html" class="flex items-center py-3 px-6 text-gray-300 hover:bg-green-600 hover:text-white transition-colors receptionist-only">
-                    <i class="fas fa-capsules w-6 text-center"></i>
-                    <span class="ml-4">Medicines</span>
-                </a>
-                <a href="suppliers.html" class="flex items-center py-3 px-6 text-gray-300 hover:bg-green-600 hover:text-white transition-colors admin-only">
-                    <i class="fas fa-truck w-6 text-center"></i>
-                    <span class="ml-4">Suppliers</span>
-                </a>
-                <a href="customers.html" class="flex items-center py-3 px-6 text-gray-300 hover:bg-green-600 hover:text-white transition-colors receptionist-only">
-                    <i class="fas fa-users w-6 text-center"></i>
-                    <span class="ml-4">Customers</span>
-                </a>
-                <a href="orders.html" class="flex items-center py-3 px-6 text-gray-300 hover:bg-green-600 hover:text-white transition-colors receptionist-only">
-                    <i class="fas fa-shopping-cart w-6 text-center"></i>
-                    <span class="ml-4">Orders</span>
-                </a>
-                <a href="reports.html" class="flex items-center py-3 px-6 text-gray-300 hover:bg-green-600 hover:text-white transition-colors admin-only">
-                    <i class="fas fa-chart-line w-6 text-center"></i>
-                    <span class="ml-4">Reports</span>
-                </a>
-            </nav>
-            <div class="absolute bottom-0 w-full p-6">
-                <button onclick="logout()" class="w-full flex items-center justify-center py-2 px-4 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors">
-                    <i class="fas fa-sign-out-alt mr-2"></i>
-                    <span>Logout</span>
-                </button>
-            </div>
-        </aside>
-
-        <!-- Main content -->
-        <div class="flex-1 flex flex-col overflow-hidden">
-            <!-- Top bar -->
-            <header class="bg-white shadow-sm flex justify-between items-center p-4">
-                <button id="menu-toggle" class="text-gray-700 lg:hidden">
-                    <i class="fas fa-bars text-xl"></i>
-                </button>
-                <h1 class="text-xl font-semibold text-gray-800 hidden lg:block">Dashboard</h1>
-                <div class="relative">
-                    <button id="userAvatar" class="flex items-center space-x-2">
-                        <img src="" alt="User Avatar" class="w-10 h-10 rounded-full">
-                        <span id="currentUser" class="text-gray-700 font-medium hidden md:block"></span>
-                    </button>
-                    <div id="userDropdown" class="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg z-50 hidden">
-                        <div class="py-1">
-                            <div class="px-4 py-2 text-sm text-gray-500 border-b">
-                                <span id="userInfo"></span>
-                            </div>
-                             <a href="index.html?home=true" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
-                                <i class="fas fa-home mr-2"></i>Home Page
-                            </a>
-                            <button onclick="logout()" class="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
-                                <i class="fas fa-sign-out-alt mr-2"></i>Logout
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            </header>
-
-            <!-- Main content area -->
-            <main class="flex-1 overflow-x-hidden overflow-y-auto bg-gray-100 p-6">
-                <div id="dashboardPage" class="min-h-screen bg-gray-50">
-                  <!-- ...existing dashboard HTML and scripts from your index.html... -->
-                </div>
-            </main>
+      <aside
+        id="sidebar"
+        class="w-64 bg-green-800 text-white flex-shrink-0 hidden lg:block"
+      >
+        <div class="p-6">
+          <a
+            href="dashboard.html"
+            class="text-2xl font-bold text-white flex items-center"
+          >
+            <i class="fas fa-pills mr-3"></i>
+            <span>Nyina wa Jambo</span>
+          </a>
         </div>
+        <nav class="mt-6">
+          <a
+            href="dashboard.html"
+            class="flex items-center py-3 px-6 bg-green-600 text-white"
+          >
+            <i class="fas fa-tachometer-alt w-6 text-center"></i>
+            <span class="ml-4">Dashboard</span>
+          </a>
+          <a
+            href="medicines.html"
+            class="flex items-center py-3 px-6 text-gray-300 hover:bg-green-600 hover:text-white transition-colors receptionist-only"
+          >
+            <i class="fas fa-capsules w-6 text-center"></i>
+            <span class="ml-4">Medicines</span>
+          </a>
+          <a
+            href="suppliers.html"
+            class="flex items-center py-3 px-6 text-gray-300 hover:bg-green-600 hover:text-white transition-colors admin-only"
+          >
+            <i class="fas fa-truck w-6 text-center"></i>
+            <span class="ml-4">Suppliers</span>
+          </a>
+          <a
+            href="customers.html"
+            class="flex items-center py-3 px-6 text-gray-300 hover:bg-green-600 hover:text-white transition-colors receptionist-only"
+          >
+            <i class="fas fa-users w-6 text-center"></i>
+            <span class="ml-4">Customers</span>
+          </a>
+          <a
+            href="orders.html"
+            class="flex items-center py-3 px-6 text-gray-300 hover:bg-green-600 hover:text-white transition-colors receptionist-only"
+          >
+            <i class="fas fa-shopping-cart w-6 text-center"></i>
+            <span class="ml-4">Orders</span>
+          </a>
+          <a
+            href="reports.html"
+            class="flex items-center py-3 px-6 text-gray-300 hover:bg-green-600 hover:text-white transition-colors admin-only"
+          >
+            <i class="fas fa-chart-line w-6 text-center"></i>
+            <span class="ml-4">Reports</span>
+          </a>
+        </nav>
+        <div class="mt-auto p-6 bottom-0">
+          <button
+            onclick="logout()"
+            class="w-full flex items-center justify-center py-2 px-4 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
+          >
+            <i class="fas fa-sign-out-alt mr-2"></i>
+            <span>Logout</span>
+          </button>
+        </div>
+      </aside>
+
+      <div class="flex-1 flex flex-col overflow-hidden">
+        <header
+          class="bg-white shadow-sm flex justify-between items-center p-4"
+        >
+          <button id="menu-toggle" class="text-gray-700 lg:hidden">
+            <i class="fas fa-bars text-xl"></i>
+          </button>
+          <h1 class="text-xl font-semibold text-gray-800 hidden lg:block">
+            Dashboard
+          </h1>
+          <div class="relative">
+            <button id="userAvatar" class="flex items-center space-x-2">
+              <img src="" alt="User Avatar" class="w-10 h-10 rounded-full" />
+              <span
+                id="currentUser"
+                class="text-gray-700 font-medium hidden md:block"
+              ></span>
+            </button>
+            <div
+              id="userDropdown"
+              class="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg z-50 hidden"
+            >
+              <div class="py-1">
+                <div class="px-4 py-2 text-sm text-gray-500 border-b">
+                  <span id="userInfo"></span>
+                </div>
+                <button
+                  onclick="logout()"
+                  class="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                >
+                  <i class="fas fa-sign-out-alt mr-2"></i>Logout
+                </button>
+              </div>
+            </div>
+          </div>
+        </header>
+
+        <main class="flex-1 overflow-x-hidden overflow-y-auto bg-gray-100 p-6">
+          <div id="dashboardPage" class="min-h-screen bg-gray-50">
+            <div class="text-center p-8 text-gray-400">Loading dashboard...</div>
+          </div>
+        </main>
+      </div>
     </div>
+
+    <!-- Add User Modal -->
+    <div id="addUserModal" class="modal">
+      <div class="bg-white rounded-lg shadow-xl p-6 w-full max-w-md">
+        <h2 class="text-xl font-bold text-gray-800 mb-4">Add New User</h2>
+        <form id="addUserForm" class="space-y-4">
+          <div>
+            <label for="fullName" class="block text-sm font-medium text-gray-700">Full Name</label>
+            <input
+              type="text"
+              id="fullName"
+              class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-green-500 focus:ring-green-500"
+              required
+            />
+          </div>
+          <div>
+            <label for="username" class="block text-sm font-medium text-gray-700">Username</label>
+            <input
+              type="text"
+              id="username"
+              class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-green-500 focus:ring-green-500"
+              required
+            />
+          </div>
+          <div>
+            <label for="email" class="block text-sm font-medium text-gray-700">Email</label>
+            <input
+              type="email"
+              id="email"
+              class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-green-500 focus:ring-green-500"
+              required
+            />
+          </div>
+          <div>
+            <label for="password" class="block text-sm font-medium text-gray-700">Password</label>
+            <input
+              type="password"
+              id="password"
+              class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-green-500 focus:ring-green-500"
+              required
+            />
+          </div>
+          <div>
+            <label for="role" class="block text-sm font-medium text-gray-700">Role</label>
+            <select
+              id="role"
+              class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-green-500 focus:ring-green-500"
+              required
+            >
+              <option value="admin">Admin</option>
+              <option value="receptionist">Receptionist</option>
+              <option value="customer">Customer</option>
+            </select>
+          </div>
+          <div>
+            <label for="phone" class="block text-sm font-medium text-gray-700">Phone (Optional)</label>
+            <input
+              type="text"
+              id="phone"
+              class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-green-500 focus:ring-green-500"
+            />
+          </div>
+          <div>
+            <label for="address" class="block text-sm font-medium text-gray-700">Address (Optional)</label>
+            <textarea
+              id="address"
+              class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-green-500 focus:ring-green-500"
+            ></textarea>
+          </div>
+          <div class="flex justify-end space-x-2">
+            <button
+              type="button"
+              onclick="closeAddUserModal()"
+              class="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300"
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700"
+            >
+              Add User
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+
     <script>
-        document.addEventListener("DOMContentLoaded", function () {
-            if (!isAuthenticated()) {
-                window.location.href = 'login.html';
-                return;
-            }
-            updateNavigation();
-            setupEventListeners();
+      // Initialize Supabase
+      const SUPABASE_URL = "https://jcmscgxrxicwowsezbui.supabase.co";
+      const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImpjbXNjZ3hyeGljd293c2V6YnVpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTY3NjExNzcsImV4cCI6MjA3MjMzNzE3N30.QqfFKCqV4oIsuNw5TAJoCbE7tVu7m8s8g8M6YzwcU68";
+      const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+      setInterval(async () => {
+        try {
+          const { data: { user }, error } = await supabase.auth.getUser();
+          if (error || !user) {
+            window.location.href = "login.html";
+          }
+        } catch (error) {
+          console.error("Auth check error:", error);
+          window.location.href = "login.html";
+        }
+      }, 30000);
+
+      // Utility functions
+      function showError(message, container = null) {
+        const errorDiv = document.createElement("div");
+        errorDiv.className = "notification error";
+        errorDiv.innerHTML = `
+          <span>${message}</span>
+          <button onclick="this.parentElement.remove()" class="ml-3">
+            <i class="fas fa-times"></i>
+          </button>
+        `;
+        (container || document.body).appendChild(errorDiv);
+        setTimeout(() => errorDiv.classList.add("show"), 100);
+        setTimeout(() => {
+          errorDiv.classList.remove("show");
+          setTimeout(() => errorDiv.remove(), 300);
+        }, 5000);
+      }
+
+      function showSuccess(message, container = null) {
+        const successDiv = document.createElement("div");
+        successDiv.className = "notification success";
+        successDiv.innerHTML = `
+          <span>${message}</span>
+          <button onclick="this.parentElement.remove()" class="ml-3">
+            <i class="fas fa-times"></i>
+          </button>
+        `;
+        (container || document.body).appendChild(successDiv);
+        setTimeout(() => successDiv.classList.add("show"), 100);
+        setTimeout(() => {
+          successDiv.classList.remove("show");
+          setTimeout(() => successDiv.remove(), 300);
+        }, 3000);
+      }
+
+      async function getCurrentUser() {
+        const { data: { user }, error } = await supabase.auth.getUser();
+        if (error) throw new Error(`Auth error: ${error.message}`);
+        return user;
+      }
+
+      async function getUserProfile() {
+        const user = await getCurrentUser();
+        if (!user) return null;
+
+        const { data, error } = await supabase
+          .from("user_profiles")
+          .select("*")
+          .eq("id", user.id)
+          .eq("is_active", true)
+          .single();
+
+        if (error) throw new Error(`Profile fetch error: ${error.message}`);
+        return data;
+      }
+
+      async function logout() {
+        try {
+          const { error } = await supabase.auth.signOut();
+          if (error) throw error;
+          window.location.href = "login.html";
+        } catch (error) {
+          showError("Error signing out: " + error.message);
+        }
+      }
+
+      function formatCurrency(amount) {
+        return new Intl.NumberFormat("rw-RW", {
+          style: "currency",
+          currency: "RWF",
+          minimumFractionDigits: 0
+        }).format(amount);
+      }
+
+      // Add User Modal Functions
+      function openAddUserModal() {
+        const modal = document.getElementById("addUserModal");
+        modal.classList.add("show");
+      }
+
+      function closeAddUserModal() {
+        const modal = document.getElementById("addUserModal");
+        modal.classList.remove("show");
+        document.getElementById("addUserForm").reset();
+      }
+
+      async function handleAddUser(event) {
+        event.preventDefault();
+        const form = document.getElementById("addUserForm");
+        const fullName = form.querySelector("#fullName").value.trim();
+        const username = form.querySelector("#username").value.trim();
+        const email = form.querySelector("#email").value.trim();
+        const password = form.querySelector("#password").value;
+        const role = form.querySelector("#role").value;
+        const phone = form.querySelector("#phone").value.trim() || null;
+        const address = form.querySelector("#address").value.trim() || null;
+
+        try {
+          // Sign up user in Supabase Auth
+          const { data: authData, error: authError } = await supabase.auth.signUp({
+            email,
+            password
+          });
+
+          if (authError) throw new Error(`Auth error: ${authError.message}`);
+
+          // Create user profile
+          const { data: profileData, error: profileError } = await supabase
+            .from("user_profiles")
+            .insert({
+              id: authData.user.id,
+              username,
+              full_name: fullName,
+              role,
+              phone,
+              address,
+              created_by: (await getCurrentUser()).id
+            })
+            .select()
+            .single();
+
+          if (profileError) throw new Error(`Profile creation error: ${profileError.message}`);
+
+          showSuccess("User added successfully!");
+          closeAddUserModal();
+          await loadDashboardContent(); // Refresh dashboard to update UI
+        } catch (error) {
+          showError("Failed to add user: " + error.message);
+        }
+      }
+
+      document.addEventListener("DOMContentLoaded", async function () {
+        try {
+          // Check authentication
+          const user = await getUserProfile();
+
+          if (!user) {
+            window.location.href = "login.html";
+            return;
+          }
+
+          // Update navigation
+          updateNavigation(user);
+          setupEventListeners();
+          await loadDashboardContent();
+
+          // Add event listener for add user form
+          document.getElementById("addUserForm").addEventListener("submit", handleAddUser);
+        } catch (error) {
+          console.error("Error loading dashboard:", error);
+          showError("Failed to load dashboard. Please refresh the page.");
+        }
+      });
+
+      function updateNavigation(user) {
+        if (user) {
+          document.getElementById("currentUser").textContent = user.full_name;
+          document.getElementById("userInfo").textContent = `${user.full_name} (${user.role})`;
+
+          const avatarImg = document.querySelector("#userAvatar img");
+          avatarImg.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(user.full_name)}&background=16a34a&color=fff&bold=true`;
+
+          // Show/hide menu items based on role
+          const adminElements = document.querySelectorAll(".admin-only");
+          adminElements.forEach(el => {
+            el.style.display = user.role === "admin" ? "flex" : "none";
+          });
+
+          const receptionistElements = document.querySelectorAll(".receptionist-only");
+          receptionistElements.forEach(el => {
+            el.style.display = (user.role === "receptionist" || user.role === "admin") ? "flex" : "none";
+          });
+        }
+      }
+
+      async function loadDashboardContent() {
+        const dashboardPage = document.getElementById("dashboardPage");
+        dashboardPage.innerHTML = `<div class="loading">Loading dashboard...</div>`;
+
+        try {
+          // Fetch dashboard data with correct table structure
+          const [ordersResult, medicinesResult, lowStockResult] = await Promise.all([
+            supabase
+              .from("orders")
+              .select("total_amount, status, order_date")
+              .eq("is_active", true)
+              .eq("order_date", new Date().toISOString().split('T')[0]), // Today's orders
+
+            supabase
+              .from("medicines")
+              .select("id", { count: "exact" })
+              .eq("is_active", true),
+
+            supabase
+              .from("medicines")
+              .select("id, name, stock, min_stock_level")
+              .eq("is_active", true)
+              .lte("stock", 10) // Low stock threshold
+          ]);
+
+          // Handle potential errors
+          if (ordersResult.error) {
+            console.error("Orders query error:", ordersResult.error);
+          }
+          if (medicinesResult.error) {
+            console.error("Medicines query error:", medicinesResult.error);
+          }
+          if (lowStockResult.error) {
+            console.error("Low stock query error:", lowStockResult.error);
+          }
+
+          // Calculate statistics
+          const todaysOrders = ordersResult.data || [];
+          const completedOrders = todaysOrders.filter(order => order.status === 'completed');
+          const totalSales = completedOrders.reduce((sum, order) => sum + (order.total_amount || 0), 0);
+          const medicineCount = medicinesResult.count || 0;
+          const lowStockItems = lowStockResult.data || [];
+
+          // Generate low stock items HTML
+          const lowStockItemsHtml = lowStockItems.length > 0
+            ? lowStockItems.map(item => `
+                <div class="p-4 bg-white rounded-lg shadow-sm low-stock flex justify-between items-center mb-2">
+                  <span class="font-medium">${item.name}</span>
+                  <div class="flex items-center space-x-2">
+                    <span class="text-sm text-gray-600">Stock: ${item.stock}</span>
+                    <span class="text-sm font-semibold text-red-600 bg-red-100 px-2 py-1 rounded">Low Stock</span>
+                  </div>
+                </div>
+              `).join('')
+            : '<div class="text-center py-8 text-gray-500"><i class="fas fa-check-circle text-green-500 text-3xl mb-2"></i><p>All medicines are well stocked!</p></div>';
+
+          // Generate recent orders HTML
+          const recentOrdersHtml = todaysOrders.slice(0, 5).map(order => `
+            <div class="p-3 bg-gray-50 rounded-lg flex justify-between items-center">
+              <span class="text-sm">Order ${order.id}</span>
+              <div class="flex items-center space-x-2">
+                <span class="text-sm font-medium">${formatCurrency(order.total_amount || 0)}</span>
+                <span class="text-xs px-2 py-1 rounded-full ${
+                  order.status === 'completed' ? 'bg-green-100 text-green-800' :
+                  order.status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
+                  'bg-gray-100 text-gray-800'
+                }">${order.status}</span>
+              </div>
+            </div>
+          `).join('');
+
+          // Create dashboard HTML
+          const dashboardHtml = `
+            <div class="space-y-8 fade-in slide-up">
+              <!-- Stats Cards -->
+              <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                <div class="p-6 bg-white rounded-xl shadow-lg flex items-center card-hover">
+                  <div class="p-3 rounded-full bg-green-100 mr-4">
+                    <i class="fas fa-dollar-sign text-2xl text-green-600"></i>
+                  </div>
+                  <div>
+                    <p class="text-sm font-medium text-gray-500">Today's Sales</p>
+                    <p class="text-2xl font-bold text-gray-900">${formatCurrency(totalSales)}</p>
+                    <p class="text-xs text-green-600">${completedOrders.length} completed orders</p>
+                  </div>
+                </div>
+
+                <div class="p-6 bg-white rounded-xl shadow-lg flex items-center card-hover">
+                  <div class="p-3 rounded-full bg-blue-100 mr-4">
+                    <i class="fas fa-pills text-2xl text-blue-600"></i>
+                  </div>
+                  <div>
+                    <p class="text-sm font-medium text-gray-500">Total Medicines</p>
+                    <p class="text-2xl font-bold text-gray-900">${medicineCount}</p>
+                    <p class="text-xs text-blue-600">Active inventory</p>
+                  </div>
+                </div>
+
+                <div class="p-6 bg-white rounded-xl shadow-lg flex items-center card-hover">
+                  <div class="p-3 rounded-full ${lowStockItems.length > 0 ? 'bg-red-100' : 'bg-green-100'} mr-4">
+                    <i class="fas fa-exclamation-triangle text-2xl ${lowStockItems.length > 0 ? 'text-red-600' : 'text-green-600'}"></i>
+                  </div>
+                  <div>
+                    <p class="text-sm font-medium text-gray-500">Low Stock Alerts</p>
+                    <p class="text-2xl font-bold text-gray-900">${lowStockItems.length}</p>
+                    <p class="text-xs ${lowStockItems.length > 0 ? 'text-red-600' : 'text-green-600'}">
+                      ${lowStockItems.length > 0 ? 'Needs attention' : 'All good'}
+                    </p>
+                  </div>
+                </div>
+
+                <div class="p-6 bg-white rounded-xl shadow-lg flex items-center card-hover">
+                  <div class="p-3 rounded-full bg-purple-100 mr-4">
+                    <i class="fas fa-shopping-cart text-2xl text-purple-600"></i>
+                  </div>
+                  <div>
+                    <p class="text-sm font-medium text-gray-500">Today's Orders</p>
+                    <p class="text-2xl font-bold text-gray-900">${todaysOrders.length}</p>
+                    <p class="text-xs text-purple-600">${completedOrders.length} completed</p>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Content Grid -->
+              <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                <!-- Low Stock Medicines -->
+                <div class="bg-white p-6 rounded-xl shadow-lg">
+                  <div class="flex justify-between items-center mb-4">
+                    <h2 class="text-xl font-bold text-gray-800">Stock Alerts</h2>
+                    <span class="text-sm text-gray-500">${lowStockItems.length} items</span>
+                  </div>
+                  <div class="space-y-3 max-h-80 overflow-y-auto">
+                    ${lowStockItemsHtml}
+                  </div>
+                </div>
+
+                <!-- Recent Orders -->
+                <div class="bg-white p-6 rounded-xl shadow-lg">
+                  <div class="flex justify-between items-center mb-4">
+                    <h2 class="text-xl font-bold text-gray-800">Today's Orders</h2>
+                    <span class="text-sm text-gray-500">${todaysOrders.length} orders</span>
+                  </div>
+                  <div class="space-y-3 max-h-80 overflow-y-auto">
+                    ${todaysOrders.length > 0 ? recentOrdersHtml :
+                      '<div class="text-center py-8 text-gray-500"><i class="fas fa-shopping-cart text-3xl mb-2"></i><p>No orders today yet</p></div>'
+                    }
+                  </div>
+                </div>
+              </div>
+
+              <!-- Quick Actions -->
+              <div class="bg-white p-6 rounded-xl shadow-lg">
+                <h2 class="text-xl font-bold text-gray-800 mb-4">Quick Actions</h2>
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                  <button class="p-4 border-2 border-dashed border-gray-300 rounded-lg hover:border-green-500 hover:bg-green-50 transition-colors receptionist-only" onclick="window.location.href='orders.html'">
+                    <i class="fas fa-plus text-2xl text-gray-400 mb-2"></i>
+                    <p class="text-sm font-medium text-gray-600">New Order</p>
+                  </button>
+                  <button class="p-4 border-2 border-dashed border-gray-300 rounded-lg hover:border-blue-500 hover:bg-blue-50 transition-colors receptionist-only" onclick="window.location.href='medicines.html'">
+                    <i class="fas fa-pills text-2xl text-gray-400 mb-2"></i>
+                    <p class="text-sm font-medium text-gray-600">Add Medicine</p>
+                  </button>
+                  <button class="p-4 border-2 border-dashed border-gray-300 rounded-lg hover:border-purple-500 hover:bg-purple-50 transition-colors receptionist-only" onclick="window.location.href='customers.html'">
+                    <i class="fas fa-user-plus text-2xl text-gray-400 mb-2"></i>
+                    <p class="text-sm font-medium text-gray-600">Add Customer</p>
+                  </button>
+                  <button class="p-4 border-2 border-dashed border-gray-300 rounded-lg hover:border-yellow-500 hover:bg-yellow-50 transition-colors admin-only" onclick="openAddUserModal()">
+                    <i class="fas fa-user-plus text-2xl text-gray-400 mb-2"></i>
+                    <p class="text-sm font-medium text-gray-600">Add User</p>
+                  </button>
+                  <button class="p-4 border-2 border-dashed border-gray-300 rounded-lg hover:border-orange-500 hover:bg-orange-50 transition-colors admin-only" onclick="window.location.href='reports.html'">
+                    <i class="fas fa-chart-bar text-2xl text-gray-400 mb-2"></i>
+                    <p class="text-sm font-medium text-gray-600">View Reports</p>
+                  </button>
+                </div>
+              </div>
+            </div>
+          `;
+
+          dashboardPage.innerHTML = dashboardHtml;
+
+        } catch (error) {
+          console.error("Failed to load dashboard content:", error);
+          dashboardPage.innerHTML = `
+            <div class="text-center p-8">
+              <i class="fas fa-exclamation-triangle text-red-500 text-4xl mb-4"></i>
+              <h2 class="text-xl font-semibold text-gray-800 mb-2">Error Loading Dashboard</h2>
+              <p class="text-gray-600 mb-4">There was an error loading the dashboard data.</p>
+              <button onclick="loadDashboardContent()" class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700">
+                Try Again
+              </button>
+            </div>
+          `;
+        }
+      }
+
+      function setupEventListeners() {
+        // Sidebar toggle
+        const menuToggle = document.getElementById("menu-toggle");
+        const sidebar = document.getElementById("sidebar");
+        if (menuToggle && sidebar) {
+          menuToggle.addEventListener("click", (e) => {
+            e.stopPropagation();
+            sidebar.classList.toggle("hidden");
+          });
+        }
+
+        // User dropdown
+        const userAvatar = document.getElementById("userAvatar");
+        const userDropdown = document.getElementById("userDropdown");
+        if (userAvatar && userDropdown) {
+          userAvatar.addEventListener("click", (e) => {
+            e.stopPropagation();
+            userDropdown.classList.toggle("hidden");
+          });
+        }
+        // Close dropdown/sidebar when clicking outside
+        document.addEventListener("click", function (e) {
+          if (sidebar && !sidebar.classList.contains("hidden") &&
+              !sidebar.contains(e.target) &&
+              !menuToggle.contains(e.target)) {
+            sidebar.classList.add("hidden");
+          }
+          if (userDropdown && !userDropdown.classList.contains("hidden") &&
+              !userAvatar.contains(e.target)) {
+            userDropdown.classList.add("hidden");
+          }
+          // Close add user modal when clicking outside
+          const addUserModal = document.getElementById("addUserModal");
+          if (addUserModal && addUserModal.classList.contains("show") &&
+              !addUserModal.querySelector(".bg-white").contains(e.target)) {
+            closeAddUserModal();
+          }
         });
+      }
 
-        function updateNavigation() {
-            const user = getCurrentUser();
-            if (user) {
-                document.getElementById('currentUser').textContent = `${user.fullName}`;
-                document.getElementById('userInfo').textContent = `${user.fullName} (${user.role})`;
-                document.getElementById('userAvatar').src = `https://ui-avatars.com/api/?name=${encodeURIComponent(user.fullName)}&background=16a34a&color=fff&bold=true`;
-
-                const adminElements = document.querySelectorAll('.admin-only');
-                adminElements.forEach(el => el.style.display = (user.role === 'admin') ? 'flex' : 'none');
-                
-                const receptionistElements = document.querySelectorAll('.receptionist-only');
-                receptionistElements.forEach(el => el.style.display = (user.role === 'receptionist' || user.role === 'admin') ? 'flex' : 'none');
-            }
+      // Auth state listener
+      supabase.auth.onAuthStateChange((event, session) => {
+        if (event === "SIGNED_OUT") {
+          window.location.href = "login.html";
         }
-
-        function setupEventListeners() {
-            // Sidebar toggle
-            const menuToggle = document.getElementById('menu-toggle');
-            const sidebar = document.getElementById('sidebar');
-            menuToggle.addEventListener('click', (e) => {
-                e.stopPropagation();
-                sidebar.classList.toggle('hidden');
-            });
-
-            // User dropdown
-            const userAvatar = document.getElementById('userAvatar');
-            const userDropdown = document.getElementById('userDropdown');
-            userAvatar.addEventListener('click', (e) => {
-                e.stopPropagation();
-                userDropdown.classList.toggle('hidden');
-            });
-
-            // Close dropdown/sidebar when clicking outside
-            document.addEventListener('click', function(e) {
-                if (!sidebar.classList.contains('hidden') && !sidebar.contains(e.target) && !menuToggle.contains(e.target)) {
-                    sidebar.classList.add('hidden');
-                }
-                if (!userDropdown.classList.contains('hidden') && !userAvatar.contains(e.target)) {
-                    userDropdown.classList.add('hidden');
-                }
-            });
-        }
+      });
     </script>
-</body>
+  </body>
 </html>
