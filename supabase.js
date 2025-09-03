@@ -1,11 +1,9 @@
 const SUPABASE_URL = "https://jcmscgxrxicwowsezbui.supabase.co";
-const SUPABASE_API = "https://jcmscgxrxicwowsezbui.supabase.co/functions/v1/admin-create-user";
 const SUPABASE_ANON_KEY =
   "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImpjbXNjZ3hyeGljd293c2V6YnVpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTY3NjExNzcsImV4cCI6MjA3MjMzNzE3N30.QqfFKCqV4oIsuNw5TAJoCbE7tVu7m8s8g8M6YzwcU68";
 
 const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-// Update your existing adminCreateUser function in supabase.js
 async function adminCreateUser(email, password, fullName, role = "receptionist", additionalData = {}) {
   if (!(await isAdmin())) throw new Error("Permission denied: Admin only");
 
@@ -15,8 +13,8 @@ async function adminCreateUser(email, password, fullName, role = "receptionist",
       throw new Error("Authentication required");
     }
 
-    // Call the Edge Function (note the URL structure)
-    const response = await fetch(`${SUPABASE_API}/functions/v1/admin-create-user`, {
+    // Use SUPABASE_URL instead of undefined SUPABASE_API
+    const response = await fetch(`${SUPABASE_URL}/functions/v1/admin-create-user`, {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${session.access_token}`,
@@ -172,11 +170,7 @@ async function getAllUsersWithDetails() {
   
   const { data, error } = await supabase
     .from("user_profiles")
-    .select(`
-      *,
-      created_by:created_by(full_name),
-      updated_by:updated_by(full_name)
-    `)
+    .select("*")
     .order("created_at", { ascending: false });
   
   if (error) throw new Error(`Fetch users error: ${error.message}`);
@@ -563,6 +557,18 @@ async function updateSupplier(id, updates) {
     .select();
   if (error) throw new Error(`Supplier update error: ${error.message}`);
   showSuccess("Supplier updated!");
+  return data;
+}
+
+async function deleteSupplier(id) {
+  if (!(await isReceptionist()))
+    throw new Error("Permission denied: Staff only");
+  const { data, error } = await supabase.rpc("deactivate_record", {
+    p_table_name: "suppliers",
+    p_record_id: id,
+  });
+  if (error) throw new Error(`Supplier deletion error: ${error.message}`);
+  showSuccess("Supplier deleted!");
   return data;
 }
 
@@ -1335,4 +1341,29 @@ function convertToCSV(data) {
   ].join('\n');
   
   return csvContent;
+}
+
+async function createNotification(notificationData) {
+  try {
+    const { data, error } = await supabase
+      .from("notifications")
+      .insert([{
+        title: notificationData.title,
+        message: notificationData.message,
+        notification_type: notificationData.type || 'warning',
+        target_role: notificationData.targetRole || 'admin',
+        related_to: notificationData.relatedTo || 'medicine',
+        related_id: notificationData.relatedId,
+        priority: notificationData.priority || 'normal',
+        action_required: notificationData.actionRequired || false,
+        action_url: notificationData.actionUrl
+      }])
+      .select();
+
+    if (error) throw new Error(`Notification creation error: ${error.message}`);
+    return data[0];
+  } catch (error) {
+    console.error('Error creating notification:', error);
+    throw error;
+  }
 }

@@ -8,6 +8,7 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
     <script src="supabase.js"></script>
+    <script src="notification-system.js"></script>
     <style>
         .modal {
             display: none;
@@ -86,17 +87,45 @@
             background-color: #ddd6fe;
             color: #5b21b6;
         }
-        .role-customer {
-            background-color: #cfe2ff;
-            color: #0c4a6e;
+        .sidebar-backdrop {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 20;
+            display: none;
+        }
+        .sidebar-backdrop.show {
+            display: block;
+        }
+        @media (min-width: 1024px) {
+            .sidebar-backdrop {
+                display: none !important;
+            }
+        }
+        .sidebar-hidden {
+            transform: translateX(-100%);
+        }
+        .sidebar-visible {
+            transform: translateX(0);
+        }
+        @media (min-width: 1024px) {
+            .sidebar-hidden, .sidebar-visible {
+                transform: translateX(0);
+            }
         }
     </style>
 </head>
 
 <body class="bg-gray-50">
+    <!-- Sidebar backdrop for mobile -->
+    <div id="sidebarBackdrop" class="sidebar-backdrop"></div>
+    
     <div class="flex h-screen">
         <!-- Sidebar -->
-        <aside id="sidebar" class="bg-green-800 text-white w-64 min-h-screen p-4 transition-all duration-300 ease-in-out lg:translate-x-0 transform -translate-x-full absolute lg:relative lg:translate-x-0 z-30">
+        <aside id="sidebar" class="bg-green-800 text-white w-64 min-h-screen p-4 transition-all duration-300 ease-in-out fixed lg:relative lg:translate-x-0 z-30 sidebar-hidden lg:sidebar-visible">
             <div class="flex items-center mb-8">
                 <i class="fas fa-pills text-2xl mr-3"></i>
                 <h1 class="text-xl font-bold">Nyina wa Jambo</h1>
@@ -142,13 +171,14 @@
         </aside>
 
         <!-- Main content -->
-        <div class="flex-1 flex flex-col overflow-hidden">
+        <div class="flex-1 flex flex-col overflow-hidden lg:ml-0">
             <!-- Top bar -->
             <header class="bg-white shadow-sm flex justify-between items-center p-4">
                 <button id="menu-toggle" class="text-gray-700 lg:hidden">
                     <i class="fas fa-bars text-xl"></i>
                 </button>
                 <h1 class="text-xl font-semibold text-gray-800 hidden lg:block">User Management</h1>
+                          <div class="flex items-center space-x-4">
                 <div class="relative">
                     <button id="userAvatar" class="flex items-center space-x-2">
                         <img src="" alt="User Avatar" class="w-10 h-10 rounded-full">
@@ -167,6 +197,7 @@
                             <i class="fas fa-sign-out-alt mr-2"></i>Logout
                         </button>
                     </div>
+                </div>
                 </div>
             </header>
 
@@ -439,6 +470,35 @@
             setupEventListeners();
         });
 
+        function toggleSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            const backdrop = document.getElementById('sidebarBackdrop');
+            
+            if (sidebar.classList.contains('sidebar-hidden')) {
+                openSidebar();
+            } else {
+                closeSidebar();
+            }
+        }
+
+        function openSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            const backdrop = document.getElementById('sidebarBackdrop');
+            
+            sidebar.classList.remove('sidebar-hidden');
+            sidebar.classList.add('sidebar-visible');
+            backdrop.classList.add('show');
+        }
+
+        function closeSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            const backdrop = document.getElementById('sidebarBackdrop');
+            
+            sidebar.classList.remove('sidebar-visible');
+            sidebar.classList.add('sidebar-hidden');
+            backdrop.classList.remove('show');
+        }
+
         async function updateNavigation() {
             try {
                 const user = await getUserProfile();
@@ -460,9 +520,16 @@
             // Sidebar toggle
             const menuToggle = document.getElementById('menu-toggle');
             const sidebar = document.getElementById('sidebar');
+            const backdrop = document.getElementById('sidebarBackdrop');
+            
             menuToggle.addEventListener('click', (e) => {
                 e.stopPropagation();
-                sidebar.classList.toggle('hidden');
+                toggleSidebar();
+            });
+
+            // Backdrop click to close sidebar
+            backdrop.addEventListener('click', () => {
+                closeSidebar();
             });
 
             // User dropdown
@@ -475,11 +542,18 @@
 
             // Close dropdown/sidebar when clicking outside
             document.addEventListener('click', function(e) {
-                if (!sidebar.classList.contains('hidden') && !sidebar.contains(e.target) && !menuToggle.contains(e.target)) {
-                    sidebar.classList.add('hidden');
+                if (sidebar.classList.contains('sidebar-visible') && !sidebar.contains(e.target) && !menuToggle.contains(e.target)) {
+                    closeSidebar();
                 }
                 if (!userDropdown.classList.contains('hidden') && !userAvatar.contains(e.target)) {
                     userDropdown.classList.add('hidden');
+                }
+            });
+
+            // Handle window resize to ensure proper sidebar behavior
+            window.addEventListener('resize', () => {
+                if (window.innerWidth >= 1024) {
+                    closeSidebar();
                 }
             });
 
@@ -544,9 +618,9 @@
                         </span>
                     </td>
                     <td class="px-6 py-4">
-                        <span class="status-badge ${user.is_active ? 'status-active' : 'status-inactive'}">
-                            <i class="fas fa-${user.is_active ? 'check-circle' : 'times-circle'} mr-1"></i>
-                            ${user.is_active ? 'Active' : 'Inactive'}
+                        <span class="status-badge ${(user.is_active !== false) ? 'status-active' : 'status-inactive'}">
+                            <i class="fas fa-${(user.is_active !== false) ? 'check-circle' : 'times-circle'} mr-1"></i>
+                            ${(user.is_active !== false) ? 'Active' : 'Inactive'}
                         </span>
                     </td>
                     <td class="px-6 py-4 text-gray-900">${formatDate(user.created_at)}</td>
@@ -559,10 +633,10 @@
                             <button onclick="editUser('${user.id}')" class="text-green-600 hover:text-green-800" title="Edit User">
                                 <i class="fas fa-edit"></i>
                             </button>
-                            <button onclick="toggleUserStatus('${user.id}', ${!user.is_active})" 
-                                    class="text-${user.is_active ? 'red' : 'green'}-600 hover:text-${user.is_active ? 'red' : 'green'}-800" 
-                                    title="${user.is_active ? 'Deactivate' : 'Activate'} User">
-                                <i class="fas fa-${user.is_active ? 'user-slash' : 'user-check'}"></i>
+                            <button onclick="toggleUserStatus('${user.id}', ${!(user.is_active !== false)})" 
+                                    class="text-${(user.is_active !== false) ? 'red' : 'green'}-600 hover:text-${(user.is_active !== false) ? 'red' : 'green'}-800" 
+                                    title="${(user.is_active !== false) ? 'Deactivate' : 'Activate'} User">
+                                <i class="fas fa-${(user.is_active !== false) ? 'user-slash' : 'user-check'}"></i>
                             </button>
                             <div class="relative">
                                 <button onclick="showUserMenu('${user.id}')" class="text-gray-600 hover:text-gray-800" title="More Actions">
@@ -587,7 +661,8 @@
                     (user.username && user.username.toLowerCase().includes(searchTerm));
                 
                 const matchesRole = !roleFilter || user.role === roleFilter;
-                const matchesStatus = !statusFilter || user.is_active.toString() === statusFilter;
+                const userIsActive = user.is_active !== false; // Default to true if undefined
+                const matchesStatus = !statusFilter || userIsActive.toString() === statusFilter;
 
                 return matchesSearch && matchesRole && matchesStatus;
             });
@@ -605,7 +680,7 @@
 
         function updateStats() {
             const totalUsers = allUsers.length;
-            const activeUsers = allUsers.filter(u => u.is_active).length;
+            const activeUsers = allUsers.filter(u => u.is_active !== false).length; // Default to true if undefined
             const adminUsers = allUsers.filter(u => u.role === 'admin').length;
             const staffUsers = allUsers.filter(u => u.role === 'receptionist').length;
 
@@ -774,9 +849,9 @@
                         </div>
                         <div>
                             <label class="block text-sm font-medium text-gray-700">Status</label>
-                            <span class="status-badge ${user.is_active ? 'status-active' : 'status-inactive'}">
-                                <i class="fas fa-${user.is_active ? 'check-circle' : 'times-circle'} mr-1"></i>
-                                ${user.is_active ? 'Active' : 'Inactive'}
+                            <span class="status-badge ${(user.is_active !== false) ? 'status-active' : 'status-inactive'}">
+                                <i class="fas fa-${(user.is_active !== false) ? 'check-circle' : 'times-circle'} mr-1"></i>
+                                ${(user.is_active !== false) ? 'Active' : 'Inactive'}
                             </span>
                         </div>
                         <div>

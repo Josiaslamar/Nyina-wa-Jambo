@@ -7,6 +7,7 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
     <script src="supabase.js"></script>
+    <script src="notification-system.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
@@ -709,6 +710,69 @@
                     <p>• ${medicines.filter(m => !m.category && !m.medicine_categories).length} uncategorized medicines</p>
                     <p>• ${expiringItems.length} medicines expiring in the next 30 days</p>
                 `;
+            }
+
+            // Create notifications for critical alerts
+            createAlertsNotifications(criticalItems, expiringItems, lowStockItems);
+        }
+
+        async function createAlertsNotifications(criticalItems, expiringItems, lowStockItems) {
+            try {
+                // Create notifications for critical low stock items
+                if (criticalItems.length > 0) {
+                    for (const item of criticalItems) {
+                        await createNotification({
+                            title: 'Critical Low Stock Alert',
+                            message: `${item.name} is critically low with only ${item.stock || 0} units remaining. Immediate restocking required.`,
+                            type: 'error',
+                            targetRole: 'admin',
+                            relatedTo: 'medicine',
+                            relatedId: item.id,
+                            priority: 'urgent',
+                            actionRequired: true,
+                            actionUrl: '/medicines.html'
+                        });
+                    }
+                }
+
+                // Create notifications for expiring items
+                if (expiringItems.length > 0) {
+                    for (const item of expiringItems) {
+                        await createNotification({
+                            title: 'Medicine Expiry Warning',
+                            message: `${item.name} is expiring on ${item.expiry_date}. Please check inventory and plan accordingly.`,
+                            type: 'warning',
+                            targetRole: 'admin',
+                            relatedTo: 'medicine',
+                            relatedId: item.id,
+                            priority: 'high',
+                            actionRequired: true,
+                            actionUrl: '/medicines.html'
+                        });
+                    }
+                }
+
+                // Create notification for general low stock summary (only if there are items)
+                if (lowStockItems.length > 0) {
+                    await createNotification({
+                        title: 'Low Stock Summary',
+                        message: `${lowStockItems.length} medicines have low stock levels (6-20 units). Consider restocking soon.`,
+                        type: 'warning',
+                        targetRole: 'admin',
+                        relatedTo: 'stock',
+                        priority: 'normal',
+                        actionRequired: false,
+                        actionUrl: '/medicines.html'
+                    });
+                }
+
+                // Refresh notification system to show new notifications
+                if (window.notificationSystem) {
+                    await window.notificationSystem.loadNotifications();
+                }
+
+            } catch (error) {
+                console.error('Error creating alert notifications:', error);
             }
         }
 

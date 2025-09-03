@@ -9,6 +9,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.7/dist/umd/supabase.min.js"></script>
     <script src="supabase.js"></script>
+    <script src="notification-system.js"></script>
     <link
       rel="stylesheet"
       href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"
@@ -107,6 +108,37 @@
         align-items: center;
         padding: 2rem;
         color: #6b7280;
+      }
+      
+      /* Notification dropdown styles */
+      .notification-item {
+        transition: background-color 0.15s ease;
+      }
+      
+      .notification-item:hover {
+        background-color: #f9fafb !important;
+      }
+      
+      .line-clamp-2 {
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+      }
+      
+      /* Notification badge animation */
+      @keyframes pulse {
+        0%, 100% {
+          opacity: 1;
+        }
+        50% {
+          opacity: 0.5;
+        }
+      }
+      
+      .animate-pulse {
+        animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
       }
       .pos-metric {
         background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
@@ -237,6 +269,7 @@
           <h1 class="text-xl font-semibold text-gray-800 hidden lg:block">
             Dashboard
           </h1>
+          <div class="flex items-center space-x-4"> 
           <div class="relative">
             <button id="userAvatar" class="flex items-center space-x-2">
               <img src="" alt="User Avatar" class="w-10 h-10 rounded-full" />
@@ -261,6 +294,7 @@
                 </button>
               </div>
             </div>
+          </div>
           </div>
         </header>
 
@@ -1019,10 +1053,7 @@
                     <i class="fas fa-pills text-2xl text-gray-400 mb-2"></i>
                     <p class="text-sm font-medium text-gray-600">Add Medicine</p>
                   </button>
-                  <button class="p-4 border-2 border-dashed border-gray-300 rounded-lg hover:border-purple-500 hover:bg-purple-50 transition-colors receptionist-only" onclick="window.location.href='customers.html'">
-                    <i class="fas fa-user-plus text-2xl text-gray-400 mb-2"></i>
-                    <p class="text-sm font-medium text-gray-600">Add Customer</p>
-                  </button>
+                  
                   <button id="addUserButton" class="p-4 border-2 border-dashed border-gray-300 rounded-lg hover:border-yellow-500 hover:bg-yellow-50 transition-colors admin-only">
                     <i class="fas fa-user-plus text-2xl text-gray-400 mb-2"></i>
                     <p class="text-sm font-medium text-gray-600">Add User</p>
@@ -1036,10 +1067,7 @@
                     <i class="fas fa-download text-2xl text-gray-400 mb-2"></i>
                     <p class="text-sm font-medium text-gray-600">Export POS Data</p>
                   </button>
-                  <button class="p-4 border-2 border-dashed border-gray-300 rounded-lg hover:border-teal-500 hover:bg-teal-50 transition-colors admin-only" onclick="viewDetailedAnalytics()">
-                    <i class="fas fa-analytics text-2xl text-gray-400 mb-2"></i>
-                    <p class="text-sm font-medium text-gray-600">POS Analytics</p>
-                  </button>
+                  
                 </div>
               </div>
             </div>

@@ -7,6 +7,7 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
     <script src="supabase.js"></script>
+    <script src="notification-system.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 </head>
 <body class="bg-gray-100">
@@ -65,22 +66,24 @@
                     <i class="fas fa-bars text-xl"></i>
                 </button>
                 <h1 class="text-xl font-semibold text-gray-800 hidden lg:block">Suppliers Management</h1>
-                <div class="relative">
-                    <button id="userAvatar" class="flex items-center space-x-2">
-                        <img src="" alt="User Avatar" class="w-10 h-10 rounded-full">
-                        <span id="currentUser" class="text-gray-700 font-medium hidden md:block"></span>
-                    </button>
-                    <div id="userDropdown" class="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg z-50 hidden">
-                        <div class="py-1">
-                            <div class="px-4 py-2 text-sm text-gray-500 border-b">
-                                <span id="userInfo"></span>
+                <div class="flex items-center space-x-4">
+                    <div class="relative">
+                        <button id="userAvatar" class="flex items-center space-x-2">
+                            <img src="" alt="User Avatar" class="w-10 h-10 rounded-full">
+                            <span id="currentUser" class="text-gray-700 font-medium hidden md:block"></span>
+                        </button>
+                        <div id="userDropdown" class="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg z-50 hidden">
+                            <div class="py-1">
+                                <div class="px-4 py-2 text-sm text-gray-500 border-b">
+                                    <span id="userInfo"></span>
+                                </div>
+                                 <a href="index.html?home=true" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                                    <i class="fas fa-home mr-2"></i>Home Page
+                                </a>
+                                <button onclick="logout()" class="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                                    <i class="fas fa-sign-out-alt mr-2"></i>Logout
+                                </button>
                             </div>
-                             <a href="index.html?home=true" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
-                                <i class="fas fa-home mr-2"></i>Home Page
-                            </a>
-                            <button onclick="logout()" class="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
-                                <i class="fas fa-sign-out-alt mr-2"></i>Logout
-                            </button>
                         </div>
                     </div>
                 </div>
@@ -107,7 +110,7 @@
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div>
                                 <label class="block text-sm font-medium text-gray-700 mb-2">Search Suppliers</label>
-                                <input type="text" id="supplierSearch" placeholder="Search by name, contact, or items..." class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-primary focus:border-primary" />
+                                <input type="text" id="supplierSearch" placeholder="Search by name, code, contact, or items..." class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-primary focus:border-primary" />
                             </div>
                             <div class="flex items-end">
                                 <button id="exportBtn" class="bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700 transition-colors">
@@ -123,6 +126,7 @@
                             <table class="min-w-full divide-y divide-gray-200">
                                 <thead class="bg-gray-50">
                                     <tr>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Code</th>
                                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
                                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Contact</th>
                                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Phone</th>
@@ -156,6 +160,10 @@
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-2">Supplier Name</label>
                         <input type="text" id="supplierName" required class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-primary focus:border-primary" />
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Supplier Code</label>
+                        <input type="text" id="supplierCode" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-primary focus:border-primary" placeholder="Auto-generated if empty" />
                     </div>
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-2">Contact Person</label>
@@ -301,6 +309,7 @@
                 const suppliers = await fetchSuppliers();
                 let filteredSuppliers = suppliers.filter(s => 
                     s.name.toLowerCase().includes(searchTerm) ||
+                    (s.supplier_code && s.supplier_code.toLowerCase().includes(searchTerm)) ||
                     (s.contact_person && s.contact_person.toLowerCase().includes(searchTerm)) ||
                     (s.phone && s.phone.includes(searchTerm)) ||
                     (s.email && s.email.toLowerCase().includes(searchTerm))
@@ -313,6 +322,7 @@
 
                 tbody.innerHTML = filteredSuppliers.map(supplier => `
                     <tr class="hover:bg-gray-50">
+                        <td class="px-6 py-4 whitespace-nowrap"><div class="text-sm font-mono text-gray-600">${supplier.supplier_code}</div></td>
                         <td class="px-6 py-4 whitespace-nowrap"><div class="font-medium text-gray-900">${supplier.name}</div></td>
                         <td class="px-6 py-4 whitespace-nowrap text-gray-900">${supplier.contact_person || 'N/A'}</td>
                         <td class="px-6 py-4 whitespace-nowrap text-gray-900">${supplier.phone || 'N/A'}</td>
@@ -342,6 +352,7 @@
                     const supplier = (await fetchSuppliers()).find(s => s.id === supplierId);
                     if (supplier) {
                         document.getElementById("supplierName").value = supplier.name;
+                        document.getElementById("supplierCode").value = supplier.supplier_code || "";
                         document.getElementById("supplierContactPerson").value = supplier.contact_person || "";
                         document.getElementById("supplierPhone").value = supplier.phone || "";
                         document.getElementById("supplierEmail").value = supplier.email || "";
@@ -367,8 +378,20 @@
 
         async function saveSupplier(e) {
             e.preventDefault();
+            
+            // Generate supplier code if not provided
+            let supplierCode = document.getElementById("supplierCode").value.trim();
+            if (!supplierCode) {
+                // Generate a unique supplier code based on name and timestamp
+                const supplierName = document.getElementById("supplierName").value.trim();
+                const namePrefix = supplierName.substring(0, 3).toUpperCase();
+                const timestamp = Date.now().toString().slice(-4);
+                supplierCode = `SUP${namePrefix}${timestamp}`;
+            }
+            
             const supplierData = {
                 name: document.getElementById("supplierName").value,
+                supplier_code: supplierCode,
                 contact_person: document.getElementById("supplierContactPerson").value,
                 phone: document.getElementById("supplierPhone").value,
                 email: document.getElementById("supplierEmail").value,
