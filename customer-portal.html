@@ -56,9 +56,9 @@
 <body class="bg-gray-100">
     <div class="flex h-screen bg-gray-100">
         <!-- Sidebar -->
-        <aside id="sidebar" class="w-64 bg-primary text-white flex-shrink-0 hidden lg:block">
+        <aside id="sidebar" class="w-64 bg-green-800 text-white flex-shrink-0 hidden lg:block">
             <div class="p-6">
-                <a href="index.html?home=true" class="text-2xl font-bold text-white flex items-center">
+                <a href="dashboard.html" class="text-2xl font-bold text-white flex items-center">
                     <i class="fas fa-pills mr-3"></i>
                     <span>Nyina wa Jambo</span>
                 </a>
@@ -69,7 +69,7 @@
                     <span class="ml-4">My Portal</span>
                 </a>
             </nav>
-            <div class="absolute bottom-0 w-full p-6">
+            <div class="mt-auto p-6 bottom-0">
                 <button onclick="logout()" class="w-full flex items-center justify-center py-2 px-4 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors">
                     <i class="fas fa-sign-out-alt mr-2"></i>
                     <span>Logout</span>
@@ -193,18 +193,30 @@
         let customerOrders = [];
         let availableMedicines = [];
 
+        async function logout() {
+            try {
+                const { error } = await supabase.auth.signOut();
+                if (error) throw error;
+                window.location.href = "login.html";
+            } catch (error) {
+                showError("Error signing out: " + error.message);
+            }
+        }
+
         document.addEventListener('DOMContentLoaded', async function() {
-            if (!isAuthenticated()) {
+            if (!await isAuthenticated()) {
                 window.location.href = 'login.html';
                 return;
             }
 
-            const user = getCurrentUser();
-            if (user.role !== 'customer') {
+            const user = await getUserProfile();
+            if (!user || user.role !== 'customer') {
                 showNotification('Access denied. Customer portal only.', 'error');
                 setTimeout(() => {
-                    if (user.role === 'admin' || user.role === 'receptionist') {
-                        window.location.href = 'index.html?dashboard=true';
+                    if (user && user.role === 'admin') {
+                        window.location.href = 'dashboard.html';
+                    } else if (user && user.role === 'receptionist') {
+                        window.location.href = 'receptionist-dashboard.html';
                     } else {
                         logout();
                     }
@@ -212,20 +224,33 @@
                 return;
             }
 
-            updateNavigation();
+            await updateNavigation();
             setupEventListeners();
             
-            document.getElementById('welcomeUser').textContent = `Welcome, ${user.fullName}`;
+            document.getElementById('welcomeUser').textContent = `Welcome, ${user.full_name || 'Customer'}`;
             await loadCustomerData();
             document.getElementById('medicineSearch').addEventListener('input', filterMedicines);
         });
 
-        function updateNavigation() {
-            const user = getCurrentUser();
-            if (user) {
-                document.getElementById('currentUser').textContent = `${user.fullName}`;
-                document.getElementById('userInfo').textContent = `${user.fullName} (${user.role})`;
-                document.getElementById('userAvatar').src = `https://ui-avatars.com/api/?name=${encodeURIComponent(user.fullName)}&background=16a34a&color=fff&bold=true`;
+        async function updateNavigation() {
+            try {
+                const user = await getUserProfile();
+                if (user) {
+                    document.getElementById('currentUser').textContent = `${user.full_name || 'User'}`;
+                    document.getElementById('userInfo').textContent = `${user.full_name || 'User'} (${user.role || 'customer'})`;
+                    
+                    const avatarImg = document.querySelector('#userAvatar img');
+                    if (avatarImg) {
+                        avatarImg.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(user.full_name || 'User')}&background=16a34a&color=fff&bold=true`;
+                    }
+                } else {
+                    document.getElementById('currentUser').textContent = 'Guest';
+                    document.getElementById('userInfo').textContent = 'Guest User';
+                }
+            } catch (error) {
+                console.error('Error updating navigation:', error);
+                document.getElementById('currentUser').textContent = 'Customer';
+                document.getElementById('userInfo').textContent = 'Customer';
             }
         }
 

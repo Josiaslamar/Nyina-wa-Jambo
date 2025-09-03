@@ -1,10 +1,56 @@
 const SUPABASE_URL = "https://jcmscgxrxicwowsezbui.supabase.co";
-const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImpjbXNjZ3hyeGljd293c2V6YnVpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTY3NjExNzcsImV4cCI6MjA3MjMzNzE3N30.QqfFKCqV4oIsuNw5TAJoCbE7tVu7m8s8g8M6YzwcU68";
+const SUPABASE_API = "https://jcmscgxrxicwowsezbui.supabase.co/functions/v1/admin-create-user";
+const SUPABASE_ANON_KEY =
+  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImpjbXNjZ3hyeGljd293c2V6YnVpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTY3NjExNzcsImV4cCI6MjA3MjMzNzE3N30.QqfFKCqV4oIsuNw5TAJoCbE7tVu7m8s8g8M6YzwcU68";
 
 const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
+// Update your existing adminCreateUser function in supabase.js
+async function adminCreateUser(email, password, fullName, role = "receptionist", additionalData = {}) {
+  if (!(await isAdmin())) throw new Error("Permission denied: Admin only");
+
+  try {
+    const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+    if (sessionError || !session) {
+      throw new Error("Authentication required");
+    }
+
+    // Call the Edge Function (note the URL structure)
+    const response = await fetch(`${SUPABASE_API}/functions/v1/admin-create-user`, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${session.access_token}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        email,
+        password,
+        fullName,
+        role,
+        username: additionalData.username,
+        phone: additionalData.phone,
+        address: additionalData.address
+      })
+    });
+
+    const result = await response.json();
+
+    if (!response.ok) {
+      throw new Error(result.error || 'User creation failed');
+    }
+
+    return result.user;
+  } catch (error) {
+    console.error("Admin create user error:", error);
+    throw error;
+  }
+}
+
 async function getCurrentUser() {
-  const { data: { user }, error } = await supabase.auth.getUser();
+  const {
+    data: { user },
+    error,
+  } = await supabase.auth.getUser();
   if (error) throw new Error(`Auth error: ${error.message}`);
   return user;
 }
@@ -54,8 +100,27 @@ async function fetchAllUserProfiles() {
   return data || [];
 }
 
+async function fetchAllUsersForAdmin() {
+  if (!(await isAdmin())) throw new Error("Permission denied: Admin only");
+  
+  const { data, error } = await supabase
+    .from("user_profiles")
+    .select("*")
+    .order("created_at", { ascending: false });
+  
+  if (error) throw new Error(`Fetch all users error: ${error.message}`);
+  
+  // Add email from auth metadata if available, otherwise use username-based email
+  const usersWithEmail = (data || []).map(user => ({
+    ...user,
+    email: user.username ? `${user.username}@pharmacy.local` : 'No email'
+  }));
+  
+  return usersWithEmail;
+}
+
 async function updateUserRole(userId, newRole) {
-  if (!await isAdmin()) throw new Error("Permission denied: Admin only");
+  if (!(await isAdmin())) throw new Error("Permission denied: Admin only");
   const user = await getCurrentUser();
   const { data, error } = await supabase
     .from("user_profiles")
@@ -68,8 +133,87 @@ async function updateUserRole(userId, newRole) {
   return data;
 }
 
+async function updateUserStatus(userId, isActive) {
+  if (!(await isAdmin())) throw new Error("Permission denied: Admin only");
+  const user = await getCurrentUser();
+  const { data, error } = await supabase
+    .from("user_profiles")
+    .update({ 
+      is_active: isActive, 
+      updated_by: user?.id,
+      updated_at: new Date().toISOString()
+    })
+    .eq("id", userId)
+    .select();
+  if (error) throw new Error(`User status update error: ${error.message}`);
+  return data;
+}
+
+async function deleteUser(userId) {
+  if (!(await isAdmin())) throw new Error("Permission denied: Admin only");
+  const user = await getCurrentUser();
+  
+  // Soft delete by setting is_active to false
+  const { data, error } = await supabase
+    .from("user_profiles")
+    .update({ 
+      is_active: false, 
+      updated_by: user?.id,
+      updated_at: new Date().toISOString()
+    })
+    .eq("id", userId)
+    .select();
+  if (error) throw new Error(`User deletion error: ${error.message}`);
+  return data;
+}
+
+async function getAllUsersWithDetails() {
+  if (!(await isAdmin())) throw new Error("Permission denied: Admin only");
+  
+  const { data, error } = await supabase
+    .from("user_profiles")
+    .select(`
+      *,
+      created_by:created_by(full_name),
+      updated_by:updated_by(full_name)
+    `)
+    .order("created_at", { ascending: false });
+  
+  if (error) throw new Error(`Fetch users error: ${error.message}`);
+  return data || [];
+}
+
+async function searchUsers(searchTerm, role = null, isActive = null) {
+  if (!(await isAdmin())) throw new Error("Permission denied: Admin only");
+  
+  let query = supabase
+    .from("user_profiles")
+    .select("*");
+  
+  if (searchTerm) {
+    query = query.or(`full_name.ilike.%${searchTerm}%,username.ilike.%${searchTerm}%,email.ilike.%${searchTerm}%`);
+  }
+  
+  if (role) {
+    query = query.eq("role", role);
+  }
+  
+  if (isActive !== null) {
+    query = query.eq("is_active", isActive);
+  }
+  
+  query = query.order("full_name");
+  
+  const { data, error } = await query;
+  if (error) throw new Error(`Search users error: ${error.message}`);
+  return data || [];
+}
+
 async function signIn(email, password, rememberMe = false) {
-  const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+  const { data, error } = await supabase.auth.signInWithPassword({
+    email,
+    password,
+  });
   if (error) throw new Error(`Sign in error: ${error.message}`);
   if (rememberMe) {
     localStorage.setItem("rememberUser", email);
@@ -77,14 +221,23 @@ async function signIn(email, password, rememberMe = false) {
   return data.user;
 }
 
-async function signUp(email, password, fullName, role = "customer", additionalData = {}) {
+async function adminCreateUser(
+  email,
+  password,
+  fullName,
+  role = "receptionist",
+  additionalData = {}
+) {
+  if (!(await isAdmin())) throw new Error("Permission denied: Admin only");
+
+  // Admin still calls signUp for now
   const { data, error } = await supabase.auth.signUp({
     email,
     password,
     options: { data: { full_name: fullName, role, ...additionalData } },
   });
-  if (error) throw new Error(`Sign up error: ${error.message}`);
-  if (data.user) await createUserProfile(data.user, fullName, role, additionalData);
+
+  if (error) throw new Error(`Admin sign up error: ${error.message}`);
   return data.user;
 }
 
@@ -98,7 +251,9 @@ async function createUserProfile(user, fullName, role, additionalData = {}) {
     address: additionalData.address || null,
     created_by: user.id,
   };
-  const { data, error } = await supabase.from("user_profiles").insert([profileData]);
+  const { data, error } = await supabase
+    .from("user_profiles")
+    .insert([profileData]);
   if (error) throw new Error(`Profile creation error: ${error.message}`);
   return data;
 }
@@ -132,7 +287,8 @@ async function fetchMedicines() {
 }
 
 async function addMedicine(medicine) {
-  if (!await isReceptionist()) throw new Error("Permission denied: Staff only");
+  if (!(await isReceptionist()))
+    throw new Error("Permission denied: Staff only");
   const user = await getCurrentUser();
   const { data, error } = await supabase
     .from("medicines")
@@ -144,7 +300,8 @@ async function addMedicine(medicine) {
 }
 
 async function updateMedicine(id, updates) {
-  if (!await isReceptionist()) throw new Error("Permission denied: Staff only");
+  if (!(await isReceptionist()))
+    throw new Error("Permission denied: Staff only");
   const user = await getCurrentUser();
   const { data, error } = await supabase
     .from("medicines")
@@ -158,8 +315,12 @@ async function updateMedicine(id, updates) {
 }
 
 async function archiveMedicine(id) {
-  if (!await isReceptionist()) throw new Error("Permission denied: Staff only");
-  const { data, error } = await supabase.rpc("deactivate_record", { p_table_name: "medicines", p_record_id: id });
+  if (!(await isReceptionist()))
+    throw new Error("Permission denied: Staff only");
+  const { data, error } = await supabase.rpc("deactivate_record", {
+    p_table_name: "medicines",
+    p_record_id: id,
+  });
   if (error) throw new Error(`Medicine archive error: ${error.message}`);
   showSuccess("Medicine archived!");
   return data;
@@ -172,10 +333,16 @@ async function getLowStockMedicines() {
 }
 
 async function bulkAddMedicines(medicines) {
-  if (!await isAdmin()) throw new Error("Permission denied: Admin only");
+  if (!(await isAdmin())) throw new Error("Permission denied: Admin only");
   const user = await getCurrentUser();
-  const medicinesWithMeta = medicines.map(m => ({ ...m, created_by: user?.id }));
-  const { data, error } = await supabase.from("medicines").insert(medicinesWithMeta).select();
+  const medicinesWithMeta = medicines.map((m) => ({
+    ...m,
+    created_by: user?.id,
+  }));
+  const { data, error } = await supabase
+    .from("medicines")
+    .insert(medicinesWithMeta)
+    .select();
   if (error) throw new Error(`Bulk insert error: ${error.message}`);
   showSuccess(`${medicines.length} medicines added!`);
   return data;
@@ -184,12 +351,14 @@ async function bulkAddMedicines(medicines) {
 async function fetchOrders() {
   const { data, error } = await supabase
     .from("orders")
-    .select(`
+    .select(
+      `
       *, 
       order_items(id, medicine_id, medicine_name, quantity, unit_price, total_price, batch_number, expiry_date),
       customers(name, customer_id),
       user_profiles!orders_created_by_fkey(full_name)
-    `)
+    `
+    )
     .eq("is_active", true)
     .order("order_date", { ascending: false });
   if (error) throw new Error(`Orders fetch error: ${error.message}`);
@@ -197,13 +366,16 @@ async function fetchOrders() {
 }
 
 async function getCustomerOrderHistory(customerId) {
-  if (!(await isCustomer() || await isReceptionist())) throw new Error("Permission denied");
+  if (!((await isCustomer()) || (await isReceptionist())))
+    throw new Error("Permission denied");
   const { data, error } = await supabase
     .from("orders")
-    .select(`
+    .select(
+      `
       *, 
       order_items(id, medicine_id, medicine_name, quantity, unit_price, total_price, batch_number, expiry_date)
-    `)
+    `
+    )
     .eq("customer_id", customerId)
     .eq("is_active", true)
     .order("order_date", { ascending: false });
@@ -212,16 +384,18 @@ async function getCustomerOrderHistory(customerId) {
 }
 
 async function createOrder(orderData, orderItems) {
-  if (!await isReceptionist()) throw new Error("Permission denied: Staff only");
+  if (!(await isReceptionist()))
+    throw new Error("Permission denied: Staff only");
   const user = await getCurrentUser();
   const { data: order, error: orderError } = await supabase
     .from("orders")
     .insert([{ ...orderData, created_by: user?.id, served_by: user?.id }])
     .select()
     .single();
-  if (orderError) throw new Error(`Order creation error: ${orderError.message}`);
+  if (orderError)
+    throw new Error(`Order creation error: ${orderError.message}`);
 
-  const itemsWithOrderId = orderItems.map(item => ({
+  const itemsWithOrderId = orderItems.map((item) => ({
     ...item,
     order_id: order.id,
     total_price: item.quantity * item.unit_price,
@@ -230,24 +404,39 @@ async function createOrder(orderData, orderItems) {
     .from("order_items")
     .insert(itemsWithOrderId)
     .select();
-  if (itemsError) throw new Error(`Order items creation error: ${itemsError.message}`);
+  if (itemsError)
+    throw new Error(`Order items creation error: ${itemsError.message}`);
 
   for (const item of orderItems) {
-    await processStockOut(item.medicine_id, item.quantity, "sale", `Order ${order.order_number}`);
+    await processStockOut(
+      item.medicine_id,
+      item.quantity,
+      "sale",
+      `Order ${order.order_number}`
+    );
   }
   showSuccess(`Order ${order.order_number} created!`);
   return { ...order, order_items: items };
 }
 
-async function updateMedicineStock(medicineId, newStock, movementType, quantity, reason, notes = null) {
-  if (!await isReceptionist()) throw new Error("Permission denied: Staff only");
+async function updateMedicineStock(
+  medicineId,
+  newStock,
+  movementType,
+  quantity,
+  reason,
+  notes = null
+) {
+  if (!(await isReceptionist()))
+    throw new Error("Permission denied: Staff only");
   const { data: medicine, error: fetchError } = await supabase
     .from("medicines")
     .select("stock, name")
     .eq("id", medicineId)
     .eq("is_active", true)
     .single();
-  if (fetchError) throw new Error(`Medicine fetch error: ${fetchError.message}`);
+  if (fetchError)
+    throw new Error(`Medicine fetch error: ${fetchError.message}`);
 
   const user = await getCurrentUser();
   const movement = {
@@ -262,8 +451,11 @@ async function updateMedicineStock(medicineId, newStock, movementType, quantity,
     created_by: user?.id,
     movement_date: new Date().toISOString().split("T")[0],
   };
-  const { error: movementError } = await supabase.from("stock_movements").insert([movement]);
-  if (movementError) throw new Error(`Stock movement error: ${movementError.message}`);
+  const { error: movementError } = await supabase
+    .from("stock_movements")
+    .insert([movement]);
+  if (movementError)
+    throw new Error(`Stock movement error: ${movementError.message}`);
 
   const { data, error } = await supabase
     .from("medicines")
@@ -276,7 +468,12 @@ async function updateMedicineStock(medicineId, newStock, movementType, quantity,
   return data;
 }
 
-async function processStockIn(medicineId, quantity, reason = "purchase", notes = null) {
+async function processStockIn(
+  medicineId,
+  quantity,
+  reason = "purchase",
+  notes = null
+) {
   const { data: medicine, error } = await supabase
     .from("medicines")
     .select("stock, name")
@@ -284,10 +481,22 @@ async function processStockIn(medicineId, quantity, reason = "purchase", notes =
     .eq("is_active", true)
     .single();
   if (error) throw new Error(`Medicine fetch error: ${error.message}`);
-  return await updateMedicineStock(medicineId, medicine.stock + quantity, "in", quantity, reason, notes);
+  return await updateMedicineStock(
+    medicineId,
+    medicine.stock + quantity,
+    "in",
+    quantity,
+    reason,
+    notes
+  );
 }
 
-async function processStockOut(medicineId, quantity, reason = "sale", notes = null) {
+async function processStockOut(
+  medicineId,
+  quantity,
+  reason = "sale",
+  notes = null
+) {
   const { data: medicine, error } = await supabase
     .from("medicines")
     .select("stock, name")
@@ -295,8 +504,18 @@ async function processStockOut(medicineId, quantity, reason = "sale", notes = nu
     .eq("is_active", true)
     .single();
   if (error) throw new Error(`Medicine fetch error: ${error.message}`);
-  if (medicine.stock < quantity) throw new Error(`Insufficient stock: ${medicine.name} has ${medicine.stock} units`);
-  return await updateMedicineStock(medicineId, medicine.stock - quantity, "out", quantity, reason, notes);
+  if (medicine.stock < quantity)
+    throw new Error(
+      `Insufficient stock: ${medicine.name} has ${medicine.stock} units`
+    );
+  return await updateMedicineStock(
+    medicineId,
+    medicine.stock - quantity,
+    "out",
+    quantity,
+    reason,
+    notes
+  );
 }
 
 async function fetchStockMovements() {
@@ -320,7 +539,8 @@ async function fetchSuppliers() {
 }
 
 async function addSupplier(supplier) {
-  if (!await isReceptionist()) throw new Error("Permission denied: Staff only");
+  if (!(await isReceptionist()))
+    throw new Error("Permission denied: Staff only");
   const user = await getCurrentUser();
   const { data, error } = await supabase
     .from("suppliers")
@@ -332,7 +552,8 @@ async function addSupplier(supplier) {
 }
 
 async function updateSupplier(id, updates) {
-  if (!await isReceptionist()) throw new Error("Permission denied: Staff only");
+  if (!(await isReceptionist()))
+    throw new Error("Permission denied: Staff only");
   const user = await getCurrentUser();
   const { data, error } = await supabase
     .from("suppliers")
@@ -346,8 +567,12 @@ async function updateSupplier(id, updates) {
 }
 
 async function archiveSupplier(id) {
-  if (!await isReceptionist()) throw new Error("Permission denied: Staff only");
-  const { data, error } = await supabase.rpc("deactivate_record", { p_table_name: "suppliers", p_record_id: id });
+  if (!(await isReceptionist()))
+    throw new Error("Permission denied: Staff only");
+  const { data, error } = await supabase.rpc("deactivate_record", {
+    p_table_name: "suppliers",
+    p_record_id: id,
+  });
   if (error) throw new Error(`Supplier archive error: ${error.message}`);
   showSuccess("Supplier archived!");
   return data;
@@ -356,11 +581,13 @@ async function archiveSupplier(id) {
 async function fetchPurchaseOrders() {
   const { data, error } = await supabase
     .from("purchase_orders")
-    .select(`
+    .select(
+      `
       *, 
       purchase_order_items(id, medicine_id, medicine_name, quantity_ordered, quantity_received, unit_cost, total_cost),
       suppliers(name)
-    `)
+    `
+    )
     .eq("is_active", true)
     .order("order_date", { ascending: false });
   if (error) throw new Error(`Purchase orders fetch error: ${error.message}`);
@@ -368,16 +595,18 @@ async function fetchPurchaseOrders() {
 }
 
 async function createPurchaseOrder(poData, poItems) {
-  if (!await isReceptionist()) throw new Error("Permission denied: Staff only");
+  if (!(await isReceptionist()))
+    throw new Error("Permission denied: Staff only");
   const user = await getCurrentUser();
   const { data: po, error: poError } = await supabase
     .from("purchase_orders")
     .insert([{ ...poData, created_by: user?.id }])
     .select()
     .single();
-  if (poError) throw new Error(`Purchase order creation error: ${poError.message}`);
+  if (poError)
+    throw new Error(`Purchase order creation error: ${poError.message}`);
 
-  const itemsWithPoId = poItems.map(item => ({
+  const itemsWithPoId = poItems.map((item) => ({
     ...item,
     po_id: po.id,
     total_cost: item.quantity_ordered * item.unit_cost,
@@ -386,23 +615,28 @@ async function createPurchaseOrder(poData, poItems) {
     .from("purchase_order_items")
     .insert(itemsWithPoId)
     .select();
-  if (itemsError) throw new Error(`Purchase order items creation error: ${itemsError.message}`);
+  if (itemsError)
+    throw new Error(
+      `Purchase order items creation error: ${itemsError.message}`
+    );
   showSuccess(`Purchase order ${po.po_number} created!`);
   return { ...po, purchase_order_items: items };
 }
 
 async function fetchAuditLogs(limit = 100) {
-  if (!await isAdmin()) throw new Error("Permission denied: Admin only");
+  if (!(await isAdmin())) throw new Error("Permission denied: Admin only");
   const { data, error } = await supabase
     .from("vw_audit_log_report")
     .select("*")
     .limit(limit)
     .order("created_at", { ascending: false });
   if (error) throw new Error(`Audit logs fetch error: ${error.message}`);
-  return data.map(log => ({
-    ...log,
-    record_id: String(log.record_id)
-  })) || [];
+  return (
+    data.map((log) => ({
+      ...log,
+      record_id: String(log.record_id),
+    })) || []
+  );
 }
 
 async function getSalesReport(startDate, endDate) {
@@ -415,8 +649,11 @@ async function getSalesReport(startDate, endDate) {
 }
 
 async function getExpiringMedicines(daysAhead = 90) {
-  const { data, error } = await supabase.rpc("get_expiring_medicines", { days_ahead: daysAhead });
-  if (error) throw new Error(`Expiring medicines fetch error: ${error.message}`);
+  const { data, error } = await supabase.rpc("get_expiring_medicines", {
+    days_ahead: daysAhead,
+  });
+  if (error)
+    throw new Error(`Expiring medicines fetch error: ${error.message}`);
   return data || [];
 }
 
@@ -427,7 +664,9 @@ async function fetchNotifications() {
     .from("notifications")
     .select("*")
     .eq("is_active", true)
-    .or(`user_id.eq.${user?.id},target_role.eq.${profile?.role},target_role.eq.all`)
+    .or(
+      `user_id.eq.${user?.id},target_role.eq.${profile?.role},target_role.eq.all`
+    )
     .order("created_at", { ascending: false });
   if (error) throw new Error(`Notifications fetch error: ${error.message}`);
   return data || [];
@@ -448,11 +687,17 @@ async function checkPermission(requiredRole) {
   const profile = await getUserProfile();
   if (!profile) return false;
   const roleHierarchy = { customer: 1, receptionist: 2, admin: 3 };
-  return (roleHierarchy[profile.role] || 0) >= (roleHierarchy[requiredRole] || 0);
+  return (
+    (roleHierarchy[profile.role] || 0) >= (roleHierarchy[requiredRole] || 0)
+  );
 }
 
 function formatCurrency(amount) {
-  return new Intl.NumberFormat("rw-RW", { style: "currency", currency: "RWF", minimumFractionDigits: 0 }).format(amount);
+  return new Intl.NumberFormat("rw-RW", {
+    style: "currency",
+    currency: "RWF",
+    minimumFractionDigits: 0,
+  }).format(amount);
 }
 
 function showError(message, container = null) {
@@ -495,4 +740,599 @@ function showLoading(element) {
 
 function hideLoading(element, originalContent) {
   if (element) element.innerHTML = originalContent;
+}
+
+// =============================================
+// POS ANALYTICS API FUNCTIONS FOR FRONTEND
+// =============================================
+
+// 1. TODAY'S LIVE DASHBOARD METRICS
+async function getTodaysLiveDashboard() {
+  try {
+    const { data, error } = await supabase.rpc('get_todays_pos_metrics');
+    if (error) throw new Error(`Live dashboard error: ${error.message}`);
+    return data;
+  } catch (error) {
+    showError(error.message);
+    throw error;
+  }
+}
+
+// 2. STAFF PERFORMANCE ANALYTICS
+async function getStaffPerformanceAnalysis(days = 7) {
+  if (!(await isAdmin())) throw new Error("Permission denied: Admin only");
+  
+  try {
+    const { data, error } = await supabase.rpc('get_staff_performance_analysis', {
+      analysis_date: new Date().toISOString().split('T')[0],
+      period_days: days
+    });
+    if (error) throw new Error(`Staff performance error: ${error.message}`);
+    return data || [];
+  } catch (error) {
+    showError(error.message);
+    throw error;
+  }
+}
+
+// 3. INDIVIDUAL STAFF PERFORMANCE
+async function getIndividualStaffMetrics(staffId, days = 30) {
+  if (!(await isAdmin()) && staffId !== (await getCurrentUser())?.id) {
+    throw new Error("Permission denied");
+  }
+  
+  try {
+    const { data, error } = await supabase
+      .from('staff_performance')
+      .select(`
+        *,
+        staff_shifts(
+          shift_date,
+          actual_hours,
+          shift_type
+        )
+      `)
+      .eq('staff_id', staffId)
+      .gte('performance_date', new Date(Date.now() - days * 24 * 60 * 60 * 1000).toISOString().split('T')[0])
+      .order('performance_date', { ascending: false });
+    
+    if (error) throw new Error(`Individual metrics error: ${error.message}`);
+    return data || [];
+  } catch (error) {
+    showError(error.message);
+    throw error;
+  }
+}
+
+// 4. PEAK HOURS ANALYSIS
+async function getPeakHoursAnalysis(days = 30) {
+  if (!(await isReceptionist())) throw new Error("Permission denied: Staff only");
+  
+  try {
+    const { data, error } = await supabase.rpc('get_peak_hours_analysis', {
+      analysis_date: new Date().toISOString().split('T')[0],
+      period_days: days
+    });
+    if (error) throw new Error(`Peak hours error: ${error.message}`);
+    return data || [];
+  } catch (error) {
+    showError(error.message);
+    throw error;
+  }
+}
+
+// 5. DAILY CASH RECONCILIATION
+async function getDailyCashReconciliation(date = null) {
+  if (!(await isReceptionist())) throw new Error("Permission denied: Staff only");
+  
+  const reconciliationDate = date || new Date().toISOString().split('T')[0];
+  
+  try {
+    const { data, error } = await supabase.rpc('get_daily_cash_reconciliation', {
+      reconciliation_date: reconciliationDate
+    });
+    if (error) throw new Error(`Cash reconciliation error: ${error.message}`);
+    return data;
+  } catch (error) {
+    showError(error.message);
+    throw error;
+  }
+}
+
+// 6. SHIFT MANAGEMENT
+async function clockInStaff(shiftType = 'full_day') {
+  try {
+    const user = await getCurrentUser();
+    const { data, error } = await supabase
+      .from('staff_shifts')
+      .insert([{
+        staff_id: user.id,
+        shift_type: shiftType,
+        clock_in_time: new Date().toISOString(),
+        shift_date: new Date().toISOString().split('T')[0]
+      }])
+      .select();
+    
+    if (error) throw new Error(`Clock in error: ${error.message}`);
+    showSuccess('Clocked in successfully!');
+    return data[0];
+  } catch (error) {
+    showError(error.message);
+    throw error;
+  }
+}
+
+async function clockOutStaff(shiftId, notes = null) {
+  try {
+    const { data, error } = await supabase
+      .from('staff_shifts')
+      .update({
+        clock_out_time: new Date().toISOString(),
+        notes: notes
+      })
+      .eq('id', shiftId)
+      .eq('staff_id', (await getCurrentUser()).id)
+      .select();
+    
+    if (error) throw new Error(`Clock out error: ${error.message}`);
+    showSuccess('Clocked out successfully!');
+    return data[0];
+  } catch (error) {
+    showError(error.message);
+    throw error;
+  }
+}
+
+// 7. CASH REGISTER SESSION MANAGEMENT
+async function openCashRegisterSession(openingBalance = 0) {
+  if (!(await isReceptionist())) throw new Error("Permission denied: Staff only");
+  
+  try {
+    const user = await getCurrentUser();
+    const sessionId = `CS${Date.now()}`;
+    
+    const { data, error } = await supabase
+      .from('cash_register_sessions')
+      .insert([{
+        session_id: sessionId,
+        staff_id: user.id,
+        opening_balance: openingBalance,
+        session_date: new Date().toISOString().split('T')[0]
+      }])
+      .select();
+    
+    if (error) throw new Error(`Cash session error: ${error.message}`);
+    showSuccess('Cash register session opened!');
+    return data[0];
+  } catch (error) {
+    showError(error.message);
+    throw error;
+  }
+}
+
+async function closeCashRegisterSession(sessionId, closingBalance, notes = null) {
+  if (!(await isReceptionist())) throw new Error("Permission denied: Staff only");
+  
+  try {
+    // Get session data first
+    const { data: session, error: sessionError } = await supabase
+      .from('cash_register_sessions')
+      .select('*')
+      .eq('session_id', sessionId)
+      .eq('staff_id', (await getCurrentUser()).id)
+      .single();
+    
+    if (sessionError) throw new Error(`Session fetch error: ${sessionError.message}`);
+    
+    // Calculate expected cash from orders
+    const { data: cashOrders, error: ordersError } = await supabase
+      .from('orders')
+      .select('total_amount')
+      .eq('payment_method', 'cash')
+      .eq('order_date', session.session_date)
+      .eq('served_by', session.staff_id)
+      .eq('status', 'completed');
+    
+    if (ordersError) throw new Error(`Orders fetch error: ${ordersError.message}`);
+    
+    const expectedCash = session.opening_balance + (cashOrders?.reduce((sum, order) => sum + parseFloat(order.total_amount), 0) || 0);
+    const variance = closingBalance - expectedCash;
+    
+    const { data, error } = await supabase
+      .from('cash_register_sessions')
+      .update({
+        session_end_time: new Date().toISOString(),
+        closing_balance: closingBalance,
+        total_cash_sales: expectedCash - session.opening_balance,
+        cash_variance: variance,
+        is_balanced: Math.abs(variance) < 100, // Allow 100 RWF tolerance
+        notes: notes
+      })
+      .eq('session_id', sessionId)
+      .select();
+    
+    if (error) throw new Error(`Cash session close error: ${error.message}`);
+    
+    if (Math.abs(variance) >= 100) {
+      showError(`Cash variance detected: ${formatCurrency(variance)}. Please check your counts.`);
+    } else {
+      showSuccess('Cash register session closed successfully!');
+    }
+    
+    return data[0];
+  } catch (error) {
+    showError(error.message);
+    throw error;
+  }
+}
+
+// 8. MEDICINE DISPENSING PERFORMANCE
+async function getMedicineDispensingPerformance(days = 7) {
+  if (!(await isReceptionist())) throw new Error("Permission denied: Staff only");
+  
+  try {
+    const startDate = new Date(Date.now() - days * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
+    const endDate = new Date().toISOString().split('T')[0];
+    
+    const { data, error } = await supabase.rpc('get_medicine_dispensing_performance', {
+      start_date: startDate,
+      end_date: endDate
+    });
+    
+    if (error) throw new Error(`Dispensing performance error: ${error.message}`);
+    return data || [];
+  } catch (error) {
+    showError(error.message);
+    throw error;
+  }
+}
+
+// 9. SHIFT HANDOVER REPORT
+async function getShiftHandoverReport(date = null, shiftType = 'morning') {
+  if (!(await isReceptionist())) throw new Error("Permission denied: Staff only");
+  
+  try {
+    const reportDate = date || new Date().toISOString().split('T')[0];
+    
+    const { data, error } = await supabase.rpc('get_shift_handover_report', {
+      shift_date: reportDate,
+      shift_type: shiftType
+    });
+    
+    if (error) throw new Error(`Handover report error: ${error.message}`);
+    return data;
+  } catch (error) {
+    showError(error.message);
+    throw error;
+  }
+}
+
+// 10. TRANSACTION PERFORMANCE TRACKING
+async function startTransactionTimer(orderId) {
+  try {
+    const user = await getCurrentUser();
+    const { data, error } = await supabase
+      .from('transaction_performance')
+      .insert([{
+        order_id: orderId,
+        staff_id: user.id,
+        transaction_start_time: new Date().toISOString()
+      }])
+      .select();
+    
+    if (error) throw new Error(`Transaction timer error: ${error.message}`);
+    return data[0];
+  } catch (error) {
+    console.error('Transaction timer error:', error.message);
+    return null;
+  }
+}
+
+async function endTransactionTimer(orderId, itemsCount = 1, wasError = false, errorType = null) {
+  try {
+    const endTime = new Date().toISOString();
+    
+    // Get start time
+    const { data: transaction, error: fetchError } = await supabase
+      .from('transaction_performance')
+      .select('transaction_start_time')
+      .eq('order_id', orderId)
+      .single();
+    
+    if (fetchError) {
+      console.error('Transaction fetch error:', fetchError.message);
+      return null;
+    }
+    
+    const startTime = new Date(transaction.transaction_start_time);
+    const duration = Math.round((new Date(endTime) - startTime) / 1000);
+    
+    const { data, error } = await supabase
+      .from('transaction_performance')
+      .update({
+        transaction_end_time: endTime,
+        processing_duration: duration,
+        items_count: itemsCount,
+        was_error: wasError,
+        error_type: errorType
+      })
+      .eq('order_id', orderId)
+      .select();
+    
+    if (error) throw new Error(`Transaction end error: ${error.message}`);
+    return data[0];
+  } catch (error) {
+    console.error('Transaction end error:', error.message);
+    return null;
+  }
+}
+
+// 11. STAFF EFFICIENCY RANKING
+async function getStaffEfficiencyRanking(period = 'weekly') {
+  if (!(await isAdmin())) throw new Error("Permission denied: Admin only");
+  
+  try {
+    let days;
+    switch (period) {
+      case 'daily': days = 1; break;
+      case 'weekly': days = 7; break;
+      case 'monthly': days = 30; break;
+      default: days = 7;
+    }
+    
+    const { data, error } = await supabase.rpc('get_staff_performance_analysis', {
+      analysis_date: new Date().toISOString().split('T')[0],
+      period_days: days
+    });
+    
+    if (error) throw new Error(`Staff ranking error: ${error.message}`);
+    return data || [];
+  } catch (error) {
+    showError(error.message);
+    throw error;
+  }
+}
+
+// 12. CUSTOMER FLOW ANALYSIS
+async function getCustomerFlowAnalysis(days = 30) {
+  if (!(await isReceptionist())) throw new Error("Permission denied: Staff only");
+  
+  try {
+    const { data, error } = await supabase
+      .from('orders')
+      .select(`
+        created_at,
+        order_date,
+        customer_id,
+        total_amount,
+        transaction_performance(processing_duration, customer_wait_time)
+      `)
+      .gte('order_date', new Date(Date.now() - days * 24 * 60 * 60 * 1000).toISOString().split('T')[0])
+      .eq('status', 'completed')
+      .eq('is_active', true)
+      .order('created_at', { ascending: false });
+    
+    if (error) throw new Error(`Customer flow error: ${error.message}`);
+    
+    // Process data for flow analysis
+    const flowData = data?.reduce((acc, order) => {
+      const hour = new Date(order.created_at).getHours();
+      if (!acc[hour]) {
+        acc[hour] = {
+          hour,
+          customer_count: 0,
+          average_wait_time: 0,
+          total_wait_time: 0,
+          revenue: 0
+        };
+      }
+      
+      acc[hour].customer_count += 1;
+      acc[hour].revenue += parseFloat(order.total_amount);
+      
+      if (order.transaction_performance?.[0]?.customer_wait_time) {
+        acc[hour].total_wait_time += order.transaction_performance[0].customer_wait_time;
+        acc[hour].average_wait_time = acc[hour].total_wait_time / acc[hour].customer_count;
+      }
+      
+      return acc;
+    }, {}) || {};
+    
+    return Object.values(flowData).sort((a, b) => a.hour - b.hour);
+  } catch (error) {
+    showError(error.message);
+    throw error;
+  }
+}
+
+// 13. WEEKLY PERFORMANCE SUMMARY
+async function getWeeklyPerformanceSummary() {
+  if (!(await isReceptionist())) throw new Error("Permission denied: Staff only");
+  
+  try {
+    const startOfWeek = new Date();
+    startOfWeek.setDate(startOfWeek.getDate() - startOfWeek.getDay());
+    const endOfWeek = new Date(startOfWeek);
+    endOfWeek.setDate(endOfWeek.getDate() + 6);
+    
+    const { data: weeklyData, error } = await supabase.rpc('generate_sales_report', {
+      start_date: startOfWeek.toISOString().split('T')[0],
+      end_date: endOfWeek.toISOString().split('T')[0]
+    });
+    
+    if (error) throw new Error(`Weekly summary error: ${error.message}`);
+    
+    // Get staff performance for the week
+    const staffPerformance = await getStaffPerformanceAnalysis(7);
+    
+    // Get top medicines for the week
+    const topMedicines = await supabase.rpc('get_top_selling_medicines', {
+      start_date: startOfWeek.toISOString().split('T')[0],
+      end_date: endOfWeek.toISOString().split('T')[0],
+      limit_count: 5
+    });
+    
+    return {
+      sales_data: weeklyData,
+      staff_performance: staffPerformance,
+      top_medicines: topMedicines.data || [],
+      week_start: startOfWeek.toISOString().split('T')[0],
+      week_end: endOfWeek.toISOString().split('T')[0]
+    };
+  } catch (error) {
+    showError(error.message);
+    throw error;
+  }
+}
+
+// 14. REAL-TIME ALERTS
+async function checkRealTimeAlerts() {
+  try {
+    const alerts = [];
+    
+    // Check low stock
+    const lowStock = await getLowStockMedicines();
+    if (lowStock.length > 0) {
+      alerts.push({
+        type: 'warning',
+        title: 'Low Stock Alert',
+        message: `${lowStock.length} medicines are running low`,
+        action_url: '/inventory',
+        priority: 'high'
+      });
+    }
+    
+    // Check unbalanced cash sessions from today
+    const { data: unbalancedSessions } = await supabase
+      .from('cash_register_sessions')
+      .select('staff_id, cash_variance, user_profiles(full_name)')
+      .eq('session_date', new Date().toISOString().split('T')[0])
+      .eq('is_balanced', false);
+    
+    if (unbalancedSessions?.length > 0) {
+      alerts.push({
+        type: 'error',
+        title: 'Cash Variance Detected',
+        message: `${unbalancedSessions.length} cash sessions have variances`,
+        action_url: '/cash-reconciliation',
+        priority: 'urgent'
+      });
+    }
+    
+    // Check pending orders older than 30 minutes
+    const thirtyMinutesAgo = new Date(Date.now() - 30 * 60 * 1000).toISOString();
+    const { data: oldPendingOrders } = await supabase
+      .from('orders')
+      .select('id, order_number, created_at')
+      .in('status', ['pending', 'processing'])
+      .lt('created_at', thirtyMinutesAgo)
+      .eq('is_active', true);
+    
+    if (oldPendingOrders?.length > 0) {
+      alerts.push({
+        type: 'warning',
+        title: 'Pending Orders Alert',
+        message: `${oldPendingOrders.length} orders pending for over 30 minutes`,
+        action_url: '/orders',
+        priority: 'medium'
+      });
+    }
+    
+    return alerts;
+  } catch (error) {
+    console.error('Real-time alerts error:', error.message);
+    return [];
+  }
+}
+
+// 15. PERFORMANCE COMPARISON
+async function getPerformanceComparison(currentPeriod = 7, comparisonPeriod = 7) {
+  if (!(await isAdmin())) throw new Error("Permission denied: Admin only");
+  
+  try {
+    const currentEnd = new Date().toISOString().split('T')[0];
+    const currentStart = new Date(Date.now() - currentPeriod * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
+    
+    const comparisonEnd = new Date(Date.now() - currentPeriod * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
+    const comparisonStart = new Date(Date.now() - (currentPeriod + comparisonPeriod) * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
+    
+    // Current period metrics
+    const currentMetrics = await supabase.rpc('get_dashboard_metrics', {
+      start_date: currentStart,
+      end_date: currentEnd,
+      compare_previous: false
+    });
+    
+    // Comparison period metrics
+    const comparisonMetrics = await supabase.rpc('get_dashboard_metrics', {
+      start_date: comparisonStart,
+      end_date: comparisonEnd,
+      compare_previous: false
+    });
+    
+    if (currentMetrics.error) throw new Error(`Current metrics error: ${currentMetrics.error.message}`);
+    if (comparisonMetrics.error) throw new Error(`Comparison metrics error: ${comparisonMetrics.error.message}`);
+    
+    return {
+      current: currentMetrics.data?.current,
+      previous: comparisonMetrics.data?.current,
+      growth_rates: calculateGrowthRates(currentMetrics.data?.current, comparisonMetrics.data?.current)
+    };
+  } catch (error) {
+    showError(error.message);
+    throw error;
+  }
+}
+
+// Helper function to calculate growth rates
+function calculateGrowthRates(current, previous) {
+  if (!current || !previous) return {};
+  
+  const calculateGrowth = (curr, prev) => {
+    if (prev === 0) return curr > 0 ? 100 : 0;
+    return Math.round(((curr - prev) / prev) * 100 * 100) / 100;
+  };
+  
+  return {
+    orders_growth: calculateGrowth(current.total_orders, previous.total_orders),
+    revenue_growth: calculateGrowth(current.total_revenue, previous.total_revenue),
+    customers_growth: calculateGrowth(current.total_customers, previous.total_customers),
+    avg_order_growth: calculateGrowth(current.average_order_value, previous.average_order_value)
+  };
+}
+
+// 16. EXPORT FUNCTIONS FOR REPORTS
+async function exportStaffPerformanceReport(days = 30, format = 'json') {
+  if (!(await isAdmin())) throw new Error("Permission denied: Admin only");
+  
+  try {
+    const performanceData = await getStaffPerformanceAnalysis(days);
+    const exportData = {
+      report_type: 'Staff Performance Report',
+      period_days: days,
+      generated_at: new Date().toISOString(),
+      data: performanceData
+    };
+    
+    if (format === 'csv') {
+      return convertToCSV(performanceData);
+    }
+    
+    return exportData;
+  } catch (error) {
+    showError(error.message);
+    throw error;
+  }
+}
+
+function convertToCSV(data) {
+  if (!data || data.length === 0) return '';
+  
+  const headers = Object.keys(data[0]);
+  const csvContent = [
+    headers.join(','),
+    ...data.map(row => headers.map(header => `"${row[header] || ''}"`).join(','))
+  ].join('\n');
+  
+  return csvContent;
 }

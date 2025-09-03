@@ -12,16 +12,241 @@
 </head>
 <body class="bg-gray-100">
     <div class="flex h-screen bg-gray-100">
-        <!-- Sidebar -->
-        <aside id="sidebar" class="w-64 bg-green-800 text-white flex-shrink-0 hidden lg:block">
-            <div class="p-6">
-                <a href="dashboard.html" class="text-2xl font-bold text-white flex items-center">
-                    <i class="fas fa-pills mr-3"></i>
-                    <span>Nyina wa Jambo</span>
+        <aside id="sidebar" class="w-64 bg-primary text-white flex-shrink-0 hidden lg:block">
+            <div c        function populateCategoryFilter(medicines) {
+            // Handle both possible category field names
+            const categories = [...new Set(medicines.map(m => m.category || m.medicine_categories?.name).filter(Boolean))];
+            const select = document.getElementById("categoryFilter");
+            if (select) {
+                select.innerHTML = '<option value="">All Categories</option>' + categories.map(c => `<option value="${c}">${c}</option>`).join('');
+            }
+        }
+
+        // Add POS Analytics functionality if the elements exist
+        async function loadPOSAnalytics() {
+            try {
+                const analyticsTab = document.getElementById("analyticsContent");
+                if (!analyticsTab) return; // Skip if analytics tab doesn't exist
+
+                showNotification("Loading POS Analytics...", "info");
+                const days = document.getElementById("analyticsDateRange")?.value || 7;
+                
+                const [dashboardData, staffPerformance, medicinePerformance] = await Promise.all([
+                    getTodaysLiveDashboard().catch(() => null),
+                    getStaffPerformanceAnalysis(parseInt(days)).catch(() => []),
+                    getMedicineDispensingPerformance(parseInt(days)).catch(() => [])
+                ]);
+                
+                updatePOSMetrics(dashboardData);
+                updateStaffPerformanceTable(staffPerformance);
+                updateTopMedicinesAnalytics(medicinePerformance);
+                
+                showNotification("POS Analytics updated!", "success");
+            } catch (error) {
+                console.error('Error loading POS analytics:', error);
+                showNotification("Error loading POS analytics.", "error");
+            }
+        }
+
+        function updatePOSMetrics(dashboardData) {
+            if (!dashboardData) return;
+
+            const elements = {
+                posTotalSales: dashboardData.total_sales || 0,
+                posSalesRevenue: Math.round(dashboardData.total_revenue || 0).toLocaleString(),
+                posAvgTransaction: Math.round(dashboardData.avg_transaction_value || 0).toLocaleString(),
+                posActiveStaff: dashboardData.active_staff_count || 0,
+                posAvgServiceTime: Math.round(dashboardData.avg_service_time || 0) + 'm'
+            };
+
+            Object.entries(elements).forEach(([id, value]) => {
+                const element = document.getElementById(id);
+                if (element) element.textContent = value;
+            });
+        }
+
+        function updateStaffPerformanceTable(staffPerformance) {
+            const tbody = document.getElementById("staffPerformanceTable");
+            if (!tbody) return;
+
+            if (staffPerformance && staffPerformance.length > 0) {
+                tbody.innerHTML = staffPerformance.map(staff => `
+                    <tr class="hover:bg-gray-50">
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <div class="flex items-center">
+                                <div class="flex-shrink-0 h-10 w-10">
+                                    <img class="h-10 w-10 rounded-full" src="https://ui-avatars.com/api/?name=${encodeURIComponent(staff.staff_name || 'Staff')}&background=16a34a&color=fff" alt="">
+                                </div>
+                                <div class="ml-4">
+                                    <div class="text-sm font-medium text-gray-900">${staff.staff_name || 'Unknown'}</div>
+                                    <div class="text-sm text-gray-500">${staff.role || 'Staff'}</div>
+                                </div>
+                            </div>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${staff.total_transactions || 0}</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${Math.round(staff.total_revenue || 0).toLocaleString()} RWF</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${Math.round(staff.accuracy_rate || 0)}%</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${Math.round(staff.avg_transaction_time || 0)}m</td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getPerformanceClass(staff.performance_grade)}">
+                                ${staff.performance_grade || 'N/A'}
+                            </span>
+                        </td>
+                    </tr>`).join('');
+            } else {
+                tbody.innerHTML = '<tr><td colspan="6" class="px-6 py-4 text-center text-gray-500">No staff performance data available</td></tr>';
+            }
+        }
+
+        function getPerformanceClass(grade) {
+            switch(grade) {
+                case 'A+': case 'A': return 'bg-green-100 text-green-800';
+                case 'B+': case 'B': return 'bg-blue-100 text-blue-800';
+                case 'C+': case 'C': return 'bg-yellow-100 text-yellow-800';
+                default: return 'bg-gray-100 text-gray-800';
+            }
+        }
+
+        function updateTopMedicinesAnalytics(medicinePerformance) {
+            const container = document.getElementById("topMedicinesAnalytics");
+            if (!container) return;
+
+            if (medicinePerformance && medicinePerformance.length > 0) {
+                container.innerHTML = medicinePerformance.slice(0, 5).map((med, index) => `
+                    <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                        <div class="flex items-center">
+                            <div class="w-8 h-8 bg-primary text-white rounded-full flex items-center justify-center text-sm font-bold">
+                                ${index + 1}
+                            </div>
+                            <div class="ml-3">
+                                <p class="text-sm font-medium text-gray-900">${med.medicine_name || 'Unknown'}</p>
+                                <p class="text-xs text-gray-500">${med.total_dispensed || 0} units sold</p>
+                            </div>
+                        </div>
+                        <div class="text-right">
+                            <p class="text-sm font-medium text-green-600">${Math.round(med.total_revenue || 0).toLocaleString()} RWF</p>
+                            <p class="text-xs text-gray-500">${Math.round(med.avg_daily_sales || 0)}/day avg</p>
+                        </div>
+                    </div>
+                `).join('');
+            } else {
+                container.innerHTML = '<p class="text-center text-gray-500">No medicine performance data available</p>';
+            }
+        }
+
+        function populateCategoryFilter(medicines) {
+            // Handle both possible category field names
+            const categories = [...new Set(medicines.map(m => m.category || m.medicine_categories?.name).filter(Boolean))];
+            const select = document.getElementById("categoryFilter");
+            if (select) {
+                select.innerHTML = '<option value="">All Categories</option>' + categories.map(c => `<option value="${c}">${c}</option>`).join('');
+            }
+        }
+
+        // Add POS Analytics functionality if the elements exist
+        async function loadPOSAnalytics() {
+            try {
+                const analyticsTab = document.getElementById("analyticsContent");
+                if (!analyticsTab) return; // Skip if analytics tab doesn't exist
+
+                showNotification("Loading POS Analytics...", "info");
+                const days = document.getElementById("analyticsDateRange")?.value || 7;
+                
+                const [dashboardData, staffPerformance, medicinePerformance] = await Promise.all([
+                    getTodaysLiveDashboard().catch(() => null),
+                    getStaffPerformanceAnalysis(parseInt(days)).catch(() => []),
+                    getMedicineDispensingPerformance(parseInt(days)).catch(() => [])
+                ]);
+                
+                updatePOSMetrics(dashboardData);
+                updateStaffPerformanceTable(staffPerformance);
+                updateTopMedicinesAnalytics(medicinePerformance);
+                
+                showNotification("POS Analytics updated!", "success");
+            } catch (error) {
+                console.error('Error loading POS analytics:', error);
+                showNotification("Error loading POS analytics.", "error");
+            }
+        }
+
+        function updatePOSMetrics(dashboardData) {
+            if (!dashboardData) return;
+
+            const elements = {
+                posTotalSales: dashboardData.total_sales || 0,
+                posSalesRevenue: Math.round(dashboardData.total_revenue || 0).toLocaleString(),
+                posAvgTransaction: Math.round(dashboardData.avg_transaction_value || 0).toLocaleString(),
+                posActiveStaff: dashboardData.active_staff_count || 0,
+                posAvgServiceTime: Math.round(dashboardData.avg_service_time || 0) + 'm'
+            };
+
+            Object.entries(elements).forEach(([id, value]) => {
+                const element = document.getElementById(id);
+                if (element) element.textContent = value;
+            });
+        }
+
+        function updateStaffPerformanceTable(staffPerformance) {
+            const tbody = document.getElementById("staffPerformanceTable");
+            if (!tbody) return;
+
+            if (staffPerformance && staffPerformance.length > 0) {
+                tbody.innerHTML = staffPerformance.map(staff => `
+                    <tr class="hover:bg-gray-50">
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <div class="flex items-center">
+                            </div>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${staff.total_transactions || 0}</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${Math.round(staff.total_revenue || 0).toLocaleString()} RWF</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${Math.round(staff.accuracy_rate || 0)}%</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${Math.round(staff.avg_transaction_time || 0)}m</td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getPerformanceClass(staff.performance_grade)}">
+                            </span>
+                        </td>
+                    </tr>`).join('');
+            } else {
+                tbody.innerHTML = '<tr><td colspan="6" class="px-6 py-4 text-center text-gray-500">No staff performance data available</td></tr>';
+            }
+        }
+
+        function getPerformanceClass(grade) {
+            switch(grade) {
+                case 'A+': case 'A': return 'bg-green-100 text-green-800';
+                case 'B+': case 'B': return 'bg-blue-100 text-blue-800';
+                case 'C+': case 'C': return 'bg-yellow-100 text-yellow-800';
+                default: return 'bg-gray-100 text-gray-800';
+            }
+        }
+
+        function updateTopMedicinesAnalytics(medicinePerformance) {
+            const container = document.getElementById("topMedicinesAnalytics");
+            if (!container) return;
+
+            if (medicinePerformance && medicinePerformance.length > 0) {
+                container.innerHTML = medicinePerformance.slice(0, 5).map((med, index) => `
+                    <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                        <div class="flex items-center">
+                            <div class="w-8 h-8 bg-primary text-white rounded-full flex items-center justify-center text-sm font-bold">
+                            </div>
+                            <div class="ml-3">
+                            </div>
+                        </div>
+                        <div class="text-right">
+                            <p class="text-sm font-medium text-green-600">${Math.round(med.total_revenue || 0).toLocaleString()} RWF</p>
+                            <p class="text-xs text-gray-500">${Math.round(med.avg_daily_sales || 0)}/day avg</p>
+                        </div>
+                    </div>
+                `).join('');
+            } else {
+                container.innerHTML = '<p class="text-center text-gray-500">No medicine performance data available</p>';
+            }
+        }
                 </a>
             </div>
             <nav class="mt-6">
-                <a href="dashboard.html" class="flex items-center py-3 px-6 text-gray-300 hover:bg-green-600 hover:text-white transition-colors">
+                <a href="index.html?dashboard=true" class="flex items-center py-3 px-6 text-gray-300 hover:bg-green-600 hover:text-white transition-colors">
                     <i class="fas fa-tachometer-alt w-6 text-center"></i>
                     <span class="ml-4">Dashboard</span>
                 </a>
@@ -41,16 +266,12 @@
                     <i class="fas fa-shopping-cart w-6 text-center"></i>
                     <span class="ml-4">Orders</span>
                 </a>
-                <a href="user-management.html" class="flex items-center py-3 px-6 text-gray-300 hover:bg-green-600 hover:text-white transition-colors admin-only">
-                    <i class="fas fa-user-cog w-6 text-center"></i>
-                    <span class="ml-4">User Management</span>
-                </a>
                 <a href="reports.html" class="flex items-center py-3 px-6 bg-green-600 text-white admin-only">
                     <i class="fas fa-chart-line w-6 text-center"></i>
                     <span class="ml-4">Reports</span>
                 </a>
             </nav>
-            <div class="mt-auto p-6 bottom-0">
+            <div class="absolute bottom-0 w-full p-6">
                 <button onclick="logout()" class="w-full flex items-center justify-center py-2 px-4 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors">
                     <i class="fas fa-sign-out-alt mr-2"></i>
                     <span>Logout</span>
@@ -101,13 +322,12 @@
                                     <i class="fas fa-download mr-2"></i>Export Reports
                                 </button>
                                 <button id="refreshBtn" class="bg-primary text-white px-4 py-2 rounded-md hover:bg-green-600 transition-colors">
-                                    <i class="fas fa-sync-alt mr-2"></i>Refresh
+                                    <i class="fas fa-sync-alt mr-2"></i>Refresh Data
                                 </button>
                             </div>
                         </div>
                     </div>
 
-                    <!-- Key Metrics Cards -->
                     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
                         <div class="bg-white rounded-lg shadow-sm p-6">
                             <div class="flex items-center">
@@ -155,7 +375,6 @@
                         </div>
                     </div>
 
-                    <!-- Charts -->
                     <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
                         <div class="bg-white rounded-lg shadow-sm p-6">
                             <h3 class="text-lg font-semibold text-gray-900 mb-4">Stock Movement Trends (Last 7 Days)</h3>
@@ -166,8 +385,6 @@
                             <canvas id="categoriesChart" width="400" height="300"></canvas>
                         </div>
                     </div>
-
-                    <!-- Stock Movement Tables -->
                     <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
                         <div class="bg-white rounded-lg shadow-sm p-6">
                             <h3 class="text-lg font-semibold text-green-700 mb-4"><i class="fas fa-arrow-up mr-2"></i>Stock In Movements</h3>
@@ -175,10 +392,10 @@
                                 <table class="min-w-full divide-y divide-gray-200">
                                     <thead class="bg-gray-50">
                                         <tr>
-                                            <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Date</th>
-                                            <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Medicine</th>
-                                            <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Quantity</th>
-                                            <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Reason</th>
+                                            <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
+                                            <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Medicine</th>
+                                            <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Quantity</th>
+                                            <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Reason</th>
                                         </tr>
                                     </thead>
                                     <tbody id="stockInTable" class="bg-white divide-y divide-gray-200"></tbody>
@@ -191,10 +408,10 @@
                                 <table class="min-w-full divide-y divide-gray-200">
                                     <thead class="bg-gray-50">
                                         <tr>
-                                            <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Date</th>
-                                            <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Medicine</th>
-                                            <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Quantity</th>
-                                            <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Reason</th>
+                                            <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
+                                            <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Medicine</th>
+                                            <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Quantity</th>
+                                            <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Reason</th>
                                         </tr>
                                     </thead>
                                     <tbody id="stockOutTable" class="bg-white divide-y divide-gray-200"></tbody>
@@ -203,7 +420,6 @@
                         </div>
                     </div>
 
-                    <!-- Tabbed Reports Section -->
                     <div class="bg-white rounded-lg shadow-sm overflow-hidden mb-8">
                         <div class="border-b border-gray-200">
                             <nav class="-mb-px flex space-x-8 px-6">
@@ -218,8 +434,6 @@
                                 </button>
                             </nav>
                         </div>
-                        
-                        <!-- Inventory Tab -->
                         <div id="inventoryContent" class="tab-content">
                             <div class="p-6">
                                 <div class="flex justify-between items-center mb-4">
@@ -235,13 +449,13 @@
                                     <table class="min-w-full divide-y divide-gray-200">
                                         <thead class="bg-gray-50">
                                             <tr>
-                                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Medicine</th>
-                                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Category</th>
-                                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Stock</th>
-                                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Value</th>
-                                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
-                                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Last Movement</th>
-                                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Actions</th>
+                                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Medicine</th>
+                                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Category</th>
+                                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Current Stock</th>
+                                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Value</th>
+                                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Last Movement</th>
+                                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
                                             </tr>
                                         </thead>
                                         <tbody id="inventoryTable" class="bg-white divide-y divide-gray-200"></tbody>
@@ -249,8 +463,6 @@
                                 </div>
                             </div>
                         </div>
-                        
-                        <!-- Movements Tab -->
                         <div id="movementsContent" class="tab-content hidden">
                             <div class="p-6">
                                 <div class="flex justify-between items-center mb-4">
@@ -258,7 +470,7 @@
                                     <div class="flex space-x-3">
                                         <input type="date" id="dateFilter" class="px-3 py-2 border border-gray-300 rounded-md focus:ring-primary focus:border-primary">
                                         <select id="movementTypeFilter" class="px-3 py-2 border border-gray-300 rounded-md focus:ring-primary focus:border-primary">
-                                            <option value="">All Types</option>
+                                            <option value="">All Movements</option>
                                             <option value="in">Stock In</option>
                                             <option value="out">Stock Out</option>
                                         </select>
@@ -268,14 +480,14 @@
                                     <table class="min-w-full divide-y divide-gray-200">
                                         <thead class="bg-gray-50">
                                             <tr>
-                                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Date</th>
-                                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Medicine</th>
-                                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Type</th>
-                                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Quantity</th>
-                                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Previous Stock</th>
-                                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">New Stock</th>
-                                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Reason</th>
-                                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Notes</th>
+                                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
+                                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Medicine</th>
+                                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Movement</th>
+                                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Quantity</th>
+                                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Previous Stock</th>
+                                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">New Stock</th>
+                                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Reason</th>
+                                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Notes</th>
                                             </tr>
                                         </thead>
                                         <tbody id="movementsTable" class="bg-white divide-y divide-gray-200"></tbody>
@@ -283,8 +495,6 @@
                                 </div>
                             </div>
                         </div>
-                        
-                        <!-- Alerts Tab -->
                         <div id="alertsContent" class="tab-content hidden">
                             <div class="p-6">
                                 <h3 class="text-lg font-semibold text-gray-900 mb-4">Inventory Alerts & Warnings</h3>
@@ -331,7 +541,6 @@
         </div>
     </div>
 
-    <!-- Add Stock Modal -->
     <div id="addStockModal" class="modal">
         <div class="modal-content">
             <div class="modal-header">
@@ -391,16 +600,6 @@
         let allMedicines = [];
         let allMovements = [];
 
-        async function logout() {
-            try {
-                const { error } = await supabase.auth.signOut();
-                if (error) throw error;
-                window.location.href = "login.html";
-            } catch (error) {
-                showError("Error signing out: " + error.message);
-            }
-        }
-
         document.addEventListener("DOMContentLoaded", async function () {
             if (!await isAuthenticated()) {
                 window.location.href = 'login.html';
@@ -440,6 +639,7 @@
                     const receptionistElements = document.querySelectorAll('.receptionist-only');
                     receptionistElements.forEach(el => el.style.display = (user.role === 'receptionist' || user.role === 'admin') ? 'flex' : 'none');
                 } else {
+                    // Fallback for when user is not found
                     document.getElementById('currentUser').textContent = 'Guest';
                     document.getElementById('userInfo').textContent = 'Guest User';
                 }
@@ -462,6 +662,17 @@
             document.getElementById("categoryFilter").addEventListener("change", filterInventoryTable);
             document.getElementById("dateFilter").addEventListener("change", filterMovementsTable);
             document.getElementById("movementTypeFilter").addEventListener("change", filterMovementsTable);
+            
+            // Add POS Analytics event listeners if elements exist
+            const analyticsDateRange = document.getElementById("analyticsDateRange");
+            if (analyticsDateRange) {
+                analyticsDateRange.addEventListener("change", loadPOSAnalytics);
+            }
+            
+            const refreshAnalytics = document.getElementById("refreshAnalytics");
+            if (refreshAnalytics) {
+                refreshAnalytics.addEventListener("click", loadPOSAnalytics);
+            }
 
             const menuToggle = document.getElementById('menu-toggle');
             const sidebar = document.getElementById('sidebar');
@@ -503,6 +714,11 @@
                     this.classList.add('active', 'border-primary', 'text-primary');
                     this.classList.remove('border-transparent', 'text-gray-500');
                     document.getElementById(tabId).classList.remove('hidden');
+                    
+                    // Load POS analytics when analytics tab is clicked (if it exists)
+                    if (tabId === 'analyticsContent') {
+                        loadPOSAnalytics();
+                    }
                 });
             });
         }
@@ -510,16 +726,18 @@
         async function loadAllReportsData() {
             try {
                 showNotification("Loading comprehensive reports data...", "info");
-                const [medicines, movements] = await Promise.all([
+                // Only use functions that actually exist in your supabase.js
+                const [medicines, movements, posData] = await Promise.all([
                     fetchMedicines(), 
-                    fetchStockMovements()
+                    fetchStockMovements(),
+                    getTodaysLiveDashboard().catch(() => null) // POS data might not be available
                 ]);
                 
                 allMedicines = medicines;
                 allMovements = movements;
 
-                updateKeyMetrics(medicines, movements);
-                updateCharts(medicines, movements);
+                updateKeyMetrics(medicines, movements, posData);
+                updateCharts(medicines, movements, posData);
                 updateInventoryTable(medicines, movements);
                 updateMovementsTable(movements);
                 updateAlertsTab(medicines);
@@ -533,20 +751,83 @@
             }
         }
 
+        function getDateDaysAgo(days) {
+            const date = new Date();
+            date.setDate(date.getDate() - days);
+            return date.toISOString().split('T')[0];
+        }
+
         function formatCurrency(amount) {
             return Math.round(amount || 0).toLocaleString() + ' RWF';
         }
 
-        function updateKeyMetrics(medicines, movements) {
+        function updateKeyMetrics(medicines, movements, posData) {
             const today = new Date().toISOString().split('T')[0];
             const stockInToday = movements.filter(m => m.movement_type === 'in' && m.movement_date === today).reduce((sum, m) => sum + m.quantity, 0);
             const stockOutToday = movements.filter(m => m.movement_type === 'out' && m.movement_date === today).reduce((sum, m) => sum + m.quantity, 0);
+            
+            // Calculate stock metrics from the medicines data
             const lowStockItems = medicines.filter(m => (m.stock || 0) <= 20);
+            const criticalStockItems = medicines.filter(m => (m.stock || 0) <= 5);
+            
+            // Calculate expiring medicines (next 30 days)
+            const expiringItems = medicines.filter(m => {
+                if (!m.expiry_date) return false;
+                const thirtyDaysFromNow = new Date();
+                thirtyDaysFromNow.setDate(thirtyDaysFromNow.getDate() + 30);
+                return new Date(m.expiry_date) <= thirtyDaysFromNow && new Date(m.expiry_date) >= new Date();
+            });
 
+            // Calculate values with price consideration
+            const stockInMovements = movements.filter(m => m.movement_type === 'in' && m.movement_date === today);
+            const stockInValue = stockInMovements.reduce((sum, m) => {
+                const medicine = medicines.find(med => med.id === m.medicine_id);
+                return sum + (m.quantity * (medicine?.selling_price || medicine?.price || 0));
+            }, 0);
+            
+            const totalInventoryValue = medicines.reduce((sum, m) => sum + ((m.stock || 0) * (m.selling_price || m.price || 0)), 0);
+
+            // Update primary metrics
             document.getElementById("totalMedicines").textContent = medicines.length;
             document.getElementById("stockInToday").textContent = stockInToday;
-            document.getElementById("stockOutToday").textContent = stockOutToday;
             document.getElementById("lowStockCount").textContent = lowStockItems.length;
+
+            // Update enhanced metrics if elements exist
+            const stockInValueEl = document.getElementById("stockInValue");
+            if (stockInValueEl) stockInValueEl.textContent = Math.round(stockInValue).toLocaleString();
+
+            const totalInventoryValueEl = document.getElementById("totalInventoryValue");
+            if (totalInventoryValueEl) totalInventoryValueEl.textContent = Math.round(totalInventoryValue).toLocaleString() + ' RWF';
+
+            const expiringSoonEl = document.getElementById("expiringSoon");
+            if (expiringSoonEl) expiringSoonEl.textContent = expiringItems.length;
+
+            const criticalStockEl = document.getElementById("criticalStock");
+            if (criticalStockEl) criticalStockEl.textContent = criticalStockItems.length;
+
+            // Update Stock Out Today (was missing)
+            const stockOutTodayEl = document.getElementById("stockOutToday");
+            if (stockOutTodayEl) stockOutTodayEl.textContent = stockOutToday;
+
+            // Update POS-related metrics if data available
+            if (posData) {
+                const salesTodayEl = document.getElementById("salesToday");
+                const salesValueEl = document.getElementById("salesValue");
+                const activeStaffEl = document.getElementById("activeStaff");
+
+                if (salesTodayEl) salesTodayEl.textContent = posData.total_sales || 0;
+                if (salesValueEl) salesValueEl.textContent = Math.round(posData.total_revenue || 0).toLocaleString();
+                if (activeStaffEl) activeStaffEl.textContent = posData.active_staff_count || 0;
+            } else {
+                // Fallback values when POS data not available
+                const salesTodayEl = document.getElementById("salesToday");
+                const salesValueEl = document.getElementById("salesValue");
+                const activeStaffEl = document.getElementById("activeStaff");
+
+                if (salesTodayEl) salesTodayEl.textContent = stockOutToday; // Use stock out as sales approximation
+                if (salesValueEl) salesValueEl.textContent = '0';
+                if (activeStaffEl) activeStaffEl.textContent = '0';
+            }
         }
 
         function updateCharts(medicines, movements) {
@@ -583,7 +864,8 @@
         function updateCategoriesChart(medicines) {
             const ctx = document.getElementById('categoriesChart').getContext('2d');
             const categories = medicines.reduce((acc, med) => {
-                const cat = med.category || med.medicine_categories?.name || 'Uncategorized';
+                // Fix: Use 'category' field instead of 'medicine_categories?.name'
+                const cat = med.category || 'Uncategorized';
                 acc[cat] = (acc[cat] || 0) + 1;
                 return acc;
             }, {});
@@ -617,7 +899,7 @@
                 return `
                     <tr class="hover:bg-gray-50">
                         <td class="px-6 py-4 whitespace-nowrap font-medium text-gray-900">${medicine.name}</td>
-                        <td class="px-6 py-4 whitespace-nowrap"><span class="px-2 py-1 text-xs font-semibold rounded-full bg-blue-100 text-blue-800">${medicine.category || medicine.medicine_categories?.name || 'Uncategorized'}</span></td>
+                        <td class="px-6 py-4 whitespace-nowrap"><span class="px-2 py-1 text-xs font-semibold rounded-full bg-blue-100 text-blue-800">${medicine.medicine_categories?.name || 'Uncategorized'}</span></td>
                         <td class="px-6 py-4 whitespace-nowrap ${stockClass} font-semibold">${stockLevel}</td>
                         <td class="px-6 py-4 whitespace-nowrap text-gray-900">${formatCurrency(totalValue)}</td>
                         <td class="px-6 py-4 whitespace-nowrap"><span class="px-2 py-1 text-xs font-semibold rounded-full ${stockClass === 'text-red-600' ? 'bg-red-100' : stockClass === 'text-yellow-600' ? 'bg-yellow-100' : 'bg-green-100'} ${stockClass}">${stockStatus}</span></td>
@@ -647,11 +929,9 @@
         }
 
         function updateStockInOutTables(movements) {
-            const today = new Date().toISOString().split('T')[0];
-            
             const stockInRows = movements
-                .filter(m => m.movement_type === 'in' && m.movement_date === today)
-                .slice(0, 10)
+                .filter(m => m.movement_type === 'in')
+                .slice(0, 20)
                 .map(m => `
                     <tr>
                         <td class="px-4 py-2 whitespace-nowrap text-sm text-gray-900">${m.movement_date}</td>
@@ -660,11 +940,11 @@
                         <td class="px-4 py-2 whitespace-nowrap text-sm text-gray-700">${m.reason}</td>
                     </tr>
                 `).join("");
-            document.getElementById("stockInTable").innerHTML = stockInRows || '<tr><td colspan="4" class="px-4 py-2 text-center text-gray-400">No Stock In movements found today.</td></tr>';
+            document.getElementById("stockInTable").innerHTML = stockInRows || '<tr><td colspan="4" class="px-4 py-2 text-center text-gray-400">No Stock In movements found.</td></tr>';
 
             const stockOutRows = movements
-                .filter(m => m.movement_type === 'out' && m.movement_date === today)
-                .slice(0, 10)
+                .filter(m => m.movement_type === 'out')
+                .slice(0, 20)
                 .map(m => `
                     <tr>
                         <td class="px-4 py-2 whitespace-nowrap text-sm text-gray-900">${m.movement_date}</td>
@@ -673,7 +953,7 @@
                         <td class="px-4 py-2 whitespace-nowrap text-sm text-gray-700">${m.reason}</td>
                     </tr>
                 `).join("");
-            document.getElementById("stockOutTable").innerHTML = stockOutRows || '<tr><td colspan="4" class="px-4 py-2 text-center text-gray-400">No Stock Out movements found today.</td></tr>';
+            document.getElementById("stockOutTable").innerHTML = stockOutRows || '<tr><td colspan="4" class="px-4 py-2 text-center text-gray-400">No Stock Out movements found.</td></tr>';
         }
 
         function updateAlertsTab(medicines) {
@@ -681,6 +961,7 @@
             const expiryWarnings = document.getElementById("expiryWarnings");
             const generalAlerts = document.getElementById("generalAlerts");
             
+            // Calculate alerts from medicine data
             const criticalItems = medicines.filter(m => (m.stock || 0) <= 5);
             const expiringItems = medicines.filter(m => {
                 if (!m.expiry_date) return false;
@@ -737,11 +1018,9 @@
         }
 
         function populateCategoryFilter(medicines) {
-            const categories = [...new Set(medicines.map(m => m.category || m.medicine_categories?.name).filter(Boolean))];
+            const categories = [...new Set(medicines.map(m => m.medicine_categories?.name).filter(Boolean))];
             const select = document.getElementById("categoryFilter");
-            if (select) {
-                select.innerHTML = '<option value="">All Categories</option>' + categories.map(c => `<option value="${c}">${c}</option>`).join('');
-            }
+            select.innerHTML = '<option value="">All Categories</option>' + categories.map(c => `<option value="${c}">${c}</option>`).join('');
         }
 
         function openAddStockModal() {
@@ -797,7 +1076,7 @@
                     const stockLevel = m.stock || 0;
                     const totalValue = stockLevel * (m.selling_price || 0);
                     const stockStatus = stockLevel <= 10 ? 'Critical' : stockLevel <= 50 ? 'Low' : 'Good';
-                    csvContent += `"${m.name}","${m.category || m.medicine_categories?.name || 'Uncategorized'}",${stockLevel},${formatCurrency(totalValue)},${stockStatus}\n`;
+                    csvContent += `"${m.name}","${m.medicine_categories?.name || 'Uncategorized'}",${stockLevel},${formatCurrency(totalValue)},${stockStatus}\n`;
                 });
 
                 csvContent += "\n\nStock Movements Report\nDate,Medicine,Movement,Quantity,Previous Stock,New Stock,Reason,Notes\n";

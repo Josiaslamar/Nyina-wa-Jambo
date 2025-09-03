@@ -8,7 +8,11 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.3.0/exceljs.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.7/dist/umd/supabase.min.js"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" />
+    <script src="supabase.js"></script>
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"
+    />
     <style>
       @import url("https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap");
       body {
@@ -104,6 +108,46 @@
         padding: 2rem;
         color: #6b7280;
       }
+      .pos-metric {
+        background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+        border-left: 4px solid #0ea5e9;
+      }
+      .live-indicator {
+        animation: pulse 2s infinite;
+        background-color: #22c55e;
+      }
+      .shift-active {
+        background: linear-gradient(135deg, #dcfce7 0%, #bbf7d0 100%);
+        border-left: 4px solid #22c55e;
+      }
+      .shift-inactive {
+        background: linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%);
+        border-left: 4px solid #ef4444;
+      }
+      .cash-session-balanced {
+        background-color: #f0fdf4;
+        border-left: 4px solid #22c55e;
+      }
+      .cash-session-unbalanced {
+        background-color: #fef2f2;
+        border-left: 4px solid #ef4444;
+      }
+      .performance-grade-a {
+        background-color: #22c55e;
+        color: white;
+      }
+      .performance-grade-b {
+        background-color: #3b82f6;
+        color: white;
+      }
+      .performance-grade-c {
+        background-color: #f59e0b;
+        color: white;
+      }
+      .performance-grade-d {
+        background-color: #ef4444;
+        color: white;
+      }
     </style>
   </head>
   <body class="bg-gray-100">
@@ -156,6 +200,13 @@
           >
             <i class="fas fa-shopping-cart w-6 text-center"></i>
             <span class="ml-4">Orders</span>
+          </a>
+          <a
+            href="user-management.html"
+            class="flex items-center py-3 px-6 text-gray-300 hover:bg-green-600 hover:text-white transition-colors admin-only"
+          >
+            <i class="fas fa-user-cog w-6 text-center"></i>
+            <span class="ml-4">User Management</span>
           </a>
           <a
             href="reports.html"
@@ -215,7 +266,9 @@
 
         <main class="flex-1 overflow-x-hidden overflow-y-auto bg-gray-100 p-6">
           <div id="dashboardPage" class="min-h-screen bg-gray-50">
-            <div class="text-center p-8 text-gray-400">Loading dashboard...</div>
+            <div class="text-center p-8 text-gray-400">
+              Loading dashboard...
+            </div>
           </div>
         </main>
       </div>
@@ -227,7 +280,11 @@
         <h2 class="text-xl font-bold text-gray-800 mb-4">Add New User</h2>
         <form id="addUserForm" class="space-y-4">
           <div>
-            <label for="fullName" class="block text-sm font-medium text-gray-700">Full Name</label>
+            <label
+              for="fullName"
+              class="block text-sm font-medium text-gray-700"
+              >Full Name</label
+            >
             <input
               type="text"
               id="fullName"
@@ -236,7 +293,11 @@
             />
           </div>
           <div>
-            <label for="username" class="block text-sm font-medium text-gray-700">Username</label>
+            <label
+              for="username"
+              class="block text-sm font-medium text-gray-700"
+              >Username</label
+            >
             <input
               type="text"
               id="username"
@@ -245,7 +306,9 @@
             />
           </div>
           <div>
-            <label for="email" class="block text-sm font-medium text-gray-700">Email</label>
+            <label for="email" class="block text-sm font-medium text-gray-700"
+              >Email</label
+            >
             <input
               type="email"
               id="email"
@@ -254,7 +317,11 @@
             />
           </div>
           <div>
-            <label for="password" class="block text-sm font-medium text-gray-700">Password</label>
+            <label
+              for="password"
+              class="block text-sm font-medium text-gray-700"
+              >Password</label
+            >
             <input
               type="password"
               id="password"
@@ -263,7 +330,9 @@
             />
           </div>
           <div>
-            <label for="role" class="block text-sm font-medium text-gray-700">Role</label>
+            <label for="role" class="block text-sm font-medium text-gray-700"
+              >Role</label
+            >
             <select
               id="role"
               class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-green-500 focus:ring-green-500"
@@ -275,7 +344,9 @@
             </select>
           </div>
           <div>
-            <label for="phone" class="block text-sm font-medium text-gray-700">Phone (Optional)</label>
+            <label for="phone" class="block text-sm font-medium text-gray-700"
+              >Phone (Optional)</label
+            >
             <input
               type="text"
               id="phone"
@@ -283,7 +354,9 @@
             />
           </div>
           <div>
-            <label for="address" class="block text-sm font-medium text-gray-700">Address (Optional)</label>
+            <label for="address" class="block text-sm font-medium text-gray-700"
+              >Address (Optional)</label
+            >
             <textarea
               id="address"
               class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-green-500 focus:ring-green-500"
@@ -309,78 +382,33 @@
     </div>
 
     <script>
-      // Initialize Supabase
-      const SUPABASE_URL = "https://jcmscgxrxicwowsezbui.supabase.co";
-      const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImpjbXNjZ3hyeGljd293c2V6YnVpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTY3NjExNzcsImV4cCI6MjA3MjMzNzE3N30.QqfFKCqV4oIsuNw5TAJoCbE7tVu7m8s8g8M6YzwcU68";
-      const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+      // supabase.js already declares SUPABASE_URL, SUPABASE_ANON_KEY, and supabase client
+      // No need to redeclare them here
 
-      setInterval(async () => {
+      // Optimized authentication check
+      async function checkAuth() {
         try {
-          const { data: { user }, error } = await supabase.auth.getUser();
+          const {
+            data: { user },
+            error,
+          } = await supabase.auth.getUser();
           if (error || !user) {
+            console.warn("Session invalid or expired, redirecting to login...");
             window.location.href = "login.html";
+            return false;
           }
+          return true;
         } catch (error) {
-          console.error("Auth check error:", error);
-          window.location.href = "login.html";
+          console.error("Auth check error:", error.message);
+          return false; // Avoid redirect on transient errors
         }
-      }, 30000);
-
-      // Utility functions
-      function showError(message, container = null) {
-        const errorDiv = document.createElement("div");
-        errorDiv.className = "notification error";
-        errorDiv.innerHTML = `
-          <span>${message}</span>
-          <button onclick="this.parentElement.remove()" class="ml-3">
-            <i class="fas fa-times"></i>
-          </button>
-        `;
-        (container || document.body).appendChild(errorDiv);
-        setTimeout(() => errorDiv.classList.add("show"), 100);
-        setTimeout(() => {
-          errorDiv.classList.remove("show");
-          setTimeout(() => errorDiv.remove(), 300);
-        }, 5000);
       }
 
-      function showSuccess(message, container = null) {
-        const successDiv = document.createElement("div");
-        successDiv.className = "notification success";
-        successDiv.innerHTML = `
-          <span>${message}</span>
-          <button onclick="this.parentElement.remove()" class="ml-3">
-            <i class="fas fa-times"></i>
-          </button>
-        `;
-        (container || document.body).appendChild(successDiv);
-        setTimeout(() => successDiv.classList.add("show"), 100);
-        setTimeout(() => {
-          successDiv.classList.remove("show");
-          setTimeout(() => successDiv.remove(), 300);
-        }, 3000);
-      }
+      // Run initial auth check and periodic checks
+      checkAuth();
+      setInterval(checkAuth, 60000); // Increased to 60 seconds to reduce load
 
-      async function getCurrentUser() {
-        const { data: { user }, error } = await supabase.auth.getUser();
-        if (error) throw new Error(`Auth error: ${error.message}`);
-        return user;
-      }
-
-      async function getUserProfile() {
-        const user = await getCurrentUser();
-        if (!user) return null;
-
-        const { data, error } = await supabase
-          .from("user_profiles")
-          .select("*")
-          .eq("id", user.id)
-          .eq("is_active", true)
-          .single();
-
-        if (error) throw new Error(`Profile fetch error: ${error.message}`);
-        return data;
-      }
+      // Utility functions from supabase.js: showError, showSuccess, getCurrentUser, getUserProfile
 
       async function logout() {
         try {
@@ -392,28 +420,37 @@
         }
       }
 
-      function formatCurrency(amount) {
-        return new Intl.NumberFormat("rw-RW", {
-          style: "currency",
-          currency: "RWF",
-          minimumFractionDigits: 0
-        }).format(amount);
-      }
+      // formatCurrency function available from supabase.js
 
       // Add User Modal Functions
-      function openAddUserModal() {
+      function openAddUserModal(event) {
+        if (event) {
+          event.preventDefault();
+          event.stopPropagation();
+        }
+        console.log("Opening Add User Modal"); // Debugging
         const modal = document.getElementById("addUserModal");
-        modal.classList.add("show");
+        if (modal) {
+          modal.classList.add("show");
+        } else {
+          console.error("Add User Modal not found");
+          showError("Error: Add User Modal not found");
+        }
       }
 
       function closeAddUserModal() {
+        console.log("Closing Add User Modal"); // Debugging
         const modal = document.getElementById("addUserModal");
-        modal.classList.remove("show");
-        document.getElementById("addUserForm").reset();
+        if (modal) {
+          modal.classList.remove("show");
+          document.getElementById("addUserForm").reset();
+        }
       }
 
+      // In your dashboard.html, update the handleAddUser function:
       async function handleAddUser(event) {
         event.preventDefault();
+
         const form = document.getElementById("addUserForm");
         const fullName = form.querySelector("#fullName").value.trim();
         const username = form.querySelector("#username").value.trim();
@@ -424,35 +461,24 @@
         const address = form.querySelector("#address").value.trim() || null;
 
         try {
-          // Sign up user in Supabase Auth
-          const { data: authData, error: authError } = await supabase.auth.signUp({
+          // This now calls your Edge Function
+          const newUser = await adminCreateUser(
             email,
-            password
-          });
-
-          if (authError) throw new Error(`Auth error: ${authError.message}`);
-
-          // Create user profile
-          const { data: profileData, error: profileError } = await supabase
-            .from("user_profiles")
-            .insert({
-              id: authData.user.id,
+            password,
+            fullName,
+            role,
+            {
               username,
-              full_name: fullName,
-              role,
               phone,
               address,
-              created_by: (await getCurrentUser()).id
-            })
-            .select()
-            .single();
+            }
+          );
 
-          if (profileError) throw new Error(`Profile creation error: ${profileError.message}`);
-
-          showSuccess("User added successfully!");
+          showSuccess(`User ${fullName} added successfully!`);
           closeAddUserModal();
-          await loadDashboardContent(); // Refresh dashboard to update UI
+          await loadDashboardContent(); // Refresh dashboard
         } catch (error) {
+          console.error("Add user error:", error);
           showError("Failed to add user: " + error.message);
         }
       }
@@ -461,19 +487,41 @@
         try {
           // Check authentication
           const user = await getUserProfile();
-
           if (!user) {
+            console.warn("No user profile found, redirecting to login"); // Debugging
             window.location.href = "login.html";
             return;
           }
 
+          // Admin-only dashboard
+          if (user.role !== "admin") {
+            console.warn("Access denied. Admin privileges required"); // Debugging
+            showError("Access denied. Admin privileges required.");
+            setTimeout(() => {
+              if (user.role === "receptionist") {
+                window.location.href = "receptionist-dashboard.html";
+              } else if (user.role === "customer") {
+                window.location.href = "customer-portal.html";
+              } else {
+                window.location.href = "login.html";
+              }
+            }, 2000);
+            return;
+          }
+
+          console.log("User role:", user.role); // Debugging
           // Update navigation
           updateNavigation(user);
           setupEventListeners();
           await loadDashboardContent();
 
           // Add event listener for add user form
-          document.getElementById("addUserForm").addEventListener("submit", handleAddUser);
+          const addUserForm = document.getElementById("addUserForm");
+          if (addUserForm) {
+            addUserForm.addEventListener("submit", handleAddUser);
+          } else {
+            console.error("Add User Form not found"); // Debugging
+          }
         } catch (error) {
           console.error("Error loading dashboard:", error);
           showError("Failed to load dashboard. Please refresh the page.");
@@ -481,23 +529,43 @@
       });
 
       function updateNavigation(user) {
-        if (user) {
-          document.getElementById("currentUser").textContent = user.full_name;
-          document.getElementById("userInfo").textContent = `${user.full_name} (${user.role})`;
+        try {
+          if (user) {
+            document.getElementById("currentUser").textContent =
+              user.full_name || "User";
+            document.getElementById("userInfo").textContent = `${
+              user.full_name || "User"
+            } (${user.role || "staff"})`;
 
-          const avatarImg = document.querySelector("#userAvatar img");
-          avatarImg.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(user.full_name)}&background=16a34a&color=fff&bold=true`;
+            const avatarImg = document.querySelector("#userAvatar img");
+            if (avatarImg) {
+              avatarImg.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(
+                user.full_name || "User"
+              )}&background=16a34a&color=fff&bold=true`;
+            }
 
-          // Show/hide menu items based on role
-          const adminElements = document.querySelectorAll(".admin-only");
-          adminElements.forEach(el => {
-            el.style.display = user.role === "admin" ? "flex" : "none";
-          });
+            // Show/hide menu items based on role
+            const adminElements = document.querySelectorAll(".admin-only");
+            adminElements.forEach((el) => {
+              el.style.display = user.role === "admin" ? "flex" : "none";
+            });
 
-          const receptionistElements = document.querySelectorAll(".receptionist-only");
-          receptionistElements.forEach(el => {
-            el.style.display = (user.role === "receptionist" || user.role === "admin") ? "flex" : "none";
-          });
+            const receptionistElements =
+              document.querySelectorAll(".receptionist-only");
+            receptionistElements.forEach((el) => {
+              el.style.display =
+                user.role === "receptionist" || user.role === "admin"
+                  ? "flex"
+                  : "none";
+            });
+          } else {
+            document.getElementById("currentUser").textContent = "Guest";
+            document.getElementById("userInfo").textContent = "Guest User";
+          }
+        } catch (error) {
+          console.error("Error updating navigation:", error);
+          document.getElementById("currentUser").textContent = "User";
+          document.getElementById("userInfo").textContent = "User";
         }
       }
 
@@ -507,24 +575,25 @@
 
         try {
           // Fetch dashboard data with correct table structure
-          const [ordersResult, medicinesResult, lowStockResult] = await Promise.all([
-            supabase
-              .from("orders")
-              .select("total_amount, status, order_date")
-              .eq("is_active", true)
-              .eq("order_date", new Date().toISOString().split('T')[0]), // Today's orders
+          const [ordersResult, medicinesResult, lowStockResult] =
+            await Promise.all([
+              supabase
+                .from("orders")
+                .select("total_amount, status, order_date")
+                .eq("is_active", true)
+                .eq("order_date", new Date().toISOString().split("T")[0]), // Today's orders
 
-            supabase
-              .from("medicines")
-              .select("id", { count: "exact" })
-              .eq("is_active", true),
+              supabase
+                .from("medicines")
+                .select("id", { count: "exact" })
+                .eq("is_active", true),
 
-            supabase
-              .from("medicines")
-              .select("id, name, stock, min_stock_level")
-              .eq("is_active", true)
-              .lte("stock", 10) // Low stock threshold
-          ]);
+              supabase
+                .from("medicines")
+                .select("id, name, stock, min_stock_level")
+                .eq("is_active", true)
+                .lte("stock", 10), // Low stock threshold
+            ]);
 
           // Handle potential errors
           if (ordersResult.error) {
@@ -539,14 +608,254 @@
 
           // Calculate statistics
           const todaysOrders = ordersResult.data || [];
-          const completedOrders = todaysOrders.filter(order => order.status === 'completed');
-          const totalSales = completedOrders.reduce((sum, order) => sum + (order.total_amount || 0), 0);
+          const completedOrders = todaysOrders.filter(
+            (order) => order.status === "completed"
+          );
+          const totalSales = completedOrders.reduce(
+            (sum, order) => sum + (order.total_amount || 0),
+            0
+          );
           const medicineCount = medicinesResult.count || 0;
           const lowStockItems = lowStockResult.data || [];
 
+          // Fetch POS Analytics if user has permission
+          const user = await getUserProfile();
+          let posMetrics = null;
+          let currentShift = null;
+          let cashSession = null;
+          let staffPerformance = [];
+
+          try {
+            if (user.role === "admin" || user.role === "receptionist") {
+              // Get today's POS metrics
+              posMetrics = await getTodaysLiveDashboard();
+
+              // Get current shift status
+              const { data: shiftsData } = await supabase
+                .from("staff_shifts")
+                .select("*")
+                .eq("staff_id", user.id)
+                .eq("shift_date", new Date().toISOString().split("T")[0])
+                .is("clock_out_time", null)
+                .order("created_at", { ascending: false })
+                .limit(1);
+
+              currentShift = shiftsData?.[0] || null;
+
+              // Get current cash session if receptionist or admin
+              const { data: cashData } = await supabase
+                .from("cash_register_sessions")
+                .select("*")
+                .eq("staff_id", user.id)
+                .eq("session_date", new Date().toISOString().split("T")[0])
+                .is("session_end_time", null)
+                .order("created_at", { ascending: false })
+                .limit(1);
+
+              cashSession = cashData?.[0] || null;
+
+              // Get staff performance data for admin
+              if (user.role === "admin") {
+                staffPerformance = await getStaffPerformanceAnalysis(7);
+              }
+            }
+          } catch (posError) {
+            console.warn("POS Analytics data unavailable:", posError.message);
+          }
+
+          // Generate POS Analytics HTML
+          const posAnalyticsHtml =
+            user.role === "admin" || user.role === "receptionist"
+              ? `
+            <!-- POS Analytics Section -->
+            <div class="bg-white p-6 rounded-xl shadow-lg mb-8">
+              <div class="flex justify-between items-center mb-6">
+                <h2 class="text-xl font-bold text-gray-800 flex items-center">
+                  <div class="w-3 h-3 rounded-full live-indicator mr-2"></div>
+                  Live POS Analytics
+                </h2>
+                <span class="text-sm text-gray-500" id="lastUpdated">Updated: ${new Date().toLocaleTimeString()}</span>
+              </div>
+              
+              <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+                <div class="pos-metric p-4 rounded-lg">
+                  <div class="flex items-center justify-between">
+                    <div>
+                      <p class="text-sm font-medium text-gray-600">Current Hour Sales</p>
+                      <p class="text-xl font-bold text-blue-700" data-metric="current_hour_sales">${formatCurrency(
+                        posMetrics?.current_hour_sales || 0
+                      )}</p>
+                    </div>
+                    <i class="fas fa-clock text-blue-500 text-2xl"></i>
+                  </div>
+                </div>
+                
+                <div class="pos-metric p-4 rounded-lg">
+                  <div class="flex items-center justify-between">
+                    <div>
+                      <p class="text-sm font-medium text-gray-600">Active Staff</p>
+                      <p class="text-xl font-bold text-blue-700" data-metric="active_staff">${
+                        posMetrics?.active_staff || 0
+                      }</p>
+                    </div>
+                    <i class="fas fa-users text-blue-500 text-2xl"></i>
+                  </div>
+                </div>
+                
+                <div class="pos-metric p-4 rounded-lg">
+                  <div class="flex items-center justify-between">
+                    <div>
+                      <p class="text-sm font-medium text-gray-600">Pending Orders</p>
+                      <p class="text-xl font-bold text-blue-700" data-metric="pending_orders">${
+                        posMetrics?.pending_orders || 0
+                      }</p>
+                    </div>
+                    <i class="fas fa-hourglass-half text-blue-500 text-2xl"></i>
+                  </div>
+                </div>
+                
+                <div class="pos-metric p-4 rounded-lg">
+                  <div class="flex items-center justify-between">
+                    <div>
+                      <p class="text-sm font-medium text-gray-600">Items Sold Today</p>
+                      <p class="text-xl font-bold text-blue-700" data-metric="items_sold">${
+                        posMetrics?.items_sold || 0
+                      }</p>
+                    </div>
+                    <i class="fas fa-boxes text-blue-500 text-2xl"></i>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Shift and Cash Session Status -->
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div class="${
+                  currentShift ? "shift-active" : "shift-inactive"
+                } p-4 rounded-lg">
+                  <div class="flex items-center justify-between">
+                    <div>
+                      <p class="text-sm font-medium text-gray-600">Current Shift</p>
+                      <p class="font-semibold ${
+                        currentShift ? "text-green-700" : "text-red-700"
+                      }">
+                        ${
+                          currentShift
+                            ? `Active since ${new Date(
+                                currentShift.clock_in_time
+                              ).toLocaleTimeString()}`
+                            : "Not clocked in"
+                        }
+                      </p>
+                    </div>
+                    <button onclick="${
+                      currentShift
+                        ? `clockOut('${currentShift.id}')`
+                        : "clockIn()"
+                    }" 
+                            class="px-3 py-1 text-sm rounded ${
+                              currentShift
+                                ? "bg-red-600 text-white"
+                                : "bg-green-600 text-white"
+                            } hover:opacity-80">
+                      ${currentShift ? "Clock Out" : "Clock In"}
+                    </button>
+                  </div>
+                </div>
+                
+                <div class="${
+                  cashSession
+                    ? "cash-session-balanced"
+                    : "cash-session-unbalanced"
+                } p-4 rounded-lg">
+                  <div class="flex items-center justify-between">
+                    <div>
+                      <p class="text-sm font-medium text-gray-600">Cash Session</p>
+                      <p class="font-semibold ${
+                        cashSession ? "text-green-700" : "text-red-700"
+                      }">
+                        ${
+                          cashSession
+                            ? `Session: ${cashSession.session_id}`
+                            : "No active session"
+                        }
+                      </p>
+                    </div>
+                    <button onclick="${
+                      cashSession
+                        ? `closeCashSession('${cashSession.id}')`
+                        : "openCashSession()"
+                    }" 
+                            class="px-3 py-1 text-sm rounded ${
+                              cashSession
+                                ? "bg-red-600 text-white"
+                                : "bg-green-600 text-white"
+                            } hover:opacity-80">
+                      ${cashSession ? "Close Session" : "Open Session"}
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          `
+              : "";
+
+          // Generate staff performance HTML for admin
+          const staffPerformanceHtml =
+            user.role === "admin" && staffPerformance.length > 0
+              ? `
+            <div class="bg-white p-6 rounded-xl shadow-lg mb-8">
+              <h2 class="text-xl font-bold text-gray-800 mb-4">Staff Performance (Last 7 Days)</h2>
+              <div class="space-y-3 max-h-60 overflow-y-auto">
+                ${staffPerformance
+                  .slice(0, 5)
+                  .map(
+                    (staff) => `
+                  <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                    <div class="flex items-center space-x-3">
+                      <div class="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center">
+                        <span class="text-sm font-semibold text-blue-700">${
+                          staff.staff_name?.charAt(0) || "U"
+                        }</span>
+                      </div>
+                      <div>
+                        <p class="font-medium text-gray-800">${
+                          staff.staff_name || "Unknown"
+                        }</p>
+                        <p class="text-sm text-gray-600">${
+                          staff.total_orders || 0
+                        } orders • ${formatCurrency(staff.total_sales || 0)}</p>
+                      </div>
+                    </div>
+                    <div class="flex items-center space-x-2">
+                      <span class="text-sm text-gray-600">${
+                        staff.accuracy_rate || 100
+                      }% accuracy</span>
+                      <span class="px-2 py-1 text-xs rounded-full performance-grade-${
+                        staff.performance_grade?.toLowerCase() || "d"
+                      }">
+                        Grade ${staff.performance_grade || "D"}
+                      </span>
+                    </div>
+                  </div>
+                `
+                  )
+                  .join("")}
+              </div>
+              <div class="mt-4 text-center">
+                <a href="reports.html" class="text-blue-600 hover:text-blue-800 text-sm font-medium">
+                  View Full Performance Report →
+                </a>
+              </div>
+            </div>
+          `
+              : "";
+
           // Generate low stock items HTML
-          const lowStockItemsHtml = lowStockItems.length > 0
-            ? lowStockItems.map(item => `
+          const lowStockItemsHtml =
+            lowStockItems.length > 0
+              ? lowStockItems
+                  .map(
+                    (item) => `
                 <div class="p-4 bg-white rounded-lg shadow-sm low-stock flex justify-between items-center mb-2">
                   <span class="font-medium">${item.name}</span>
                   <div class="flex items-center space-x-2">
@@ -554,27 +863,41 @@
                     <span class="text-sm font-semibold text-red-600 bg-red-100 px-2 py-1 rounded">Low Stock</span>
                   </div>
                 </div>
-              `).join('')
-            : '<div class="text-center py-8 text-gray-500"><i class="fas fa-check-circle text-green-500 text-3xl mb-2"></i><p>All medicines are well stocked!</p></div>';
+              `
+                  )
+                  .join("")
+              : '<div class="text-center py-8 text-gray-500"><i class="fas fa-check-circle text-green-500 text-3xl mb-2"></i><p>All medicines are well stocked!</p></div>';
 
           // Generate recent orders HTML
-          const recentOrdersHtml = todaysOrders.slice(0, 5).map(order => `
+          const recentOrdersHtml = todaysOrders
+            .slice(0, 5)
+            .map(
+              (order) => `
             <div class="p-3 bg-gray-50 rounded-lg flex justify-between items-center">
               <span class="text-sm">Order ${order.id}</span>
               <div class="flex items-center space-x-2">
-                <span class="text-sm font-medium">${formatCurrency(order.total_amount || 0)}</span>
+                <span class="text-sm font-medium">${formatCurrency(
+                  order.total_amount || 0
+                )}</span>
                 <span class="text-xs px-2 py-1 rounded-full ${
-                  order.status === 'completed' ? 'bg-green-100 text-green-800' :
-                  order.status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
-                  'bg-gray-100 text-gray-800'
+                  order.status === "completed"
+                    ? "bg-green-100 text-green-800"
+                    : order.status === "pending"
+                    ? "bg-yellow-100 text-yellow-800"
+                    : "bg-gray-100 text-gray-800"
                 }">${order.status}</span>
               </div>
             </div>
-          `).join('');
+          `
+            )
+            .join("");
 
           // Create dashboard HTML
           const dashboardHtml = `
             <div class="space-y-8 fade-in slide-up">
+              <!-- POS Analytics Section -->
+              ${posAnalyticsHtml}
+
               <!-- Stats Cards -->
               <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                 <div class="p-6 bg-white rounded-xl shadow-lg flex items-center card-hover">
@@ -583,8 +906,12 @@
                   </div>
                   <div>
                     <p class="text-sm font-medium text-gray-500">Today's Sales</p>
-                    <p class="text-2xl font-bold text-gray-900">${formatCurrency(totalSales)}</p>
-                    <p class="text-xs text-green-600">${completedOrders.length} completed orders</p>
+                    <p class="text-2xl font-bold text-gray-900">${formatCurrency(
+                      totalSales
+                    )}</p>
+                    <p class="text-xs text-green-600">${
+                      completedOrders.length
+                    } completed orders</p>
                   </div>
                 </div>
 
@@ -600,14 +927,30 @@
                 </div>
 
                 <div class="p-6 bg-white rounded-xl shadow-lg flex items-center card-hover">
-                  <div class="p-3 rounded-full ${lowStockItems.length > 0 ? 'bg-red-100' : 'bg-green-100'} mr-4">
-                    <i class="fas fa-exclamation-triangle text-2xl ${lowStockItems.length > 0 ? 'text-red-600' : 'text-green-600'}"></i>
+                  <div class="p-3 rounded-full ${
+                    lowStockItems.length > 0 ? "bg-red-100" : "bg-green-100"
+                  } mr-4">
+                    <i class="fas fa-exclamation-triangle text-2xl ${
+                      lowStockItems.length > 0
+                        ? "text-red-600"
+                        : "text-green-600"
+                    }"></i>
                   </div>
                   <div>
                     <p class="text-sm font-medium text-gray-500">Low Stock Alerts</p>
-                    <p class="text-2xl font-bold text-gray-900">${lowStockItems.length}</p>
-                    <p class="text-xs ${lowStockItems.length > 0 ? 'text-red-600' : 'text-green-600'}">
-                      ${lowStockItems.length > 0 ? 'Needs attention' : 'All good'}
+                    <p class="text-2xl font-bold text-gray-900">${
+                      lowStockItems.length
+                    }</p>
+                    <p class="text-xs ${
+                      lowStockItems.length > 0
+                        ? "text-red-600"
+                        : "text-green-600"
+                    }">
+                      ${
+                        lowStockItems.length > 0
+                          ? "Needs attention"
+                          : "All good"
+                      }
                     </p>
                   </div>
                 </div>
@@ -618,11 +961,18 @@
                   </div>
                   <div>
                     <p class="text-sm font-medium text-gray-500">Today's Orders</p>
-                    <p class="text-2xl font-bold text-gray-900">${todaysOrders.length}</p>
-                    <p class="text-xs text-purple-600">${completedOrders.length} completed</p>
+                    <p class="text-2xl font-bold text-gray-900">${
+                      todaysOrders.length
+                    }</p>
+                    <p class="text-xs text-purple-600">${
+                      completedOrders.length
+                    } completed</p>
                   </div>
                 </div>
               </div>
+
+              <!-- Staff Performance Section -->
+              ${staffPerformanceHtml}
 
               <!-- Content Grid -->
               <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
@@ -630,7 +980,9 @@
                 <div class="bg-white p-6 rounded-xl shadow-lg">
                   <div class="flex justify-between items-center mb-4">
                     <h2 class="text-xl font-bold text-gray-800">Stock Alerts</h2>
-                    <span class="text-sm text-gray-500">${lowStockItems.length} items</span>
+                    <span class="text-sm text-gray-500">${
+                      lowStockItems.length
+                    } items</span>
                   </div>
                   <div class="space-y-3 max-h-80 overflow-y-auto">
                     ${lowStockItemsHtml}
@@ -641,11 +993,15 @@
                 <div class="bg-white p-6 rounded-xl shadow-lg">
                   <div class="flex justify-between items-center mb-4">
                     <h2 class="text-xl font-bold text-gray-800">Today's Orders</h2>
-                    <span class="text-sm text-gray-500">${todaysOrders.length} orders</span>
+                    <span class="text-sm text-gray-500">${
+                      todaysOrders.length
+                    } orders</span>
                   </div>
                   <div class="space-y-3 max-h-80 overflow-y-auto">
-                    ${todaysOrders.length > 0 ? recentOrdersHtml :
-                      '<div class="text-center py-8 text-gray-500"><i class="fas fa-shopping-cart text-3xl mb-2"></i><p>No orders today yet</p></div>'
+                    ${
+                      todaysOrders.length > 0
+                        ? recentOrdersHtml
+                        : '<div class="text-center py-8 text-gray-500"><i class="fas fa-shopping-cart text-3xl mb-2"></i><p>No orders today yet</p></div>'
                     }
                   </div>
                 </div>
@@ -654,7 +1010,7 @@
               <!-- Quick Actions -->
               <div class="bg-white p-6 rounded-xl shadow-lg">
                 <h2 class="text-xl font-bold text-gray-800 mb-4">Quick Actions</h2>
-                <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <div class="grid grid-cols-2 md:grid-cols-5 gap-4">
                   <button class="p-4 border-2 border-dashed border-gray-300 rounded-lg hover:border-green-500 hover:bg-green-50 transition-colors receptionist-only" onclick="window.location.href='orders.html'">
                     <i class="fas fa-plus text-2xl text-gray-400 mb-2"></i>
                     <p class="text-sm font-medium text-gray-600">New Order</p>
@@ -667,13 +1023,22 @@
                     <i class="fas fa-user-plus text-2xl text-gray-400 mb-2"></i>
                     <p class="text-sm font-medium text-gray-600">Add Customer</p>
                   </button>
-                  <button class="p-4 border-2 border-dashed border-gray-300 rounded-lg hover:border-yellow-500 hover:bg-yellow-50 transition-colors admin-only" onclick="openAddUserModal()">
+                  <button id="addUserButton" class="p-4 border-2 border-dashed border-gray-300 rounded-lg hover:border-yellow-500 hover:bg-yellow-50 transition-colors admin-only">
                     <i class="fas fa-user-plus text-2xl text-gray-400 mb-2"></i>
                     <p class="text-sm font-medium text-gray-600">Add User</p>
                   </button>
                   <button class="p-4 border-2 border-dashed border-gray-300 rounded-lg hover:border-orange-500 hover:bg-orange-50 transition-colors admin-only" onclick="window.location.href='reports.html'">
                     <i class="fas fa-chart-bar text-2xl text-gray-400 mb-2"></i>
                     <p class="text-sm font-medium text-gray-600">View Reports</p>
+                  </button>
+                  <!-- Additional POS Actions for receptionist/admin -->
+                  <button class="p-4 border-2 border-dashed border-gray-300 rounded-lg hover:border-indigo-500 hover:bg-indigo-50 transition-colors receptionist-only" onclick="exportTodaysPOSData()">
+                    <i class="fas fa-download text-2xl text-gray-400 mb-2"></i>
+                    <p class="text-sm font-medium text-gray-600">Export POS Data</p>
+                  </button>
+                  <button class="p-4 border-2 border-dashed border-gray-300 rounded-lg hover:border-teal-500 hover:bg-teal-50 transition-colors admin-only" onclick="viewDetailedAnalytics()">
+                    <i class="fas fa-analytics text-2xl text-gray-400 mb-2"></i>
+                    <p class="text-sm font-medium text-gray-600">POS Analytics</p>
                   </button>
                 </div>
               </div>
@@ -682,6 +1047,18 @@
 
           dashboardPage.innerHTML = dashboardHtml;
 
+          setTimeout(() => {
+            const addUserButton = document.getElementById("addUserButton");
+            if (addUserButton) {
+              addUserButton.addEventListener("click", openAddUserModal);
+            }
+          }, 100);
+
+          // Update navigation based on user role
+          updateNavigationRole(user);
+
+          // Setup auto-refresh for live data
+          setupLiveDataRefresh();
         } catch (error) {
           console.error("Failed to load dashboard content:", error);
           dashboardPage.innerHTML = `
@@ -719,19 +1096,30 @@
         }
         // Close dropdown/sidebar when clicking outside
         document.addEventListener("click", function (e) {
-          if (sidebar && !sidebar.classList.contains("hidden") &&
-              !sidebar.contains(e.target) &&
-              !menuToggle.contains(e.target)) {
+          if (
+            sidebar &&
+            !sidebar.classList.contains("hidden") &&
+            !sidebar.contains(e.target) &&
+            !menuToggle.contains(e.target)
+          ) {
             sidebar.classList.add("hidden");
           }
-          if (userDropdown && !userDropdown.classList.contains("hidden") &&
-              !userAvatar.contains(e.target)) {
+          if (
+            userDropdown &&
+            !userDropdown.classList.contains("hidden") &&
+            !userAvatar.contains(e.target)
+          ) {
             userDropdown.classList.add("hidden");
           }
           // Close add user modal when clicking outside
           const addUserModal = document.getElementById("addUserModal");
-          if (addUserModal && addUserModal.classList.contains("show") &&
-              !addUserModal.querySelector(".bg-white").contains(e.target)) {
+          const addUserButton = document.getElementById("addUserButton");
+          if (
+            addUserModal &&
+            addUserModal.classList.contains("show") &&
+            !addUserModal.querySelector(".bg-white").contains(e.target) &&
+            !addUserButton?.contains(e.target)
+          ) {
             closeAddUserModal();
           }
         });
@@ -743,6 +1131,177 @@
           window.location.href = "login.html";
         }
       });
+
+      // ===========================================
+      // POS ANALYTICS INTEGRATION FUNCTIONS
+      // ===========================================
+
+      // Update navigation based on user role
+      function updateNavigationRole(user) {
+        // Show/hide menu items based on role
+        const adminElements = document.querySelectorAll(".admin-only");
+        adminElements.forEach((el) => {
+          el.style.display = user.role === "admin" ? "flex" : "none";
+        });
+
+        const receptionistElements =
+          document.querySelectorAll(".receptionist-only");
+        receptionistElements.forEach((el) => {
+          el.style.display =
+            user.role === "receptionist" || user.role === "admin"
+              ? "flex"
+              : "none";
+        });
+      }
+
+      // Clock in function
+      async function clockIn() {
+        try {
+          await clockInStaff();
+          await loadDashboardContent(); // Refresh dashboard
+        } catch (error) {
+          showError("Failed to clock in: " + error.message);
+        }
+      }
+
+      // Clock out function
+      async function clockOut(shiftId) {
+        try {
+          const notes = prompt("Any notes for this shift? (Optional)");
+          await clockOutStaff(shiftId, notes);
+          await loadDashboardContent(); // Refresh dashboard
+        } catch (error) {
+          showError("Failed to clock out: " + error.message);
+        }
+      }
+
+      // Open cash session function
+      async function openCashSession() {
+        try {
+          const openingBalance = prompt("Enter opening cash balance:");
+          if (openingBalance !== null) {
+            const balance = parseFloat(openingBalance) || 0;
+            await openCashRegisterSession(balance);
+            await loadDashboardContent(); // Refresh dashboard
+          }
+        } catch (error) {
+          showError("Failed to open cash session: " + error.message);
+        }
+      }
+
+      // Close cash session function
+      async function closeCashSession(sessionId) {
+        try {
+          const closingBalance = prompt("Enter closing cash balance:");
+          if (closingBalance !== null) {
+            const balance = parseFloat(closingBalance) || 0;
+            await closeCashRegisterSession(sessionId, balance);
+            await loadDashboardContent(); // Refresh dashboard
+          }
+        } catch (error) {
+          showError("Failed to close cash session: " + error.message);
+        }
+      }
+
+      // Setup live data refresh for POS metrics
+      function setupLiveDataRefresh() {
+        // Refresh POS metrics every 30 seconds
+        setInterval(async () => {
+          try {
+            const user = await getUserProfile();
+            if (
+              user &&
+              (user.role === "admin" || user.role === "receptionist")
+            ) {
+              // Update just the live metrics without full page reload
+              await updateLiveMetrics();
+            }
+          } catch (error) {
+            console.warn("Failed to refresh live metrics:", error);
+          }
+        }, 30000);
+      }
+
+      // Update live metrics without full reload
+      async function updateLiveMetrics() {
+        try {
+          const posMetrics = await getTodaysLiveDashboard();
+          const lastUpdatedElement = document.getElementById("lastUpdated");
+
+          if (lastUpdatedElement) {
+            lastUpdatedElement.textContent = `Updated: ${new Date().toLocaleTimeString()}`;
+          }
+
+          // Update individual metric displays if they exist
+          const currentHourElement = document.querySelector(
+            '[data-metric="current_hour_sales"]'
+          );
+          if (currentHourElement && posMetrics) {
+            currentHourElement.textContent = formatCurrency(
+              posMetrics.current_hour_sales || 0
+            );
+          }
+
+          const activeStaffElement = document.querySelector(
+            '[data-metric="active_staff"]'
+          );
+          if (activeStaffElement && posMetrics) {
+            activeStaffElement.textContent = posMetrics.active_staff || 0;
+          }
+
+          const pendingOrdersElement = document.querySelector(
+            '[data-metric="pending_orders"]'
+          );
+          if (pendingOrdersElement && posMetrics) {
+            pendingOrdersElement.textContent = posMetrics.pending_orders || 0;
+          }
+
+          const itemsSoldElement = document.querySelector(
+            '[data-metric="items_sold"]'
+          );
+          if (itemsSoldElement && posMetrics) {
+            itemsSoldElement.textContent = posMetrics.items_sold || 0;
+          }
+        } catch (error) {
+          console.warn("Failed to update live metrics:", error);
+        }
+      }
+
+      // Quick action to view detailed analytics
+      function viewDetailedAnalytics() {
+        window.location.href = "reports.html?tab=pos-analytics";
+      }
+
+      // Export today's POS data
+      async function exportTodaysPOSData() {
+        try {
+          const posMetrics = await getTodaysLiveDashboard();
+          const cashReconciliation = await getDailyCashReconciliation();
+
+          const exportData = {
+            date: new Date().toISOString().split("T")[0],
+            pos_metrics: posMetrics,
+            cash_reconciliation: cashReconciliation,
+            export_time: new Date().toISOString(),
+          };
+
+          const dataStr = JSON.stringify(exportData, null, 2);
+          const dataBlob = new Blob([dataStr], { type: "application/json" });
+          const url = URL.createObjectURL(dataBlob);
+
+          const link = document.createElement("a");
+          link.href = url;
+          link.download = `pos-data-${
+            new Date().toISOString().split("T")[0]
+          }.json`;
+          link.click();
+
+          URL.revokeObjectURL(url);
+          showSuccess("POS data exported successfully!");
+        } catch (error) {
+          showError("Failed to export POS data: " + error.message);
+        }
+      }
     </script>
   </body>
 </html>

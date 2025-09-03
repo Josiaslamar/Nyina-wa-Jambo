@@ -1,0 +1,621 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Receptionist Dashboard - Nyina wa Jambo Pharmacy</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.7/dist/umd/supabase.min.js"></script>
+    <script src="supabase.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        @import url("https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap");
+        body { font-family: "Inter", sans-serif; }
+        .gradient-bg { background: linear-gradient(135deg, #16a34a 0%, #22c55e 100%); }
+        .card-hover { transition: all 0.3s ease; }
+        .card-hover:hover { transform: translateY(-5px); box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1); }
+        .fade-in { animation: fadeIn 0.6s ease-in; }
+        .slide-up { animation: slideUp 0.8s ease-out; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        @keyframes slideUp { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
+        .stats-card { background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%); }
+        .notification { position: fixed; top: 20px; right: 20px; padding: 16px 20px; border-radius: 8px; color: white; font-weight: 500; opacity: 0; transform: translateX(100%); transition: all 0.3s ease; z-index: 9999; max-width: 400px; }
+        .notification.show { opacity: 1; transform: translateX(0); }
+        .notification.error { background-color: #ef4444; }
+        .notification.success { background-color: #22c55e; }
+        .notification.warning { background-color: #f59e0b; }
+        .notification.info { background-color: #3b82f6; }
+        .pos-metric { background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%); border-left: 4px solid #0ea5e9; }
+        .live-indicator { animation: pulse 2s infinite; background-color: #22c55e; }
+        .shift-active { background: linear-gradient(135deg, #dcfce7 0%, #bbf7d0 100%); border-left: 4px solid #22c55e; }
+        .shift-inactive { background: linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%); border-left: 4px solid #ef4444; }
+        .low-stock { background-color: #fef2f2; border-left: 4px solid #ef4444; }
+    </style>
+</head>
+<body class="bg-gray-100">
+    <div class="flex h-screen bg-gray-100">
+        <!-- Sidebar -->
+        <aside id="sidebar" class="w-64 bg-green-800 text-white flex-shrink-0 hidden lg:block">
+            <div class="p-6">
+                <a href="receptionist-dashboard.html" class="text-2xl font-bold text-white flex items-center">
+                    <i class="fas fa-pills mr-3"></i>
+                    <span>Nyina wa Jambo</span>
+                </a>
+            </div>
+            <nav class="mt-6">
+                <a href="receptionist-dashboard.html" class="flex items-center py-3 px-6 bg-green-600 text-white">
+                    <i class="fas fa-tachometer-alt w-6 text-center"></i>
+                    <span class="ml-4">Dashboard</span>
+                </a>
+                <a href="medicines.html" class="flex items-center py-3 px-6 text-gray-300 hover:bg-green-600 hover:text-white transition-colors">
+                    <i class="fas fa-capsules w-6 text-center"></i>
+                    <span class="ml-4">Medicines</span>
+                </a>
+                <a href="customers.html" class="flex items-center py-3 px-6 text-gray-300 hover:bg-green-600 hover:text-white transition-colors">
+                    <i class="fas fa-users w-6 text-center"></i>
+                    <span class="ml-4">Customers</span>
+                </a>
+                <a href="orders.html" class="flex items-center py-3 px-6 text-gray-300 hover:bg-green-600 hover:text-white transition-colors">
+                    <i class="fas fa-shopping-cart w-6 text-center"></i>
+                    <span class="ml-4">Orders</span>
+                </a>
+            </nav>
+            <div class="mt-auto p-6 bottom-0">
+                <button onclick="logout()" class="w-full flex items-center justify-center py-2 px-4 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors">
+                    <i class="fas fa-sign-out-alt mr-2"></i>
+                    <span>Logout</span>
+                </button>
+            </div>
+        </aside>
+
+        <div class="flex-1 flex flex-col overflow-hidden">
+            <!-- Header -->
+            <header class="bg-white shadow-sm flex justify-between items-center p-4">
+                <button id="menu-toggle" class="text-gray-700 lg:hidden">
+                    <i class="fas fa-bars text-xl"></i>
+                </button>
+                <h1 class="text-xl font-semibold text-gray-800 hidden lg:block">Receptionist Dashboard</h1>
+                <div class="relative">
+                    <button id="userAvatar" class="flex items-center space-x-2">
+                        <img src="" alt="User Avatar" class="w-10 h-10 rounded-full">
+                        <span id="currentUser" class="text-gray-700 font-medium hidden md:block"></span>
+                    </button>
+                    <div id="userDropdown" class="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg z-50 hidden">
+                        <div class="py-1">
+                            <div class="px-4 py-2 text-sm text-gray-500 border-b">
+                                <span id="userInfo"></span>
+                            </div>
+                            <button onclick="logout()" class="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                                <i class="fas fa-sign-out-alt mr-2"></i>Logout
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </header>
+
+            <!-- Main Content -->
+            <main class="flex-1 overflow-x-hidden overflow-y-auto bg-gray-100 p-6">
+                <div id="dashboardContent" class="space-y-8 fade-in slide-up">
+                    <!-- POS Analytics Section -->
+                    <div class="bg-white p-6 rounded-xl shadow-lg">
+                        <div class="flex justify-between items-center mb-6">
+                            <h2 class="text-xl font-bold text-gray-800 flex items-center">
+                                <div class="w-3 h-3 rounded-full live-indicator mr-2"></div>
+                                Live POS Analytics
+                            </h2>
+                            <span class="text-sm text-gray-500" id="lastUpdated">Updated: <span id="updateTime"></span></span>
+                        </div>
+                        
+                        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+                            <div class="pos-metric p-4 rounded-lg">
+                                <div class="flex items-center justify-between">
+                                    <div>
+                                        <p class="text-sm font-medium text-gray-600">Today's Sales</p>
+                                        <p class="text-xl font-bold text-blue-700" id="todaysSales">0 RWF</p>
+                                    </div>
+                                    <i class="fas fa-cash-register text-blue-500 text-2xl"></i>
+                                </div>
+                            </div>
+                            
+                            <div class="pos-metric p-4 rounded-lg">
+                                <div class="flex items-center justify-between">
+                                    <div>
+                                        <p class="text-sm font-medium text-gray-600">Orders Today</p>
+                                        <p class="text-xl font-bold text-blue-700" id="ordersToday">0</p>
+                                    </div>
+                                    <i class="fas fa-shopping-cart text-blue-500 text-2xl"></i>
+                                </div>
+                            </div>
+                            
+                            <div class="pos-metric p-4 rounded-lg">
+                                <div class="flex items-center justify-between">
+                                    <div>
+                                        <p class="text-sm font-medium text-gray-600">Customers Served</p>
+                                        <p class="text-xl font-bold text-blue-700" id="customersServed">0</p>
+                                    </div>
+                                    <i class="fas fa-users text-blue-500 text-2xl"></i>
+                                </div>
+                            </div>
+                            
+                            <div class="pos-metric p-4 rounded-lg">
+                                <div class="flex items-center justify-between">
+                                    <div>
+                                        <p class="text-sm font-medium text-gray-600">Items Dispensed</p>
+                                        <p class="text-xl font-bold text-blue-700" id="itemsDispensed">0</p>
+                                    </div>
+                                    <i class="fas fa-pills text-blue-500 text-2xl"></i>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Shift Status -->
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div id="shiftStatus" class="shift-inactive p-4 rounded-lg">
+                                <div class="flex items-center justify-between">
+                                    <div>
+                                        <p class="text-sm font-medium text-gray-600">Current Shift</p>
+                                        <p id="shiftStatusText" class="font-semibold text-red-700">Not clocked in</p>
+                                    </div>
+                                    <button id="shiftButton" onclick="toggleShift()" class="px-3 py-1 text-sm rounded bg-green-600 text-white hover:opacity-80">
+                                        Clock In
+                                    </button>
+                                </div>
+                            </div>
+                            
+                            <div id="performanceCard" class="pos-metric p-4 rounded-lg">
+                                <div class="flex items-center justify-between">
+                                    <div>
+                                        <p class="text-sm font-medium text-gray-600">Today's Performance</p>
+                                        <p id="performanceScore" class="font-semibold text-blue-700">Excellent</p>
+                                    </div>
+                                    <div class="text-blue-500">
+                                        <i class="fas fa-chart-line text-2xl"></i>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Main Dashboard Grid -->
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                        <!-- Recent Orders -->
+                        <div class="bg-white p-6 rounded-xl shadow-lg">
+                            <div class="flex justify-between items-center mb-4">
+                                <h3 class="text-lg font-bold text-gray-800">Recent Orders</h3>
+                                <span id="recentOrdersCount" class="text-sm text-gray-500">0 orders</span>
+                            </div>
+                            <div id="recentOrdersList" class="space-y-3 max-h-80 overflow-y-auto">
+                                <div class="text-center py-8 text-gray-500">
+                                    <i class="fas fa-shopping-cart text-3xl mb-2"></i>
+                                    <p>No orders yet today</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Low Stock Alerts -->
+                        <div class="bg-white p-6 rounded-xl shadow-lg">
+                            <div class="flex justify-between items-center mb-4">
+                                <h3 class="text-lg font-bold text-gray-800">Stock Alerts</h3>
+                                <span id="stockAlertsCount" class="text-sm text-gray-500">0 alerts</span>
+                            </div>
+                            <div id="stockAlertsList" class="space-y-3 max-h-80 overflow-y-auto">
+                                <div class="text-center py-8 text-gray-500">
+                                    <i class="fas fa-check-circle text-green-500 text-3xl mb-2"></i>
+                                    <p>All medicines are well stocked!</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Quick Actions -->
+                    <div class="bg-white p-6 rounded-xl shadow-lg">
+                        <h3 class="text-lg font-bold text-gray-800 mb-4">Quick Actions</h3>
+                        <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                            <button onclick="window.location.href='orders.html'" class="p-4 border-2 border-dashed border-gray-300 rounded-lg hover:border-green-500 hover:bg-green-50 transition-colors">
+                                <i class="fas fa-plus text-2xl text-gray-400 mb-2"></i>
+                                <p class="text-sm font-medium text-gray-600">New Order</p>
+                            </button>
+                            <button onclick="window.location.href='medicines.html'" class="p-4 border-2 border-dashed border-gray-300 rounded-lg hover:border-blue-500 hover:bg-blue-50 transition-colors">
+                                <i class="fas fa-pills text-2xl text-gray-400 mb-2"></i>
+                                <p class="text-sm font-medium text-gray-600">Medicine Lookup</p>
+                            </button>
+                            <button onclick="window.location.href='customers.html'" class="p-4 border-2 border-dashed border-gray-300 rounded-lg hover:border-purple-500 hover:bg-purple-50 transition-colors">
+                                <i class="fas fa-user-plus text-2xl text-gray-400 mb-2"></i>
+                                <p class="text-sm font-medium text-gray-600">Add Customer</p>
+                            </button>
+                            <button onclick="exportTodaysData()" class="p-4 border-2 border-dashed border-gray-300 rounded-lg hover:border-orange-500 hover:bg-orange-50 transition-colors">
+                                <i class="fas fa-download text-2xl text-gray-400 mb-2"></i>
+                                <p class="text-sm font-medium text-gray-600">Export Data</p>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Today's Performance Chart -->
+                    <div class="bg-white p-6 rounded-xl shadow-lg">
+                        <h3 class="text-lg font-bold text-gray-800 mb-4">Today's Sales Trend</h3>
+                        <canvas id="salesChart" width="400" height="200"></canvas>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <div id="notification" class="notification"></div>
+
+    <script>
+        let currentShift = null;
+        let salesChart = null;
+
+        document.addEventListener("DOMContentLoaded", async function () {
+            if (!await isAuthenticated()) {
+                window.location.href = 'login.html';
+                return;
+            }
+
+            const user = await getUserProfile();
+            if (!user || !['receptionist', 'admin'].includes(user.role)) {
+                showNotification('Access denied. Receptionist privileges required.', 'error');
+                setTimeout(() => {
+                    window.location.href = 'login.html';
+                }, 2000);
+                return;
+            }
+
+            await updateNavigation();
+            await loadDashboardData();
+            setupEventListeners();
+            setupAutoRefresh();
+        });
+
+        async function updateNavigation() {
+            try {
+                const user = await getUserProfile();
+                if (user) {
+                    document.getElementById('currentUser').textContent = user.full_name || 'User';
+                    document.getElementById('userInfo').textContent = `${user.full_name || 'User'} (${user.role || 'staff'})`;
+                    
+                    const avatarImg = document.querySelector('#userAvatar img');
+                    if (avatarImg) {
+                        avatarImg.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(user.full_name || 'User')}&background=16a34a&color=fff&bold=true`;
+                    }
+                }
+            } catch (error) {
+                console.error('Error updating navigation:', error);
+            }
+        }
+
+        async function loadDashboardData() {
+            try {
+                document.getElementById('updateTime').textContent = new Date().toLocaleTimeString();
+                
+                // Get today's metrics
+                const today = new Date().toISOString().split('T')[0];
+                const [orders, medicines, currentShiftData] = await Promise.all([
+                    fetchTodaysOrders(),
+                    fetchLowStockMedicines(),
+                    getCurrentShift()
+                ]);
+
+                updateMetrics(orders);
+                updateRecentOrders(orders);
+                updateStockAlerts(medicines);
+                updateShiftStatus(currentShiftData);
+                updateSalesChart(orders);
+
+            } catch (error) {
+                console.error('Error loading dashboard data:', error);
+                showNotification('Error loading dashboard data', 'error');
+            }
+        }
+
+        async function fetchTodaysOrders() {
+            const today = new Date().toISOString().split('T')[0];
+            const { data, error } = await supabase
+                .from('orders')
+                .select(`
+                    *,
+                    customers(name),
+                    order_items(quantity, medicine_name)
+                `)
+                .eq('order_date', today)
+                .eq('is_active', true)
+                .order('created_at', { ascending: false });
+
+            if (error) throw error;
+            return data || [];
+        }
+
+        async function fetchLowStockMedicines() {
+            const { data, error } = await supabase
+                .from('medicines')
+                .select('id, name, stock, min_stock_level')
+                .eq('is_active', true)
+                .lte('stock', 20)
+                .order('stock', { ascending: true });
+
+            if (error) throw error;
+            return data || [];
+        }
+
+        async function getCurrentShift() {
+            const user = await getUserProfile();
+            const today = new Date().toISOString().split('T')[0];
+            
+            const { data, error } = await supabase
+                .from('staff_shifts')
+                .select('*')
+                .eq('staff_id', user.id)
+                .eq('shift_date', today)
+                .is('clock_out_time', null)
+                .order('created_at', { ascending: false })
+                .limit(1);
+
+            if (error) {
+                console.warn('Could not fetch shift data:', error);
+                return null;
+            }
+            return data?.[0] || null;
+        }
+
+        function updateMetrics(orders) {
+            const completedOrders = orders.filter(o => o.status === 'completed');
+            const totalSales = completedOrders.reduce((sum, o) => sum + (o.total_amount || 0), 0);
+            const uniqueCustomers = new Set(completedOrders.map(o => o.customer_id)).size;
+            const totalItems = completedOrders.reduce((sum, o) => {
+                return sum + (o.order_items?.reduce((itemSum, item) => itemSum + item.quantity, 0) || 0);
+            }, 0);
+
+            document.getElementById('todaysSales').textContent = formatCurrency(totalSales);
+            document.getElementById('ordersToday').textContent = completedOrders.length;
+            document.getElementById('customersServed').textContent = uniqueCustomers;
+            document.getElementById('itemsDispensed').textContent = totalItems;
+
+            // Update performance score
+            let performance = 'Average';
+            if (completedOrders.length > 20) performance = 'Excellent';
+            else if (completedOrders.length > 10) performance = 'Good';
+            document.getElementById('performanceScore').textContent = performance;
+        }
+
+        function updateRecentOrders(orders) {
+            const recentOrders = orders.slice(0, 10);
+            document.getElementById('recentOrdersCount').textContent = `${orders.length} orders`;
+            
+            const ordersList = document.getElementById('recentOrdersList');
+            if (recentOrders.length === 0) {
+                ordersList.innerHTML = `
+                    <div class="text-center py-8 text-gray-500">
+                        <i class="fas fa-shopping-cart text-3xl mb-2"></i>
+                        <p>No orders yet today</p>
+                    </div>
+                `;
+                return;
+            }
+
+            ordersList.innerHTML = recentOrders.map(order => `
+                <div class="p-3 bg-gray-50 rounded-lg flex justify-between items-center">
+                    <div>
+                        <p class="font-medium">${order.customers?.name || 'Walk-in Customer'}</p>
+                        <p class="text-sm text-gray-600">Order #${order.order_number}</p>
+                    </div>
+                    <div class="text-right">
+                        <p class="font-medium">${formatCurrency(order.total_amount || 0)}</p>
+                        <span class="text-xs px-2 py-1 rounded-full ${getStatusColor(order.status)}">
+                            ${order.status}
+                        </span>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function updateStockAlerts(medicines) {
+            document.getElementById('stockAlertsCount').textContent = `${medicines.length} alerts`;
+            
+            const alertsList = document.getElementById('stockAlertsList');
+            if (medicines.length === 0) {
+                alertsList.innerHTML = `
+                    <div class="text-center py-8 text-gray-500">
+                        <i class="fas fa-check-circle text-green-500 text-3xl mb-2"></i>
+                        <p>All medicines are well stocked!</p>
+                    </div>
+                `;
+                return;
+            }
+
+            alertsList.innerHTML = medicines.map(medicine => `
+                <div class="p-4 bg-white rounded-lg shadow-sm low-stock flex justify-between items-center">
+                    <div>
+                        <p class="font-medium">${medicine.name}</p>
+                        <p class="text-sm text-gray-600">Min level: ${medicine.min_stock_level}</p>
+                    </div>
+                    <div class="text-right">
+                        <p class="text-sm text-gray-600">Stock: ${medicine.stock}</p>
+                        <span class="text-sm font-semibold ${medicine.stock === 0 ? 'text-red-600' : 'text-yellow-600'} px-2 py-1 rounded">
+                            ${medicine.stock === 0 ? 'Out of Stock' : 'Low Stock'}
+                        </span>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function updateShiftStatus(shiftData) {
+            currentShift = shiftData;
+            const shiftStatus = document.getElementById('shiftStatus');
+            const shiftStatusText = document.getElementById('shiftStatusText');
+            const shiftButton = document.getElementById('shiftButton');
+
+            if (shiftData) {
+                shiftStatus.className = 'shift-active p-4 rounded-lg';
+                shiftStatusText.textContent = `Active since ${new Date(shiftData.clock_in_time).toLocaleTimeString()}`;
+                shiftStatusText.className = 'font-semibold text-green-700';
+                shiftButton.textContent = 'Clock Out';
+                shiftButton.className = 'px-3 py-1 text-sm rounded bg-red-600 text-white hover:opacity-80';
+            } else {
+                shiftStatus.className = 'shift-inactive p-4 rounded-lg';
+                shiftStatusText.textContent = 'Not clocked in';
+                shiftStatusText.className = 'font-semibold text-red-700';
+                shiftButton.textContent = 'Clock In';
+                shiftButton.className = 'px-3 py-1 text-sm rounded bg-green-600 text-white hover:opacity-80';
+            }
+        }
+
+        function updateSalesChart(orders) {
+            const ctx = document.getElementById('salesChart').getContext('2d');
+            
+            // Group orders by hour
+            const hourlyData = Array.from({length: 24}, () => 0);
+            orders.filter(o => o.status === 'completed').forEach(order => {
+                const hour = new Date(order.created_at).getHours();
+                hourlyData[hour] += order.total_amount || 0;
+            });
+
+            if (salesChart) salesChart.destroy();
+            salesChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: Array.from({length: 24}, (_, i) => `${i}:00`),
+                    datasets: [{
+                        label: 'Sales (RWF)',
+                        data: hourlyData,
+                        borderColor: '#16a34a',
+                        backgroundColor: 'rgba(22, 163, 74, 0.1)',
+                        tension: 0.4,
+                        fill: true
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: { beginAtZero: true }
+                    },
+                    plugins: {
+                        legend: { display: false }
+                    }
+                }
+            });
+        }
+
+        async function toggleShift() {
+            try {
+                if (currentShift) {
+                    // Clock out
+                    await clockOutStaff(currentShift.id);
+                    showNotification('Clocked out successfully!', 'success');
+                } else {
+                    // Clock in
+                    await clockInStaff();
+                    showNotification('Clocked in successfully!', 'success');
+                }
+                
+                // Refresh shift status
+                const newShiftData = await getCurrentShift();
+                updateShiftStatus(newShiftData);
+                
+            } catch (error) {
+                console.error('Error toggling shift:', error);
+                showNotification('Error updating shift status', 'error');
+            }
+        }
+
+        async function exportTodaysData() {
+            try {
+                const orders = await fetchTodaysOrders();
+                const csvContent = generateCSV(orders);
+                downloadCSV(csvContent, `receptionist-data-${new Date().toISOString().split('T')[0]}.csv`);
+                showNotification('Data exported successfully!', 'success');
+            } catch (error) {
+                showNotification('Error exporting data', 'error');
+            }
+        }
+
+        function generateCSV(orders) {
+            const headers = ['Order Number', 'Customer', 'Status', 'Total Amount', 'Time'];
+            const rows = orders.map(order => [
+                order.order_number,
+                order.customers?.name || 'Walk-in',
+                order.status,
+                order.total_amount || 0,
+                new Date(order.created_at).toLocaleString()
+            ]);
+            
+            return [headers, ...rows].map(row => row.join(',')).join('\n');
+        }
+
+        function downloadCSV(content, filename) {
+            const blob = new Blob([content], { type: 'text/csv' });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = filename;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            URL.revokeObjectURL(url);
+        }
+
+        function setupEventListeners() {
+            const menuToggle = document.getElementById('menu-toggle');
+            const sidebar = document.getElementById('sidebar');
+            const userAvatar = document.getElementById('userAvatar');
+            const userDropdown = document.getElementById('userDropdown');
+
+            menuToggle?.addEventListener('click', (e) => {
+                e.stopPropagation();
+                sidebar.classList.toggle('hidden');
+            });
+
+            userAvatar?.addEventListener('click', (e) => {
+                e.stopPropagation();
+                userDropdown.classList.toggle('hidden');
+            });
+
+            document.addEventListener('click', function(e) {
+                if (!sidebar.classList.contains('hidden') && !sidebar.contains(e.target) && !menuToggle.contains(e.target)) {
+                    sidebar.classList.add('hidden');
+                }
+                if (!userDropdown.classList.contains('hidden') && !userAvatar.contains(e.target)) {
+                    userDropdown.classList.add('hidden');
+                }
+            });
+        }
+
+        function setupAutoRefresh() {
+            // Refresh data every 30 seconds
+            setInterval(loadDashboardData, 30000);
+        }
+
+        function getStatusColor(status) {
+            switch(status) {
+                case 'completed': return 'bg-green-100 text-green-800';
+                case 'pending': return 'bg-yellow-100 text-yellow-800';
+                case 'processing': return 'bg-blue-100 text-blue-800';
+                case 'cancelled': return 'bg-red-100 text-red-800';
+                default: return 'bg-gray-100 text-gray-800';
+            }
+        }
+
+        function formatCurrency(amount) {
+            return Math.round(amount || 0).toLocaleString() + ' RWF';
+        }
+
+        function showNotification(message, type = 'info') {
+            const notification = document.getElementById('notification');
+            notification.textContent = message;
+            notification.className = `notification show ${type}`;
+            setTimeout(() => notification.classList.remove('show'), 3000);
+        }
+
+        async function logout() {
+            try {
+                const { error } = await supabase.auth.signOut();
+                if (error) throw error;
+                window.location.href = 'login.html';
+            } catch (error) {
+                showNotification('Error signing out: ' + error.message, 'error');
+            }
+        }
+    </script>
+</body>
+</html>

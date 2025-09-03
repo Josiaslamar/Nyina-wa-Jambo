@@ -1190,3 +1190,551 @@ BEGIN
     END CASE;
 END;
 $$ LANGUAGE plpgsql;
+
+-- =============================================
+-- POS ANALYTICS SYSTEM FOR HEALTHCARE FACILITIES
+-- =============================================
+
+-- 1. Staff Shifts Tracking Table
+CREATE TABLE public.staff_shifts (
+    id BIGSERIAL PRIMARY KEY,
+    staff_id UUID REFERENCES auth.users(id),
+    shift_date DATE DEFAULT CURRENT_DATE,
+    shift_type VARCHAR(20) DEFAULT 'full_day', -- morning, afternoon, evening, night, full_day
+    clock_in_time TIMESTAMP WITH TIME ZONE,
+    clock_out_time TIMESTAMP WITH TIME ZONE,
+    planned_hours DECIMAL(4,2) DEFAULT 8.0,
+    actual_hours DECIMAL(4,2),
+    break_duration INTEGER DEFAULT 60, -- minutes
+    is_active BOOLEAN DEFAULT true,
+    notes TEXT,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+-- 2. Staff Performance Metrics Table
+CREATE TABLE public.staff_performance (
+    id BIGSERIAL PRIMARY KEY,
+    staff_id UUID REFERENCES auth.users(id),
+    shift_id BIGINT REFERENCES public.staff_shifts(id),
+    performance_date DATE DEFAULT CURRENT_DATE,
+    orders_processed INTEGER DEFAULT 0,
+    total_sales_amount DECIMAL(12,2) DEFAULT 0,
+    average_transaction_time INTEGER DEFAULT 0, -- seconds
+    customer_count INTEGER DEFAULT 0,
+    returns_handled INTEGER DEFAULT 0,
+    errors_made INTEGER DEFAULT 0,
+    medicines_dispensed INTEGER DEFAULT 0,
+    cash_handled DECIMAL(12,2) DEFAULT 0,
+    accuracy_rate DECIMAL(5,2) DEFAULT 100.0, -- percentage
+    efficiency_score DECIMAL(5,2) DEFAULT 0, -- calculated score
+    customer_rating DECIMAL(3,2) DEFAULT 0, -- if applicable
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+-- 3. Transaction Performance Tracking
+CREATE TABLE public.transaction_performance (
+    id BIGSERIAL PRIMARY KEY,
+    order_id BIGINT REFERENCES public.orders(id),
+    staff_id UUID REFERENCES auth.users(id),
+    transaction_start_time TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    transaction_end_time TIMESTAMP WITH TIME ZONE,
+    processing_duration INTEGER, -- seconds
+    items_count INTEGER DEFAULT 0,
+    complexity_score INTEGER DEFAULT 1, -- 1-5 scale
+    customer_wait_time INTEGER DEFAULT 0,
+    was_error BOOLEAN DEFAULT false,
+    error_type VARCHAR(100),
+    was_returned BOOLEAN DEFAULT false,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+-- 4. Cash Register Sessions
+CREATE TABLE public.cash_register_sessions (
+    id BIGSERIAL PRIMARY KEY,
+    session_id VARCHAR(50) UNIQUE NOT NULL,
+    staff_id UUID REFERENCES auth.users(id),
+    shift_id BIGINT REFERENCES public.staff_shifts(id),
+    session_date DATE DEFAULT CURRENT_DATE,
+    opening_balance DECIMAL(12,2) DEFAULT 0,
+    closing_balance DECIMAL(12,2) DEFAULT 0,
+    total_cash_sales DECIMAL(12,2) DEFAULT 0,
+    total_transactions INTEGER DEFAULT 0,
+    cash_variance DECIMAL(12,2) DEFAULT 0, -- difference between expected and actual
+    session_start_time TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    session_end_time TIMESTAMP WITH TIME ZONE,
+    is_balanced BOOLEAN DEFAULT false,
+    notes TEXT,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+-- 5. Daily POS Summary
+CREATE TABLE public.daily_pos_summary (
+    id BIGSERIAL PRIMARY KEY,
+    summary_date DATE UNIQUE DEFAULT CURRENT_DATE,
+    total_transactions INTEGER DEFAULT 0,
+    gross_sales DECIMAL(12,2) DEFAULT 0,
+    net_sales DECIMAL(12,2) DEFAULT 0,
+    cash_sales DECIMAL(12,2) DEFAULT 0,
+    insurance_sales DECIMAL(12,2) DEFAULT 0,
+    momo_sales DECIMAL(12,2) DEFAULT 0,
+    bank_sales DECIMAL(12,2) DEFAULT 0,
+    returns_amount DECIMAL(12,2) DEFAULT 0,
+    discounts_given DECIMAL(12,2) DEFAULT 0,
+    unique_customers INTEGER DEFAULT 0,
+    staff_on_duty INTEGER DEFAULT 0,
+    peak_hour_start TIME,
+    peak_hour_end TIME,
+    average_transaction_time INTEGER DEFAULT 0,
+    medicines_sold_count INTEGER DEFAULT 0,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+-- =============================================
+-- POS ANALYTICS FUNCTIONS
+-- =============================================
+
+-- 1. Today's Live Dashboard Metrics
+CREATE OR REPLACE FUNCTION get_todays_pos_metrics()
+RETURNS JSON AS $$
+DECLARE
+    metrics JSON;
+BEGIN
+    SELECT json_build_object(
+        'date', CURRENT_DATE,
+        'total_orders', COUNT(o.id),
+        'total_revenue', COALESCE(SUM(o.total_amount), 0),
+        'cash_sales', COALESCE(SUM(CASE WHEN o.payment_method = 'cash' THEN o.total_amount ELSE 0 END), 0),
+        'insurance_sales', COALESCE(SUM(CASE WHEN o.payment_method = 'insurance' THEN o.total_amount ELSE 0 END), 0),
+        'momo_sales', COALESCE(SUM(CASE WHEN o.payment_method = 'momo' THEN o.total_amount ELSE 0 END), 0),
+        'unique_customers', COUNT(DISTINCT o.customer_id),
+        'average_order_value', COALESCE(AVG(o.total_amount), 0),
+        'items_sold', COALESCE(SUM(oi.quantity), 0),
+        'active_staff', (
+            SELECT COUNT(DISTINCT staff_id) 
+            FROM public.staff_shifts 
+            WHERE shift_date = CURRENT_DATE 
+            AND clock_out_time IS NULL 
+            AND is_active = true
+        ),
+        'current_hour_sales', (
+            SELECT COALESCE(SUM(o2.total_amount), 0)
+            FROM public.orders o2 
+            WHERE DATE_TRUNC('hour', o2.created_at) = DATE_TRUNC('hour', NOW())
+            AND o2.status = 'completed' AND o2.is_active = true
+        ),
+        'pending_orders', (
+            SELECT COUNT(*) 
+            FROM public.orders o3 
+            WHERE o3.order_date = CURRENT_DATE 
+            AND o3.status IN ('pending', 'processing') 
+            AND o3.is_active = true
+        )
+    ) INTO metrics
+    FROM public.orders o
+    LEFT JOIN public.order_items oi ON o.id = oi.order_id
+    WHERE o.order_date = CURRENT_DATE
+    AND o.status = 'completed' AND o.is_active = true;
+    
+    RETURN metrics;
+END;
+$$ LANGUAGE plpgsql;
+
+-- 2. Staff Performance Analysis
+CREATE OR REPLACE FUNCTION get_staff_performance_analysis(
+    analysis_date DATE DEFAULT CURRENT_DATE,
+    period_days INTEGER DEFAULT 7
+)
+RETURNS TABLE(
+    staff_id UUID,
+    staff_name VARCHAR(255),
+    days_worked INTEGER,
+    total_hours_worked DECIMAL(10,2),
+    total_orders INTEGER,
+    total_sales DECIMAL(12,2),
+    average_order_value DECIMAL(10,2),
+    orders_per_hour DECIMAL(10,2),
+    sales_per_hour DECIMAL(12,2),
+    average_transaction_time INTEGER,
+    accuracy_rate DECIMAL(5,2),
+    customer_per_day DECIMAL(10,2),
+    efficiency_rank INTEGER,
+    performance_grade VARCHAR(2)
+) AS $$
+BEGIN
+    RETURN QUERY
+    WITH staff_metrics AS (
+        SELECT 
+            up.id as staff_id,
+            up.full_name as staff_name,
+            COUNT(DISTINCT ss.shift_date) as days_worked,
+            COALESCE(SUM(ss.actual_hours), 0) as total_hours_worked,
+            COUNT(o.id) as total_orders,
+            COALESCE(SUM(o.total_amount), 0) as total_sales,
+            COALESCE(AVG(o.total_amount), 0) as average_order_value,
+            CASE 
+                WHEN SUM(ss.actual_hours) > 0 
+                THEN COUNT(o.id)::DECIMAL / SUM(ss.actual_hours) 
+                ELSE 0 
+            END as orders_per_hour,
+            CASE 
+                WHEN SUM(ss.actual_hours) > 0 
+                THEN COALESCE(SUM(o.total_amount), 0) / SUM(ss.actual_hours) 
+                ELSE 0 
+            END as sales_per_hour,
+            COALESCE(AVG(tp.processing_duration), 0)::INTEGER as average_transaction_time,
+            COALESCE(AVG(sp.accuracy_rate), 100) as accuracy_rate,
+            CASE 
+                WHEN COUNT(DISTINCT ss.shift_date) > 0 
+                THEN COUNT(DISTINCT o.customer_id)::DECIMAL / COUNT(DISTINCT ss.shift_date)
+                ELSE 0 
+            END as customer_per_day
+        FROM public.user_profiles up
+        LEFT JOIN public.staff_shifts ss ON up.id = ss.staff_id 
+            AND ss.shift_date BETWEEN analysis_date - INTERVAL '1 day' * period_days AND analysis_date
+            AND ss.is_active = true
+        LEFT JOIN public.orders o ON up.id = o.served_by 
+            AND o.order_date BETWEEN analysis_date - INTERVAL '1 day' * period_days AND analysis_date
+            AND o.status = 'completed' AND o.is_active = true
+        LEFT JOIN public.transaction_performance tp ON o.id = tp.order_id
+        LEFT JOIN public.staff_performance sp ON up.id = sp.staff_id 
+            AND sp.performance_date BETWEEN analysis_date - INTERVAL '1 day' * period_days AND analysis_date
+        WHERE up.role IN ('admin', 'receptionist') AND up.is_active = true
+        GROUP BY up.id, up.full_name
+    ),
+    ranked_staff AS (
+        SELECT 
+            sm.*,
+            ROW_NUMBER() OVER (ORDER BY sm.sales_per_hour DESC, sm.accuracy_rate DESC) as efficiency_rank
+        FROM staff_metrics sm
+    )
+    SELECT 
+        rs.staff_id,
+        rs.staff_name,
+        rs.days_worked,
+        rs.total_hours_worked,
+        rs.total_orders,
+        rs.total_sales,
+        rs.average_order_value,
+        rs.orders_per_hour,
+        rs.sales_per_hour,
+        rs.average_transaction_time,
+        rs.accuracy_rate,
+        rs.customer_per_day,
+        rs.efficiency_rank,
+        CASE 
+            WHEN rs.accuracy_rate >= 98 AND rs.sales_per_hour >= 100 THEN 'A+'
+            WHEN rs.accuracy_rate >= 95 AND rs.sales_per_hour >= 80 THEN 'A'
+            WHEN rs.accuracy_rate >= 90 AND rs.sales_per_hour >= 60 THEN 'B'
+            WHEN rs.accuracy_rate >= 85 THEN 'C'
+            ELSE 'D'
+        END as performance_grade
+    FROM ranked_staff rs
+    WHERE rs.days_worked > 0
+    ORDER BY rs.efficiency_rank;
+END;
+$$ LANGUAGE plpgsql;
+
+-- 3. Peak Hours Analysis
+CREATE OR REPLACE FUNCTION get_peak_hours_analysis(
+    analysis_date DATE DEFAULT CURRENT_DATE,
+    period_days INTEGER DEFAULT 30
+)
+RETURNS TABLE(
+    hour_of_day INTEGER,
+    average_orders DECIMAL(10,2),
+    average_revenue DECIMAL(12,2),
+    peak_staff_needed INTEGER,
+    customer_wait_time INTEGER
+) AS $$
+BEGIN
+    RETURN QUERY
+    SELECT 
+        EXTRACT(HOUR FROM o.created_at)::INTEGER as hour_of_day,
+        (COUNT(o.id)::DECIMAL / period_days) as average_orders,
+        (COALESCE(SUM(o.total_amount), 0) / period_days) as average_revenue,
+        CEIL((COUNT(o.id)::DECIMAL / period_days) / 10)::INTEGER as peak_staff_needed, -- assuming 10 orders per staff per hour
+        COALESCE(AVG(tp.customer_wait_time), 0)::INTEGER as customer_wait_time
+    FROM public.orders o
+    LEFT JOIN public.transaction_performance tp ON o.id = tp.order_id
+    WHERE o.order_date BETWEEN analysis_date - INTERVAL '1 day' * period_days AND analysis_date
+    AND o.status = 'completed' AND o.is_active = true
+    GROUP BY EXTRACT(HOUR FROM o.created_at)
+    ORDER BY hour_of_day;
+END;
+$$ LANGUAGE plpgsql;
+
+-- 4. Daily Cash Reconciliation
+CREATE OR REPLACE FUNCTION get_daily_cash_reconciliation(
+    reconciliation_date DATE DEFAULT CURRENT_DATE
+)
+RETURNS JSON AS $$
+DECLARE
+    reconciliation JSON;
+BEGIN
+    SELECT json_build_object(
+        'date', reconciliation_date,
+        'expected_cash', (
+            SELECT COALESCE(SUM(o.total_amount), 0)
+            FROM public.orders o 
+            WHERE o.order_date = reconciliation_date 
+            AND o.payment_method = 'cash'
+            AND o.status = 'completed' AND o.is_active = true
+        ),
+        'actual_cash_collected', (
+            SELECT COALESCE(SUM(crs.total_cash_sales), 0)
+            FROM public.cash_register_sessions crs
+            WHERE crs.session_date = reconciliation_date
+            AND crs.is_balanced = true
+        ),
+        'cash_variance', (
+            SELECT COALESCE(SUM(crs.cash_variance), 0)
+            FROM public.cash_register_sessions crs
+            WHERE crs.session_date = reconciliation_date
+        ),
+        'total_sessions', (
+            SELECT COUNT(*)
+            FROM public.cash_register_sessions crs
+            WHERE crs.session_date = reconciliation_date
+        ),
+        'unbalanced_sessions', (
+            SELECT COUNT(*)
+            FROM public.cash_register_sessions crs
+            WHERE crs.session_date = reconciliation_date
+            AND crs.is_balanced = false
+        ),
+        'staff_cash_performance', (
+            SELECT json_agg(
+                json_build_object(
+                    'staff_name', up.full_name,
+                    'cash_handled', crs.total_cash_sales,
+                    'variance', crs.cash_variance,
+                    'is_balanced', crs.is_balanced
+                )
+            )
+            FROM public.cash_register_sessions crs
+            JOIN public.user_profiles up ON crs.staff_id = up.id
+            WHERE crs.session_date = reconciliation_date
+        )
+    ) INTO reconciliation;
+    
+    RETURN reconciliation;
+END;
+$$ LANGUAGE plpgsql;
+
+-- 5. Medicine Dispensing Performance
+CREATE OR REPLACE FUNCTION get_medicine_dispensing_performance(
+    start_date DATE DEFAULT CURRENT_DATE - INTERVAL '7 days',
+    end_date DATE DEFAULT CURRENT_DATE
+)
+RETURNS TABLE(
+    medicine_name VARCHAR(255),
+    total_dispensed BIGINT,
+    dispensing_staff_count INTEGER,
+    average_per_staff DECIMAL(10,2),
+    fastest_dispensing_time INTEGER,
+    slowest_dispensing_time INTEGER,
+    error_rate DECIMAL(5,2)
+) AS $$
+BEGIN
+    RETURN QUERY
+    SELECT 
+        oi.medicine_name,
+        SUM(oi.quantity) as total_dispensed,
+        COUNT(DISTINCT o.served_by) as dispensing_staff_count,
+        (SUM(oi.quantity)::DECIMAL / NULLIF(COUNT(DISTINCT o.served_by), 0)) as average_per_staff,
+        MIN(tp.processing_duration) as fastest_dispensing_time,
+        MAX(tp.processing_duration) as slowest_dispensing_time,
+        CASE 
+            WHEN COUNT(tp.id) > 0 
+            THEN (COUNT(CASE WHEN tp.was_error = true THEN 1 END)::DECIMAL / COUNT(tp.id)) * 100
+            ELSE 0 
+        END as error_rate
+    FROM public.order_items oi
+    JOIN public.orders o ON oi.order_id = o.id
+    LEFT JOIN public.transaction_performance tp ON o.id = tp.order_id
+    WHERE o.order_date BETWEEN start_date AND end_date
+    AND o.status = 'completed' AND o.is_active = true AND oi.is_active = true
+    GROUP BY oi.medicine_name
+    HAVING SUM(oi.quantity) > 0
+    ORDER BY total_dispensed DESC;
+END;
+$$ LANGUAGE plpgsql;
+
+-- 6. Shift Handover Report
+CREATE OR REPLACE FUNCTION get_shift_handover_report(
+    shift_date DATE DEFAULT CURRENT_DATE,
+    shift_type VARCHAR(20) DEFAULT 'morning'
+)
+RETURNS JSON AS $$
+DECLARE
+    handover_report JSON;
+BEGIN
+    SELECT json_build_object(
+        'shift_info', json_build_object(
+            'date', shift_date,
+            'shift_type', shift_type,
+            'staff_count', COUNT(DISTINCT ss.staff_id),
+            'total_hours_planned', SUM(ss.planned_hours),
+            'total_hours_worked', SUM(ss.actual_hours)
+        ),
+        'sales_summary', json_build_object(
+            'total_orders', COUNT(o.id),
+            'total_revenue', COALESCE(SUM(o.total_amount), 0),
+            'cash_sales', COALESCE(SUM(CASE WHEN o.payment_method = 'cash' THEN o.total_amount ELSE 0 END), 0),
+            'insurance_sales', COALESCE(SUM(CASE WHEN o.payment_method = 'insurance' THEN o.total_amount ELSE 0 END), 0),
+            'unique_customers', COUNT(DISTINCT o.customer_id)
+        ),
+        'inventory_alerts', (
+            SELECT json_agg(
+                json_build_object(
+                    'medicine_name', m.name,
+                    'current_stock', m.stock,
+                    'min_level', m.min_stock_level,
+                    'status', CASE 
+                        WHEN m.stock = 0 THEN 'OUT_OF_STOCK'
+                        WHEN m.stock <= m.min_stock_level THEN 'LOW_STOCK'
+                        ELSE 'OK'
+                    END
+                )
+            )
+            FROM public.medicines m
+            WHERE m.stock <= m.min_stock_level AND m.is_active = true
+        ),
+        'staff_performance', (
+            SELECT json_agg(
+                json_build_object(
+                    'staff_name', up.full_name,
+                    'orders_processed', COUNT(o2.id),
+                    'sales_amount', COALESCE(SUM(o2.total_amount), 0),
+                    'hours_worked', ss2.actual_hours,
+                    'performance_rating', CASE 
+                        WHEN COUNT(o2.id) > 20 THEN 'Excellent'
+                        WHEN COUNT(o2.id) > 15 THEN 'Good'
+                        WHEN COUNT(o2.id) > 10 THEN 'Average'
+                        ELSE 'Below Average'
+                    END
+                )
+            )
+            FROM public.staff_shifts ss2
+            JOIN public.user_profiles up ON ss2.staff_id = up.id
+            LEFT JOIN public.orders o2 ON ss2.staff_id = o2.served_by 
+                AND o2.order_date = shift_date
+                AND o2.status = 'completed'
+            WHERE ss2.shift_date = shift_date 
+            AND ss2.shift_type = shift_type
+            AND ss2.is_active = true
+            GROUP BY up.full_name, ss2.actual_hours
+        )
+    ) INTO handover_report
+    FROM public.staff_shifts ss
+    LEFT JOIN public.orders o ON ss.staff_id = o.served_by 
+        AND o.order_date = shift_date
+        AND o.status = 'completed' AND o.is_active = true
+    WHERE ss.shift_date = shift_date 
+    AND ss.shift_type = shift_type
+    AND ss.is_active = true;
+    
+    RETURN handover_report;
+END;
+$$ LANGUAGE plpgsql;
+
+-- =============================================
+-- TRIGGERS FOR AUTOMATIC PERFORMANCE TRACKING
+-- =============================================
+
+-- Update staff performance when order is completed
+CREATE OR REPLACE FUNCTION update_staff_performance_on_order()
+RETURNS TRIGGER AS $$
+BEGIN
+    IF NEW.status = 'completed' AND (OLD.status IS NULL OR OLD.status != 'completed') THEN
+        -- Insert or update staff performance for today
+        INSERT INTO public.staff_performance (
+            staff_id, performance_date, orders_processed, total_sales_amount, 
+            customer_count, medicines_dispensed
+        )
+        VALUES (
+            NEW.served_by, NEW.order_date, 1, NEW.total_amount, 1,
+            (SELECT COALESCE(SUM(quantity), 0) FROM public.order_items WHERE order_id = NEW.id)
+        )
+        ON CONFLICT (staff_id, performance_date) 
+        DO UPDATE SET
+            orders_processed = staff_performance.orders_processed + 1,
+            total_sales_amount = staff_performance.total_sales_amount + NEW.total_amount,
+            customer_count = staff_performance.customer_count + 1,
+            medicines_dispensed = staff_performance.medicines_dispensed + 
+                (SELECT COALESCE(SUM(quantity), 0) FROM public.order_items WHERE order_id = NEW.id);
+    END IF;
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER update_staff_performance_trigger 
+    AFTER UPDATE ON public.orders 
+    FOR EACH ROW 
+    EXECUTE FUNCTION update_staff_performance_on_order();
+
+-- Auto-calculate shift hours
+CREATE OR REPLACE FUNCTION calculate_shift_hours()
+RETURNS TRIGGER AS $$
+BEGIN
+    IF NEW.clock_out_time IS NOT NULL AND NEW.clock_in_time IS NOT NULL THEN
+        NEW.actual_hours := EXTRACT(EPOCH FROM (NEW.clock_out_time - NEW.clock_in_time)) / 3600.0 - (NEW.break_duration / 60.0);
+    END IF;
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER calculate_shift_hours_trigger 
+    BEFORE INSERT OR UPDATE ON public.staff_shifts 
+    FOR EACH ROW 
+    EXECUTE FUNCTION calculate_shift_hours();
+
+-- =============================================
+-- INDEXES FOR PERFORMANCE
+-- =============================================
+
+CREATE INDEX idx_staff_shifts_date_staff ON public.staff_shifts(shift_date, staff_id);
+CREATE INDEX idx_staff_performance_date_staff ON public.staff_performance(performance_date, staff_id);
+CREATE INDEX idx_transaction_performance_staff_time ON public.transaction_performance(staff_id, transaction_start_time);
+CREATE INDEX idx_cash_register_sessions_date_staff ON public.cash_register_sessions(session_date, staff_id);
+CREATE INDEX idx_daily_pos_summary_date ON public.daily_pos_summary(summary_date);
+
+-- Add unique constraint for staff performance per date
+ALTER TABLE public.staff_performance ADD CONSTRAINT unique_staff_performance_per_date 
+    UNIQUE (staff_id, performance_date);
+
+-- =============================================
+-- INITIAL SETUP
+-- =============================================
+
+-- Grant permissions for new tables
+ALTER TABLE public.staff_shifts ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.staff_performance ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.transaction_performance ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.cash_register_sessions ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.daily_pos_summary ENABLE ROW LEVEL SECURITY;
+
+-- RLS Policies
+CREATE POLICY "Staff can manage their own shifts" ON public.staff_shifts
+    FOR ALL USING (staff_id = auth.uid() OR 
+        EXISTS (SELECT 1 FROM public.user_profiles WHERE id = auth.uid() AND role = 'admin'));
+
+CREATE POLICY "Staff can view their own performance" ON public.staff_performance
+    FOR SELECT USING (staff_id = auth.uid() OR 
+        EXISTS (SELECT 1 FROM public.user_profiles WHERE id = auth.uid() AND role IN ('admin', 'receptionist')));
+
+CREATE POLICY "Admins can view all transaction performance" ON public.transaction_performance
+    FOR ALL USING (
+        EXISTS (SELECT 1 FROM public.user_profiles WHERE id = auth.uid() AND role = 'admin')
+    );
+
+CREATE POLICY "Staff can manage their cash sessions" ON public.cash_register_sessions
+    FOR ALL USING (staff_id = auth.uid() OR 
+        EXISTS (SELECT 1 FROM public.user_profiles WHERE id = auth.uid() AND role = 'admin'));
+
+CREATE POLICY "Staff can view daily POS summary" ON public.daily_pos_summary
+    FOR SELECT USING (
+        EXISTS (SELECT 1 FROM public.user_profiles WHERE id = auth.uid() AND role IN ('admin', 'receptionist'))
+    );

@@ -1126,7 +1126,29 @@
             return false;
           }
           if (user) {
-            window.location.href = "dashboard.html";
+            try {
+              const profile = await getUserProfile();
+              if (profile) {
+                switch (profile.role) {
+                  case "admin":
+                    window.location.href = "dashboard.html";
+                    break;
+                  case "receptionist":
+                    window.location.href = "receptionist-dashboard.html";
+                    break;
+                  case "customer":
+                    window.location.href = "customer-portal.html";
+                    break;
+                  default:
+                    window.location.href = "dashboard.html";
+                }
+              } else {
+                window.location.href = "dashboard.html";
+              }
+            } catch (profileError) {
+              console.error("Profile fetch error:", profileError.message);
+              window.location.href = "dashboard.html";
+            }
             return true;
           }
           return false;
