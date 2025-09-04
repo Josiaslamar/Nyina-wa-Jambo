@@ -343,6 +343,9 @@ async function bulkAddMedicines(medicines) {
 }
 
 async function fetchOrders() {
+  if (!(await isReceptionist()))
+    throw new Error("Permission denied: Staff only");
+  
   const { data, error } = await supabase
     .from("orders")
     .select(
@@ -350,13 +353,25 @@ async function fetchOrders() {
       *, 
       order_items(id, medicine_id, medicine_name, quantity, unit_price, total_price, batch_number, expiry_date),
       customers(name, customer_id),
-      user_profiles!orders_created_by_fkey(full_name)
+      user_profiles!orders_served_by_fkey(full_name)
     `
     )
     .eq("is_active", true)
     .order("order_date", { ascending: false });
+  
   if (error) throw new Error(`Orders fetch error: ${error.message}`);
-  return data || [];
+  
+  // Process the data to add computed fields
+  const processedData = (data || []).map(order => ({
+    ...order,
+    customer_name: order.customers?.name || 'Walk-in Customer',
+    served_by_name: order.user_profiles?.full_name || 'Unknown',
+    quantity: order.order_items?.reduce((sum, item) => sum + (item.quantity || 0), 0) || 0,
+    items_count: order.order_items?.length || 0,
+    total: order.total_amount || 0
+  }));
+  
+  return processedData;
 }
 
 async function getCustomerOrderHistory(customerId) {
@@ -1366,4 +1381,221 @@ async function createNotification(notificationData) {
     console.error('Error creating notification:', error);
     throw error;
   }
+}
+
+// =============================================
+// CUSTOMERS API FUNCTIONS
+// =============================================
+
+async function fetchCustomers() {
+  if (!(await isReceptionist()))
+    throw new Error("Permission denied: Staff only");
+  
+  const { data, error } = await supabase
+    .from("customers")
+    .select("*")
+    .eq("is_active", true)
+    .order("name");
+  
+  if (error) throw new Error(`Customers fetch error: ${error.message}`);
+  return data || [];
+}
+
+async function addCustomer(customer) {
+  if (!(await isReceptionist()))
+    throw new Error("Permission denied: Staff only");
+  
+  const user = await getCurrentUser();
+  const customerData = {
+    customer_id: `CUS${Date.now()}`,
+    name: customer.name,
+    phone: customer.phone,
+    email: customer.email,
+    address: customer.address,
+    created_by: user?.id
+  };
+  
+  const { data, error } = await supabase
+    .from("customers")
+    .insert([customerData])
+    .select();
+  
+  if (error) throw new Error(`Customer insert error: ${error.message}`);
+  showSuccess("Customer added successfully!");
+  return data[0];
+}
+
+async function updateCustomer(id, updates) {
+  if (!(await isReceptionist()))
+    throw new Error("Permission denied: Staff only");
+  
+  const user = await getCurrentUser();
+  const { data, error } = await supabase
+    .from("customers")
+    .update({ ...updates, updated_at: new Date().toISOString() })
+    .eq("id", id)
+    .eq("is_active", true)
+    .select();
+  
+  if (error) throw new Error(`Customer update error: ${error.message}`);
+  showSuccess("Customer updated successfully!");
+  return data[0];
+}
+
+async function deleteCustomer(id) {
+  if (!(await isReceptionist()))
+    throw new Error("Permission denied: Staff only");
+  
+  const { data, error } = await supabase
+    .from("customers")
+    .update({ is_active: false, updated_at: new Date().toISOString() })
+    .eq("id", id)
+    .select();
+  
+  if (error) throw new Error(`Customer deletion error: ${error.message}`);
+  showSuccess("Customer deleted successfully!");
+  return data[0];
+}
+
+// =============================================
+// ORDERS API FUNCTIONS
+// =============================================
+
+async function addOrder(orderData) {
+  if (!(await isReceptionist()))
+    throw new Error("Permission denied: Staff only");
+  
+  const user = await getCurrentUser();
+  
+  try {
+    // Generate order number
+    const orderNumber = `ORD${Date.now()}`;
+    
+    // Create the order
+    const newOrder = {
+      order_number: orderNumber,
+      customer_id: orderData.customerId || null, // Allow null for walk-in customers
+      order_type: 'direct',
+      subtotal: orderData.total,
+      total_amount: orderData.total,
+      status: orderData.status || 'pending',
+      payment_status: 'unpaid',
+      payment_method: 'cash',
+      served_by: user?.id,
+      order_date: orderData.date || new Date().toISOString().split('T')[0],
+      created_by: user?.id
+    };
+    
+    const { data: order, error: orderError } = await supabase
+      .from("orders")
+      .insert([newOrder])
+      .select()
+      .single();
+    
+    if (orderError) throw new Error(`Order creation error: ${orderError.message}`);
+    
+    // Create order items
+    if (orderData.medicines && orderData.medicines.length > 0) {
+      const orderItems = orderData.medicines.map(medicine => ({
+        order_id: order.id,
+        medicine_id: medicine.medicineId,
+        medicine_name: medicine.medicineName || 'Unknown Medicine',
+        quantity: medicine.quantity,
+        unit_price: medicine.price,
+        total_price: medicine.quantity * medicine.price
+      }));
+      
+      const { data: items, error: itemsError } = await supabase
+        .from("order_items")
+        .insert(orderItems)
+        .select();
+      
+      if (itemsError) throw new Error(`Order items creation error: ${itemsError.message}`);
+      
+      // Update medicine stock for each item
+      for (const medicine of orderData.medicines) {
+        try {
+          await processStockOut(
+            medicine.medicineId,
+            medicine.quantity,
+            "sale",
+            `Order ${orderNumber}`
+          );
+        } catch (stockError) {
+          console.warn(`Stock update warning for medicine ${medicine.medicineId}: ${stockError.message}`);
+          // Create notification for stock issues
+          await createNotification({
+            title: 'Stock Update Warning',
+            message: `Stock update failed for order ${orderNumber}: ${stockError.message}`,
+            type: 'warning',
+            targetRole: 'admin',
+            relatedTo: 'order',
+            relatedId: order.id,
+            priority: 'normal'
+          }).catch(err => console.warn('Notification creation failed:', err));
+        }
+      }
+    }
+    
+    showSuccess(`Order ${orderNumber} created successfully!`);
+    return order;
+  } catch (error) {
+    console.error('Error creating order:', error);
+    throw error;
+  }
+}
+
+async function deleteOrder(id) {
+  if (!(await isReceptionist()))
+    throw new Error("Permission denied: Staff only");
+  
+  const { data, error } = await supabase
+    .from("orders")
+    .update({ is_active: false, updated_at: new Date().toISOString() })
+    .eq("id", id)
+    .select();
+  
+  if (error) throw new Error(`Order deletion error: ${error.message}`);
+  showSuccess("Order deleted successfully!");
+  return data[0];
+}
+
+async function updateOrderStatus(id, status) {
+  if (!(await isReceptionist()))
+    throw new Error("Permission denied: Staff only");
+  
+  const { data, error } = await supabase
+    .from("orders")
+    .update({ 
+      status: status, 
+      updated_at: new Date().toISOString(),
+      ...(status === 'completed' && { payment_status: 'paid' })
+    })
+    .eq("id", id)
+    .eq("is_active", true)
+    .select();
+  
+  if (error) throw new Error(`Order status update error: ${error.message}`);
+  showSuccess(`Order status updated to ${status}!`);
+  return data[0];
+}
+
+async function getOrderDetails(id) {
+  if (!(await isReceptionist()))
+    throw new Error("Permission denied: Staff only");
+  
+  const { data, error } = await supabase
+    .from("orders")
+    .select(`
+      *,
+      order_items(*),
+      customers(name, customer_id, phone),
+      user_profiles!orders_served_by_fkey(full_name)
+    `)
+    .eq("id", id)
+    .eq("is_active", true)
+    .single();
+  
+  if (error) throw new Error(`Order details fetch error: ${error.message}`);
+  return data;
 }

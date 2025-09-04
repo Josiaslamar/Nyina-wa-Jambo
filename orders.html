@@ -33,10 +33,10 @@
                     <i class="fas fa-truck w-6 text-center"></i>
                     <span class="ml-4">Suppliers</span>
                 </a>
-                <a href="customers.html" class="flex items-center py-3 px-6 text-gray-300 hover:bg-green-600 hover:text-white transition-colors receptionist-only">
+                <!-- <a href="customers.html" class="flex items-center py-3 px-6 text-gray-300 hover:bg-green-600 hover:text-white transition-colors receptionist-only">
                     <i class="fas fa-users w-6 text-center"></i>
                     <span class="ml-4">Customers</span>
-                </a>
+                </a> -->
                 <a href="orders.html" class="flex items-center py-3 px-6 bg-green-600 text-white receptionist-only">
                     <i class="fas fa-shopping-cart w-6 text-center"></i>
                     <span class="ml-4">Orders</span>
@@ -95,7 +95,7 @@
                 <div class="container mx-auto">
                     <!-- Page Header -->
                     <div class="mb-8">
-                        <div class="flex justify-between items-center">
+                        <div class="flex justify-between items-center mb-4">
                             <div>
                                 <h1 class="text-3xl font-bold text-gray-900">Orders Management</h1>
                                 <p class="text-gray-600 mt-2">Manage pharmacy orders and transactions</p>
@@ -103,6 +103,57 @@
                             <button id="addOrderBtn" class="bg-primary text-white px-6 py-3 rounded-lg hover:bg-green-600 transition-colors shadow-md">
                                 <i class="fas fa-plus mr-2"></i>New Order
                             </button>
+                        </div>
+                        
+                        <!-- Quick Stats -->
+                        <div id="orderStats" class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+                            <div class="bg-white rounded-lg shadow-sm p-4 border-l-4 border-blue-500">
+                                <div class="flex items-center">
+                                    <div class="flex-shrink-0">
+                                        <i class="fas fa-shopping-cart text-blue-500 text-xl"></i>
+                                    </div>
+                                    <div class="ml-3">
+                                        <p class="text-sm font-medium text-gray-500">Today's Orders</p>
+                                        <p id="todayOrders" class="text-2xl font-semibold text-gray-900">-</p>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="bg-white rounded-lg shadow-sm p-4 border-l-4 border-green-500">
+                                <div class="flex items-center">
+                                    <div class="flex-shrink-0">
+                                        <i class="fas fa-money-bill-wave text-green-500 text-xl"></i>
+                                    </div>
+                                    <div class="ml-3">
+                                        <p class="text-sm font-medium text-gray-500">Today's Revenue</p>
+                                        <p id="todayRevenue" class="text-2xl font-semibold text-gray-900">-</p>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="bg-white rounded-lg shadow-sm p-4 border-l-4 border-yellow-500">
+                                <div class="flex items-center">
+                                    <div class="flex-shrink-0">
+                                        <i class="fas fa-clock text-yellow-500 text-xl"></i>
+                                    </div>
+                                    <div class="ml-3">
+                                        <p class="text-sm font-medium text-gray-500">Pending Orders</p>
+                                        <p id="pendingOrders" class="text-2xl font-semibold text-gray-900">-</p>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="bg-white rounded-lg shadow-sm p-4 border-l-4 border-purple-500">
+                                <div class="flex items-center">
+                                    <div class="flex-shrink-0">
+                                        <i class="fas fa-users text-purple-500 text-xl"></i>
+                                    </div>
+                                    <div class="ml-3">
+                                        <p class="text-sm font-medium text-gray-500">Total Customers</p>
+                                        <p id="totalCustomers" class="text-2xl font-semibold text-gray-900">-</p>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     </div>
 
@@ -170,9 +221,15 @@
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-2">Customer</label>
-                        <select id="orderCustomer" required class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-primary focus:border-primary">
-                            <option value="">Select Customer</option>
-                        </select>
+                        <div class="flex space-x-2">
+                            <select id="orderCustomer" required class="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-primary focus:border-primary">
+                                <option value="">Select Customer</option>
+                                <option value="walk-in">Walk-in Customer</option>
+                            </select>
+                            <button type="button" onclick="showNewCustomerForm()" class="px-3 py-2 bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200" title="Add New Customer">
+                                <i class="fas fa-plus"></i>
+                            </button>
+                        </div>
                     </div>
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-2">Status</label>
@@ -238,6 +295,7 @@
             loadCustomers();
             loadMedicines();
             setupEventListeners();
+            updateOrderStats();
         });
 
         async function updateNavigation() {
@@ -310,17 +368,60 @@
                 availableCustomers = await fetchCustomers();
                 const customerSelect = document.getElementById("orderCustomer");
                 customerSelect.innerHTML = '<option value="">Select Customer</option>' +
-                    availableCustomers.map(customer => `<option value="${customer.id}">${customer.name}</option>`).join("");
+                    '<option value="walk-in">Walk-in Customer</option>' +
+                    availableCustomers.map(customer => 
+                        `<option value="${customer.id}">${customer.name} - ${customer.customer_id}</option>`
+                    ).join("");
             } catch (error) {
                 console.error('Error loading customers:', error);
+                showNotification('Error loading customers. Please try again.', 'error');
             }
         }
 
         async function loadMedicines() {
             try {
                 availableMedicines = await fetchMedicines();
+                if (availableMedicines.length === 0) {
+                    showNotification('No medicines available. Please add medicines first.', 'warning');
+                }
             } catch (error) {
                 console.error('Error loading medicines:', error);
+                showNotification('Error loading medicines. Please try again.', 'error');
+            }
+        }
+
+        async function updateOrderStats() {
+            try {
+                const orders = await fetchOrders();
+                const today = new Date().toISOString().split('T')[0];
+                
+                // Today's orders
+                const todayOrders = orders.filter(order => {
+                    const orderDate = order.order_date || new Date(order.created_at).toISOString().split('T')[0];
+                    return orderDate === today;
+                });
+                
+                // Today's completed orders
+                const completedToday = todayOrders.filter(order => order.status === 'completed');
+                
+                // Today's revenue
+                const todayRevenue = completedToday.reduce((sum, order) => sum + (order.total_amount || 0), 0);
+                
+                // Pending orders
+                const pendingOrders = orders.filter(order => order.status === 'pending' || order.status === 'processing');
+                
+                // Update the display
+                document.getElementById('todayOrders').textContent = todayOrders.length;
+                document.getElementById('todayRevenue').textContent = Math.round(todayRevenue).toLocaleString() + ' RWF';
+                document.getElementById('pendingOrders').textContent = pendingOrders.length;
+                document.getElementById('totalCustomers').textContent = availableCustomers.length;
+            } catch (error) {
+                console.error('Error updating stats:', error);
+                // Set fallback values
+                document.getElementById('todayOrders').textContent = '0';
+                document.getElementById('todayRevenue').textContent = '0 RWF';
+                document.getElementById('pendingOrders').textContent = '0';
+                document.getElementById('totalCustomers').textContent = '0';
             }
         }
 
@@ -353,14 +454,16 @@
                         'cancelled': 'bg-red-100 text-red-800'
                     }[order.status] || 'bg-gray-100 text-gray-800';
 
-                    const itemCount = order.quantity || 1;
+                    const itemCount = order.items_count || order.quantity || 1;
+                    const orderDate = order.order_date ? new Date(order.order_date).toLocaleDateString() : 
+                                     order.created_at ? new Date(order.created_at).toLocaleDateString() : 'N/A';
 
                     return `
                         <tr class="hover:bg-gray-50">
-                            <td class="px-6 py-4 whitespace-nowrap font-medium text-gray-900">#${order.id}</td>
+                            <td class="px-6 py-4 whitespace-nowrap font-medium text-gray-900">${order.order_number || '#' + order.id}</td>
                             <td class="px-6 py-4 whitespace-nowrap text-gray-900">${order.customer_name || 'N/A'}</td>
-                            <td class="px-6 py-4 whitespace-nowrap text-gray-900">${order.order_date ? new Date(order.order_date).toLocaleDateString() : 'N/A'}</td>
-                            <td class="px-6 py-4 whitespace-nowrap text-gray-900">${Math.round(order.total || 0).toLocaleString()} RWF</td>
+                            <td class="px-6 py-4 whitespace-nowrap text-gray-900">${orderDate}</td>
+                            <td class="px-6 py-4 whitespace-nowrap text-gray-900">${Math.round(order.total_amount || order.total || 0).toLocaleString()} RWF</td>
                             <td class="px-6 py-4 whitespace-nowrap">
                                 <span class="px-2 py-1 text-xs font-semibold rounded-full ${statusClass}">
                                     ${order.status.charAt(0).toUpperCase() + order.status.slice(1)}
@@ -368,8 +471,22 @@
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap text-gray-900">${itemCount} item${itemCount !== 1 ? 's' : ''}</td>
                             <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                                <button onclick="viewOrder(${order.id})" class="text-indigo-600 hover:text-indigo-900 mr-3"><i class="fas fa-eye"></i></button>
-                                <button onclick="deleteOrderLocal(${order.id})" class="text-red-600 hover:text-red-900"><i class="fas fa-trash"></i></button>
+                                <button onclick="viewOrder(${order.id})" class="text-indigo-600 hover:text-indigo-900 mr-3" title="View Details">
+                                    <i class="fas fa-eye"></i>
+                                </button>
+                                ${order.status === 'pending' ? `
+                                    <button onclick="updateOrderStatusLocal(${order.id}, 'processing')" class="text-blue-600 hover:text-blue-900 mr-3" title="Start Processing">
+                                        <i class="fas fa-play"></i>
+                                    </button>
+                                ` : ''}
+                                ${order.status === 'processing' ? `
+                                    <button onclick="updateOrderStatusLocal(${order.id}, 'completed')" class="text-green-600 hover:text-green-900 mr-3" title="Complete Order">
+                                        <i class="fas fa-check"></i>
+                                    </button>
+                                ` : ''}
+                                <button onclick="deleteOrderLocal(${order.id})" class="text-red-600 hover:text-red-900" title="Delete Order">
+                                    <i class="fas fa-trash"></i>
+                                </button>
                             </td>
                         </tr>
                     `;
@@ -385,7 +502,14 @@
             const form = document.getElementById("orderForm");
             form.reset();
             orderItems = [];
-            updateOrderMedicines();
+            
+            // Reset medicine container
+            const medicineContainer = document.getElementById("orderMedicines");
+            medicineContainer.innerHTML = "";
+            
+            // Add one medicine item by default
+            addMedicineItem();
+            
             updateOrderTotal();
             modal.classList.add("show");
         }
@@ -397,47 +521,157 @@
         function addMedicineItem() {
             const container = document.getElementById("orderMedicines");
             const itemIndex = orderItems.length;
-            const medicineItem = { medicineId: "", quantity: 1, price: 0 };
+            const medicineItem = { medicineId: "", quantity: 1, price: 0, medicineName: "" };
             orderItems.push(medicineItem);
 
             const itemDiv = document.createElement("div");
-            itemDiv.className = "flex space-x-3 items-end";
+            itemDiv.className = "flex space-x-3 items-end medicine-item";
+            itemDiv.setAttribute("data-index", itemIndex);
             itemDiv.innerHTML = `
                 <div class="flex-1">
-                    <select class="w-full px-3 py-2 border border-gray-300 rounded-md" onchange="updateMedicineItem(${itemIndex}, 'medicineId', this.value)">
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Medicine</label>
+                    <select class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-primary focus:border-primary" onchange="updateMedicineItem(${itemIndex}, 'medicineId', this.value)">
                         <option value="">Select Medicine</option>
-                        ${availableMedicines.map(med => `<option value="${med.id}" data-price="${med.price}">${med.name} - ${Math.round(med.price).toLocaleString()} RWF</option>`).join("")}
+                        ${availableMedicines.map(med => `<option value="${med.id}" data-price="${med.selling_price || med.price}" data-name="${med.name}" data-stock="${med.stock}">${med.name} - ${Math.round(med.selling_price || med.price || 0).toLocaleString()} RWF (Stock: ${med.stock || 0})</option>`).join("")}
                     </select>
                 </div>
                 <div class="w-24">
-                    <input type="number" min="1" value="1" class="w-full px-3 py-2 border border-gray-300 rounded-md" onchange="updateMedicineItem(${itemIndex}, 'quantity', this.value)">
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Qty</label>
+                    <input type="number" min="1" max="999" value="1" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-primary focus:border-primary" onchange="updateMedicineItem(${itemIndex}, 'quantity', this.value)">
                 </div>
-                <button type="button" onclick="removeMedicineItem(${itemIndex})" class="px-3 py-2 text-red-600 hover:text-red-800"><i class="fas fa-trash"></i></button>
+                <div class="w-32">
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Price</label>
+                    <input type="number" step="0.01" min="0" value="0" class="w-full px-3 py-2 border border-gray-300 rounded-md bg-gray-50" readonly>
+                </div>
+                <div class="w-32">
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Total</label>
+                    <input type="number" step="0.01" min="0" value="0" class="w-full px-3 py-2 border border-gray-300 rounded-md bg-gray-50" readonly>
+                </div>
+                <button type="button" onclick="removeMedicineItem(${itemIndex})" class="px-3 py-2 text-red-600 hover:text-red-800 h-10" title="Remove Item">
+                    <i class="fas fa-trash"></i>
+                </button>
             `;
             container.appendChild(itemDiv);
         }
 
         function updateMedicineItem(index, field, value) {
+            if (index >= orderItems.length) return;
+            
+            const itemDiv = document.querySelector(`[data-index="${index}"]`);
+            if (!itemDiv) return;
+            
             if (field === 'medicineId') {
                 const medicine = availableMedicines.find(m => m.id == value);
-                orderItems[index].medicineId = value;
-                orderItems[index].price = medicine ? medicine.price : 0;
+                if (medicine) {
+                    orderItems[index].medicineId = value;
+                    orderItems[index].price = medicine.selling_price || medicine.price || 0;
+                    orderItems[index].medicineName = medicine.name;
+                    orderItems[index].stock = medicine.stock || 0;
+                    
+                    // Update price input
+                    const priceInput = itemDiv.querySelector('input[readonly]');
+                    if (priceInput) priceInput.value = Math.round(orderItems[index].price).toLocaleString();
+                    
+                    // Validate stock
+                    const quantityInput = itemDiv.querySelector('input[type="number"]:not([readonly])');
+                    if (quantityInput) {
+                        quantityInput.max = medicine.stock || 0;
+                        if (parseInt(quantityInput.value) > (medicine.stock || 0)) {
+                            quantityInput.value = medicine.stock || 0;
+                            orderItems[index].quantity = medicine.stock || 0;
+                            showNotification(`Quantity adjusted to available stock (${medicine.stock || 0})`, 'warning');
+                        }
+                    }
+                } else {
+                    orderItems[index].medicineId = "";
+                    orderItems[index].price = 0;
+                    orderItems[index].medicineName = "";
+                    orderItems[index].stock = 0;
+                }
             } else if (field === 'quantity') {
-                orderItems[index].quantity = parseInt(value) || 1;
+                const quantity = parseInt(value) || 1;
+                const stock = orderItems[index].stock || 0;
+                
+                if (quantity > stock) {
+                    showNotification(`Insufficient stock. Available: ${stock}`, 'error');
+                    const quantityInput = itemDiv.querySelector('input[type="number"]:not([readonly])');
+                    if (quantityInput) quantityInput.value = stock;
+                    orderItems[index].quantity = stock;
+                } else {
+                    orderItems[index].quantity = quantity;
+                }
             }
+            
+            // Update total for this item
+            const total = orderItems[index].quantity * orderItems[index].price;
+            const totalInput = itemDiv.querySelectorAll('input[readonly]')[1];
+            if (totalInput) totalInput.value = Math.round(total).toLocaleString();
+            
             updateOrderTotal();
         }
 
         function removeMedicineItem(index) {
-            orderItems.splice(index, 1);
-            updateOrderMedicines();
-            updateOrderTotal();
+            const itemDiv = document.querySelector(`[data-index="${index}"]`);
+            if (itemDiv) {
+                itemDiv.remove();
+                orderItems.splice(index, 1);
+                
+                // Re-index remaining items
+                document.querySelectorAll('.medicine-item').forEach((div, newIndex) => {
+                    div.setAttribute('data-index', newIndex);
+                    div.innerHTML = div.innerHTML.replace(/\d+/g, (match, offset, string) => {
+                        // Only replace function calls, not other numbers
+                        if (string.substring(offset - 20, offset).includes('updateMedicineItem') || 
+                            string.substring(offset - 20, offset).includes('removeMedicineItem')) {
+                            return newIndex;
+                        }
+                        return match;
+                    });
+                });
+                
+                updateOrderTotal();
+            }
         }
 
         function updateOrderMedicines() {
             const container = document.getElementById("orderMedicines");
             container.innerHTML = "";
-            orderItems.forEach((item, index) => addMedicineItem());
+            orderItems.forEach((item, index) => {
+                // Re-create each medicine item with current data
+                const itemDiv = document.createElement("div");
+                itemDiv.className = "flex space-x-3 items-end medicine-item";
+                itemDiv.setAttribute("data-index", index);
+                
+                const selectedMedicine = availableMedicines.find(m => m.id == item.medicineId);
+                const price = selectedMedicine ? (selectedMedicine.selling_price || selectedMedicine.price || 0) : 0;
+                const total = item.quantity * price;
+                
+                itemDiv.innerHTML = `
+                    <div class="flex-1">
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Medicine</label>
+                        <select class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-primary focus:border-primary" onchange="updateMedicineItem(${index}, 'medicineId', this.value)">
+                            <option value="">Select Medicine</option>
+                            ${availableMedicines.map(med => `<option value="${med.id}" data-price="${med.selling_price || med.price}" data-name="${med.name}" data-stock="${med.stock}" ${med.id == item.medicineId ? 'selected' : ''}>${med.name} - ${Math.round(med.selling_price || med.price || 0).toLocaleString()} RWF (Stock: ${med.stock || 0})</option>`).join("")}
+                        </select>
+                    </div>
+                    <div class="w-24">
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Qty</label>
+                        <input type="number" min="1" max="${selectedMedicine?.stock || 999}" value="${item.quantity}" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-primary focus:border-primary" onchange="updateMedicineItem(${index}, 'quantity', this.value)">
+                    </div>
+                    <div class="w-32">
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Price</label>
+                        <input type="number" step="0.01" min="0" value="${Math.round(price).toLocaleString()}" class="w-full px-3 py-2 border border-gray-300 rounded-md bg-gray-50" readonly>
+                    </div>
+                    <div class="w-32">
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Total</label>
+                        <input type="number" step="0.01" min="0" value="${Math.round(total).toLocaleString()}" class="w-full px-3 py-2 border border-gray-300 rounded-md bg-gray-50" readonly>
+                    </div>
+                    <button type="button" onclick="removeMedicineItem(${index})" class="px-3 py-2 text-red-600 hover:text-red-800 h-10" title="Remove Item">
+                        <i class="fas fa-trash"></i>
+                    </button>
+                `;
+                container.appendChild(itemDiv);
+            });
         }
 
         function updateOrderTotal() {
@@ -454,35 +688,206 @@
                 showNotification("Please select a customer", "error");
                 return;
             }
-            if (orderItems.length === 0 || orderItems.every(item => !item.medicineId)) {
+            
+            // Validate medicines
+            const validMedicines = orderItems.filter(item => item.medicineId && item.quantity > 0);
+            if (validMedicines.length === 0) {
                 showNotification("Please add at least one medicine", "error");
                 return;
             }
 
-            const customer = availableCustomers.find(c => c.id == customerId);
-            const total = orderItems.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+            // Validate stock for all items
+            for (const item of validMedicines) {
+                const medicine = availableMedicines.find(m => m.id == item.medicineId);
+                if (!medicine) {
+                    showNotification(`Invalid medicine selected`, "error");
+                    return;
+                }
+                if (item.quantity > (medicine.stock || 0)) {
+                    showNotification(`Insufficient stock for ${medicine.name}. Available: ${medicine.stock || 0}`, "error");
+                    return;
+                }
+            }
+
+            // Handle customer data
+            let customer;
+            let finalCustomerId;
+            
+            if (customerId === 'walk-in') {
+                // Create a temporary walk-in customer
+                try {
+                    const walkInCustomer = await addCustomer({
+                        name: 'Walk-in Customer',
+                        phone: '',
+                        email: '',
+                        address: ''
+                    });
+                    customer = walkInCustomer;
+                    finalCustomerId = walkInCustomer.id;
+                } catch (error) {
+                    // If we can't create a walk-in customer, use null
+                    customer = { name: 'Walk-in Customer' };
+                    finalCustomerId = null;
+                }
+            } else {
+                customer = availableCustomers.find(c => c.id == customerId);
+                finalCustomerId = parseInt(customerId);
+            }
+
+            const total = validMedicines.reduce((sum, item) => {
+                const medicine = availableMedicines.find(m => m.id == item.medicineId);
+                const price = medicine ? (medicine.selling_price || medicine.price || 0) : 0;
+                return sum + (price * item.quantity);
+            }, 0);
 
             const orderData = {
-                customerId: parseInt(customerId),
-                customerName: customer.name,
+                customerId: finalCustomerId,
+                customerName: customer?.name || 'Walk-in Customer',
                 date: new Date().toISOString().split("T")[0],
                 total: total,
                 status: status,
-                medicines: orderItems.filter(item => item.medicineId)
+                medicines: validMedicines.map(item => {
+                    const medicine = availableMedicines.find(m => m.id == item.medicineId);
+                    return {
+                        medicineId: parseInt(item.medicineId),
+                        medicineName: medicine?.name || 'Unknown',
+                        quantity: item.quantity,
+                        price: medicine ? (medicine.selling_price || medicine.price || 0) : 0
+                    };
+                })
             };
 
             try {
+                const submitBtn = e.target.querySelector('button[type="submit"]');
+                const originalText = submitBtn.innerHTML;
+                submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Creating...';
+                submitBtn.disabled = true;
+
                 await addOrder(orderData);
                 renderOrders();
+                updateOrderStats();
                 closeOrderModal();
                 showNotification("Order created successfully!", "success");
             } catch (error) {
-                showNotification("Error creating order.", "error");
+                console.error('Order creation error:', error);
+                showNotification(error.message || "Error creating order.", "error");
+            } finally {
+                const submitBtn = e.target.querySelector('button[type="submit"]');
+                if (submitBtn) {
+                    submitBtn.innerHTML = '<i class="fas fa-plus mr-2"></i>Create Order';
+                    submitBtn.disabled = false;
+                }
             }
         }
 
         async function viewOrder(id) {
-            showNotification("Viewing order details feature coming soon!", "info");
+            try {
+                const order = await getOrderDetails(id);
+                
+                let orderDetails = `
+                    <div class="space-y-4">
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <h4 class="font-semibold text-gray-700">Order Information</h4>
+                                <p><strong>Order Number:</strong> ${order.order_number || '#' + order.id}</p>
+                                <p><strong>Date:</strong> ${new Date(order.order_date || order.created_at).toLocaleDateString()}</p>
+                                <p><strong>Status:</strong> <span class="px-2 py-1 rounded text-sm ${getStatusClass(order.status)}">${order.status.toUpperCase()}</span></p>
+                                <p><strong>Total:</strong> ${Math.round(order.total_amount).toLocaleString()} RWF</p>
+                            </div>
+                            <div>
+                                <h4 class="font-semibold text-gray-700">Customer Information</h4>
+                                <p><strong>Name:</strong> ${order.customers?.name || 'Walk-in Customer'}</p>
+                                <p><strong>Customer ID:</strong> ${order.customers?.customer_id || 'N/A'}</p>
+                                <p><strong>Phone:</strong> ${order.customers?.phone || 'N/A'}</p>
+                                <p><strong>Served by:</strong> ${order.user_profiles?.full_name || 'Unknown'}</p>
+                            </div>
+                        </div>
+                        
+                        <div>
+                            <h4 class="font-semibold text-gray-700 mb-2">Order Items</h4>
+                            <div class="overflow-x-auto">
+                                <table class="min-w-full border border-gray-200">
+                                    <thead class="bg-gray-50">
+                                        <tr>
+                                            <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Medicine</th>
+                                            <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Quantity</th>
+                                            <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Unit Price</th>
+                                            <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Total</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        ${(order.order_items || []).map(item => `
+                                            <tr class="border-t border-gray-200">
+                                                <td class="px-4 py-2">${item.medicine_name}</td>
+                                                <td class="px-4 py-2">${item.quantity}</td>
+                                                <td class="px-4 py-2">${Math.round(item.unit_price || 0).toLocaleString()} RWF</td>
+                                                <td class="px-4 py-2">${Math.round(item.total_price || 0).toLocaleString()} RWF</td>
+                                            </tr>
+                                        `).join('')}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                `;
+
+                // Create a modal for order details
+                const modal = document.createElement('div');
+                modal.className = 'modal show';
+                modal.innerHTML = `
+                    <div class="modal-content">
+                        <div class="flex justify-between items-center mb-6">
+                            <h2 class="text-xl font-semibold">Order Details</h2>
+                            <button onclick="this.closest('.modal').remove()" class="text-gray-400 hover:text-gray-600">
+                                <i class="fas fa-times text-xl"></i>
+                            </button>
+                        </div>
+                        ${orderDetails}
+                        <div class="flex justify-end space-x-4 mt-6">
+                            <button onclick="this.closest('.modal').remove()" class="px-4 py-2 text-gray-600 hover:text-gray-800">
+                                Close
+                            </button>
+                        </div>
+                    </div>
+                `;
+                document.body.appendChild(modal);
+            } catch (error) {
+                console.error('Error viewing order:', error);
+                showNotification("Error loading order details.", "error");
+            }
+        }
+
+        function getStatusClass(status) {
+            const classes = {
+                'pending': 'bg-yellow-100 text-yellow-800',
+                'processing': 'bg-blue-100 text-blue-800',
+                'completed': 'bg-green-100 text-green-800',
+                'cancelled': 'bg-red-100 text-red-800'
+            };
+            return classes[status] || 'bg-gray-100 text-gray-800';
+        }
+
+        async function updateOrderStatus(id, newStatus) {
+            try {
+                await updateOrderStatus(id, newStatus);
+                renderOrders();
+                showNotification(`Order status updated to ${newStatus}!`, "success");
+            } catch (error) {
+                console.error('Error updating order status:', error);
+                showNotification("Error updating order status.", "error");
+            }
+        }
+
+        async function updateOrderStatusLocal(id, newStatus) {
+            try {
+                await updateOrderStatus(id, newStatus);
+                renderOrders();
+                updateOrderStats();
+                showNotification(`Order status updated to ${newStatus}!`, "success");
+            } catch (error) {
+                console.error('Error updating order status:', error);
+                showNotification("Error updating order status.", "error");
+            }
         }
 
         async function deleteOrderLocal(id) {
@@ -490,6 +895,7 @@
                 try {
                     await deleteOrder(id);
                     renderOrders();
+                    updateOrderStats();
                     showNotification("Order deleted successfully!", "success");
                 } catch (error) {
                     showNotification("Error deleting order.", "error");
@@ -498,7 +904,79 @@
         }
 
         async function exportToExcel() {
-            showNotification("Export feature coming soon!", "info");
+            try {
+                const orders = await fetchOrders();
+                if (orders.length === 0) {
+                    showNotification("No orders to export.", "info");
+                    return;
+                }
+
+                // Create CSV content
+                const headers = ['Order Number', 'Customer', 'Date', 'Total (RWF)', 'Status', 'Items Count', 'Served By'];
+                const csvContent = [
+                    headers.join(','),
+                    ...orders.map(order => [
+                        order.order_number || '#' + order.id,
+                        `"${order.customer_name || 'N/A'}"`,
+                        order.order_date || new Date(order.created_at).toISOString().split('T')[0],
+                        Math.round(order.total_amount || 0),
+                        order.status,
+                        order.items_count || 0,
+                        `"${order.served_by_name || 'Unknown'}"`
+                    ].join(','))
+                ].join('\n');
+
+                // Create and download file
+                const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+                const link = document.createElement('a');
+                const url = URL.createObjectURL(blob);
+                link.setAttribute('href', url);
+                link.setAttribute('download', `orders_export_${new Date().toISOString().split('T')[0]}.csv`);
+                link.style.visibility = 'hidden';
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                
+                showNotification("Orders exported successfully!", "success");
+            } catch (error) {
+                console.error('Export error:', error);
+                showNotification("Error exporting orders.", "error");
+            }
+        }
+
+        function showNewCustomerForm() {
+            const customerName = prompt("Enter customer name:");
+            if (customerName && customerName.trim()) {
+                const phone = prompt("Enter customer phone (optional):");
+                const newCustomer = {
+                    name: customerName.trim(),
+                    phone: phone ? phone.trim() : '',
+                    email: '',
+                    address: ''
+                };
+                
+                addCustomerAndSelect(newCustomer);
+            }
+        }
+
+        async function addCustomerAndSelect(customerData) {
+            try {
+                const newCustomer = await addCustomer(customerData);
+                availableCustomers.push(newCustomer);
+                
+                // Update customer select options
+                const customerSelect = document.getElementById("orderCustomer");
+                const newOption = document.createElement("option");
+                newOption.value = newCustomer.id;
+                newOption.textContent = `${newCustomer.name} - ${newCustomer.customer_id}`;
+                newOption.selected = true;
+                customerSelect.appendChild(newOption);
+                
+                showNotification("Customer added and selected!", "success");
+            } catch (error) {
+                console.error('Error adding customer:', error);
+                showNotification("Error adding customer. Please try again.", "error");
+            }
         }
 
         function showNotification(message, type = "info") {
@@ -521,14 +999,66 @@
 
         .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.5); }
         .modal.show { display: flex; align-items: center; justify-content: center; }
-        .modal-content { background: white; padding: 2rem; border-radius: 0.5rem; width: 90%; max-width: 800px; max-height: 90vh; overflow-y: auto; }
+        .modal-content { 
+            background: white; 
+            padding: 2rem; 
+            border-radius: 0.5rem; 
+            width: 90%; 
+            max-width: 900px; 
+            max-height: 90vh; 
+            overflow-y: auto; 
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+        }
         
-        .notification { position: fixed; top: 20px; right: 20px; padding: 1rem 1.5rem; border-radius: 0.5rem; color: white; font-weight: 500; transform: translateX(120%); opacity: 0; transition: transform 0.3s ease, opacity 0.3s ease; z-index: 1001; }
+        .medicine-item {
+            background: #f9fafb;
+            padding: 1rem;
+            border-radius: 0.5rem;
+            border: 1px solid #e5e7eb;
+            margin-bottom: 0.75rem;
+        }
+        
+        .medicine-item:hover {
+            border-color: #d1d5db;
+        }
+        
+        .notification { position: fixed; top: 20px; right: 20px; padding: 1rem 1.5rem; border-radius: 0.5rem; color: white; font-weight: 500; transform: translateX(120%); opacity: 0; transition: transform 0.3s ease, opacity 0.3s ease; z-index: 1001; max-width: 400px; }
         .notification.show { transform: translateX(0); opacity: 1; }
         .notification.success { background-color: #10b981; }
         .notification.warning { background-color: #f59e0b; }
         .notification.error { background-color: #ef4444; }
         .notification.info { background-color: #3b82f6; }
+        
+        .loading-skeleton {
+            background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+            background-size: 200% 100%;
+            animation: loading 1.5s infinite;
+        }
+        
+        @keyframes loading {
+            0% { background-position: 200% 0; }
+            100% { background-position: -200% 0; }
+        }
+        
+        .status-badge {
+            font-size: 0.75rem;
+            font-weight: 600;
+            padding: 0.25rem 0.75rem;
+            border-radius: 9999px;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+        
+        .btn-action {
+            transition: all 0.2s;
+            padding: 0.5rem;
+            border-radius: 0.375rem;
+        }
+        
+        .btn-action:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
     </style>
 </body>
 </html>
