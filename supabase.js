@@ -346,33 +346,124 @@ async function fetchOrders() {
   if (!(await isReceptionist()))
     throw new Error("Permission denied: Staff only");
   
-  const { data, error } = await supabase
-    .from("orders")
-    .select(
-      `
-      *, 
-      order_items(id, medicine_id, medicine_name, quantity, unit_price, total_price, batch_number, expiry_date),
-      customers(name, customer_id),
-      user_profiles!orders_served_by_fkey(full_name)
-    `
-    )
-    .eq("is_active", true)
-    .order("order_date", { ascending: false });
-  
-  if (error) throw new Error(`Orders fetch error: ${error.message}`);
-  
-  // Process the data to add computed fields
-  const processedData = (data || []).map(order => ({
-    ...order,
-    customer_name: order.customers?.name || 'Walk-in Customer',
-    served_by_name: order.user_profiles?.full_name || 'Unknown',
-    quantity: order.order_items?.reduce((sum, item) => sum + (item.quantity || 0), 0) || 0,
-    items_count: order.order_items?.length || 0,
-    total: order.total_amount || 0
-  }));
-  
-  return processedData;
+  try {
+    // First, fetch orders with basic relationships
+    const { data: orders, error } = await supabase
+      .from("orders")
+      .select(`
+        *,
+        order_items(
+          id, 
+          medicine_id, 
+          medicine_name, 
+          quantity, 
+          unit_price, 
+          total_price, 
+          batch_number, 
+          expiry_date
+        ),
+        customers(
+          name, 
+          customer_id
+        )
+      `)
+      .eq("is_active", true)
+      .order("order_date", { ascending: false });
+    
+    if (error) throw new Error(`Orders fetch error: ${error.message}`);
+    
+    // If no orders, return empty array
+    if (!orders || orders.length === 0) return [];
+    
+    // Get unique served_by user IDs
+    const servedByIds = [...new Set(orders.map(order => order.served_by).filter(Boolean))];
+    
+    // Fetch user profiles for served_by users
+    let userProfiles = {};
+    if (servedByIds.length > 0) {
+      const { data: profiles, error: profilesError } = await supabase
+        .from("user_profiles")
+        .select("id, full_name")
+        .in("id", servedByIds);
+      
+      if (profilesError) {
+        console.warn("Could not fetch user profiles:", profilesError.message);
+      } else {
+        // Create a lookup map
+        userProfiles = profiles.reduce((acc, profile) => {
+          acc[profile.id] = profile;
+          return acc;
+        }, {});
+      }
+    }
+    
+    // Process the data to add computed fields and served_by info
+    const processedData = orders.map(order => ({
+      ...order,
+      customer_name: order.customers?.name || 'Walk-in Customer',
+      served_by_name: userProfiles[order.served_by]?.full_name || 'Unknown',
+      quantity: order.order_items?.reduce((sum, item) => sum + (item.quantity || 0), 0) || 0,
+      items_count: order.order_items?.length || 0,
+      total: order.total_amount || 0
+    }));
+    
+    return processedData;
+    
+  } catch (error) {
+    console.error("Fetch orders error:", error);
+    throw error;
+  }
 }
+
+async function getOrderStatistics(dateRange = 30) {
+  if (!(await isReceptionist()))
+    throw new Error("Permission denied: Staff only");
+  
+  try {
+    const startDate = new Date();
+    startDate.setDate(startDate.getDate() - dateRange);
+    
+    const { data, error } = await supabase
+      .from("orders")
+      .select(`
+        id,
+        status,
+        total_amount,
+        order_date,
+        payment_method
+      `)
+      .eq("is_active", true)
+      .gte("order_date", startDate.toISOString().split('T')[0]);
+    
+    if (error) throw new Error(`Order statistics error: ${error.message}`);
+    
+    const stats = {
+      total_orders: data.length,
+      completed_orders: data.filter(o => o.status === 'completed').length,
+      pending_orders: data.filter(o => o.status === 'pending').length,
+      processing_orders: data.filter(o => o.status === 'processing').length,
+      cancelled_orders: data.filter(o => o.status === 'cancelled').length,
+      total_revenue: data
+        .filter(o => o.status === 'completed')
+        .reduce((sum, o) => sum + parseFloat(o.total_amount || 0), 0),
+      average_order_value: 0,
+      cash_orders: data.filter(o => o.payment_method === 'cash').length,
+      insurance_orders: data.filter(o => o.payment_method === 'insurance').length,
+      momo_orders: data.filter(o => o.payment_method === 'momo').length
+    };
+    
+    stats.average_order_value = stats.completed_orders > 0 
+      ? stats.total_revenue / stats.completed_orders 
+      : 0;
+    
+    return stats;
+    
+  } catch (error) {
+    console.error("Order statistics error:", error);
+    throw error;
+  }
+}
+
 
 async function getCustomerOrderHistory(customerId) {
   if (!((await isCustomer()) || (await isReceptionist())))
@@ -1584,18 +1675,52 @@ async function getOrderDetails(id) {
   if (!(await isReceptionist()))
     throw new Error("Permission denied: Staff only");
   
-  const { data, error } = await supabase
-    .from("orders")
-    .select(`
-      *,
-      order_items(*),
-      customers(name, customer_id, phone),
-      user_profiles!orders_served_by_fkey(full_name)
-    `)
-    .eq("id", id)
-    .eq("is_active", true)
-    .single();
-  
-  if (error) throw new Error(`Order details fetch error: ${error.message}`);
-  return data;
+  try {
+    // Fetch order details
+    const { data: order, error: orderError } = await supabase
+      .from("orders")
+      .select(`
+        *,
+        customers(name, customer_id, phone)
+      `)
+      .eq("id", id)
+      .eq("is_active", true)
+      .single();
+    
+    if (orderError) throw new Error(`Order fetch error: ${orderError.message}`);
+    
+    // Fetch order items
+    const { data: items, error: itemsError } = await supabase
+      .from("order_items")
+      .select("*")
+      .eq("order_id", id)
+      .eq("is_active", true);
+    
+    if (itemsError) throw new Error(`Order items fetch error: ${itemsError.message}`);
+    
+    // Fetch served_by user profile
+    let servedByProfile = null;
+    if (order.served_by) {
+      const { data: profile, error: profileError } = await supabase
+        .from("user_profiles")
+        .select("full_name")
+        .eq("id", order.served_by)
+        .single();
+      
+      if (!profileError) {
+        servedByProfile = profile;
+      }
+    }
+    
+    return {
+      ...order,
+      order_items: items || [],
+      served_by_name: servedByProfile?.full_name || 'Unknown',
+      customer_name: order.customers?.name || 'Walk-in Customer'
+    };
+    
+  } catch (error) {
+    console.error("Get order details error:", error);
+    throw error;
+  }
 }

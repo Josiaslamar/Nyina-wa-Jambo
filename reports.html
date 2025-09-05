@@ -365,6 +365,12 @@
                   >
                     <i class="fas fa-bell mr-2"></i>Alerts & Warnings
                   </button>
+                  <button
+                    id="performanceTab"
+                    class="tab-button border-b-2 border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 py-4 px-1 text-sm font-medium"
+                  >
+                    <i class="fas fa-chart-bar mr-2"></i>Staff Performance
+                  </button>
                 </nav>
               </div>
 
@@ -576,6 +582,224 @@
                   </div>
                 </div>
               </div>
+
+              <!-- Staff Performance Tab -->
+              <div id="performanceContent" class="tab-content hidden">
+                <div class="p-6">
+                  <div class="flex justify-between items-center mb-6">
+                    <h3 class="text-lg font-semibold text-gray-900">
+                      Staff Performance Analytics
+                    </h3>
+                    <div class="flex space-x-3">
+                      <select
+                        id="performancePeriod"
+                        class="px-3 py-2 border border-gray-300 rounded-md focus:ring-primary focus:border-primary"
+                      >
+                        <option value="7">Last 7 Days</option>
+                        <option value="14">Last 14 Days</option>
+                        <option value="30">Last 30 Days</option>
+                      </select>
+                      <button
+                        id="refreshPerformanceBtn"
+                        class="bg-primary text-white px-4 py-2 rounded-md hover:bg-green-600 transition-colors"
+                      >
+                        <i class="fas fa-sync-alt mr-2"></i>Refresh
+                      </button>
+                      <button
+                        id="exportPerformanceBtn"
+                        class="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition-colors"
+                      >
+                        <i class="fas fa-download mr-2"></i>Export
+                      </button>
+                    </div>
+                  </div>
+
+                  <!-- Performance Metrics Cards -->
+                  <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                    <div class="bg-gradient-to-r from-blue-500 to-blue-600 rounded-lg shadow-sm p-6 text-white">
+                      <div class="flex items-center">
+                        <div class="p-3 rounded-full bg-white bg-opacity-20">
+                          <i class="fas fa-users text-2xl"></i>
+                        </div>
+                        <div class="ml-4">
+                          <p class="text-sm font-medium opacity-90">Active Staff</p>
+                          <p id="activeStaffCount" class="text-3xl font-bold">0</p>
+                          <p class="text-sm opacity-75">Currently working</p>
+                        </div>
+                      </div>
+                    </div>
+                    <div class="bg-gradient-to-r from-green-500 to-green-600 rounded-lg shadow-sm p-6 text-white">
+                      <div class="flex items-center">
+                        <div class="p-3 rounded-full bg-white bg-opacity-20">
+                          <i class="fas fa-chart-line text-2xl"></i>
+                        </div>
+                        <div class="ml-4">
+                          <p class="text-sm font-medium opacity-90">Avg Performance</p>
+                          <p id="avgPerformanceGrade" class="text-3xl font-bold">B+</p>
+                          <p class="text-sm opacity-75">Team grade</p>
+                        </div>
+                      </div>
+                    </div>
+                    <div class="bg-gradient-to-r from-purple-500 to-purple-600 rounded-lg shadow-sm p-6 text-white">
+                      <div class="flex items-center">
+                        <div class="p-3 rounded-full bg-white bg-opacity-20">
+                          <i class="fas fa-clock text-2xl"></i>
+                        </div>
+                        <div class="ml-4">
+                          <p class="text-sm font-medium opacity-90">Total Hours</p>
+                          <p id="totalHoursWorked" class="text-3xl font-bold">0</p>
+                          <p class="text-sm opacity-75">This period</p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- Performance Charts -->
+                  <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+                    <div class="bg-white rounded-lg shadow-sm p-6 border">
+                      <h4 class="text-lg font-semibold text-gray-900 mb-4">
+                        Staff Performance Ranking
+                      </h4>
+                      <canvas id="performanceRankingChart" width="400" height="300"></canvas>
+                    </div>
+                    <div class="bg-white rounded-lg shadow-sm p-6 border">
+                      <h4 class="text-lg font-semibold text-gray-900 mb-4">
+                        Sales vs Accuracy
+                      </h4>
+                      <canvas id="salesAccuracyChart" width="400" height="300"></canvas>
+                    </div>
+                  </div>
+
+                  <!-- Detailed Performance Table -->
+                  <div class="bg-white rounded-lg shadow-sm border">
+                    <div class="px-6 py-4 border-b border-gray-200">
+                      <h4 class="text-lg font-semibold text-gray-900">
+                        Detailed Performance Analysis
+                      </h4>
+                      <p class="text-sm text-gray-600 mt-1">
+                        Comprehensive metrics for all staff members including efficiency, accuracy, and customer service
+                      </p>
+                    </div>
+                    <div class="overflow-x-auto">
+                      <table class="min-w-full divide-y divide-gray-200">
+                        <thead class="bg-gray-50">
+                          <tr>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                              Staff Member
+                            </th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                              Grade
+                            </th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                              Days Worked
+                            </th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                              Total Hours
+                            </th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                              Orders Processed
+                            </th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                              Total Sales
+                            </th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                              Avg Order Value
+                            </th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                              Orders/Hour
+                            </th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                              Sales/Hour
+                            </th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                              Accuracy Rate
+                            </th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                              Avg Transaction Time
+                            </th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                              Efficiency Rank
+                            </th>
+                          </tr>
+                        </thead>
+                        <tbody id="performanceTable" class="bg-white divide-y divide-gray-200">
+                          <!-- Performance data will be populated here -->
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+
+                  <!-- Performance Insights -->
+                  <div class="mt-8 grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    <div class="bg-white rounded-lg shadow-sm border p-6">
+                      <h4 class="text-lg font-semibold text-gray-900 mb-4">
+                        <i class="fas fa-trophy text-yellow-500 mr-2"></i>Top Performers
+                      </h4>
+                      <div id="topPerformers" class="space-y-3">
+                        <!-- Top performers will be populated here -->
+                      </div>
+                    </div>
+                    <div class="bg-white rounded-lg shadow-sm border p-6">
+                      <h4 class="text-lg font-semibold text-gray-900 mb-4">
+                        <i class="fas fa-chart-line text-blue-500 mr-2"></i>Performance Insights
+                      </h4>
+                      <div id="performanceInsights" class="space-y-3">
+                        <!-- Performance insights will be populated here -->
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- Data Collection Information -->
+                  <div class="mt-8 bg-gray-50 rounded-lg p-6 border">
+                    <h4 class="text-lg font-semibold text-gray-900 mb-4">
+                      <i class="fas fa-info-circle text-blue-500 mr-2"></i>How Performance Data is Collected
+                    </h4>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      <div>
+                        <h5 class="font-medium text-gray-800 mb-2">Automatic Data Collection</h5>
+                        <ul class="text-sm text-gray-600 space-y-1">
+                          <li>• Orders processed (tracked when order status changes to "completed")</li>
+                          <li>• Sales amounts (automatically calculated from completed orders)</li>
+                          <li>• Customer count (each completed order counts as one customer)</li>
+                          <li>• Medicines dispensed (sum of quantities from order items)</li>
+                          <li>• Transaction timing (measured from order start to completion)</li>
+                        </ul>
+                      </div>
+                      <div>
+                        <h5 class="font-medium text-gray-800 mb-2">Manual Tracking Points</h5>
+                        <ul class="text-sm text-gray-600 space-y-1">
+                          <li>• Shift management (clock in/out times)</li>
+                          <li>• Cash register sessions (opening/closing balances)</li>
+                          <li>• Error tracking (manual entry when errors occur)</li>
+                          <li>• Customer feedback (if collected)</li>
+                          <li>• Special notes and observations</li>
+                        </ul>
+                      </div>
+                    </div>
+                    <div class="mt-4 p-4 bg-blue-50 rounded-lg">
+                      <h5 class="font-medium text-blue-800 mb-2">Performance Grading System</h5>
+                      <div class="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+                        <div class="text-center">
+                          <span class="inline-block w-8 h-8 bg-green-500 text-white rounded-full font-bold leading-8">A+</span>
+                          <p class="mt-1 text-gray-600">≥98% accuracy + ≥100 RWF/hour</p>
+                        </div>
+                        <div class="text-center">
+                          <span class="inline-block w-8 h-8 bg-blue-500 text-white rounded-full font-bold leading-8">A</span>
+                          <p class="mt-1 text-gray-600">≥95% accuracy + ≥80 RWF/hour</p>
+                        </div>
+                        <div class="text-center">
+                          <span class="inline-block w-8 h-8 bg-yellow-500 text-white rounded-full font-bold leading-8">B</span>
+                          <p class="mt-1 text-gray-600">≥90% accuracy + ≥60 RWF/hour</p>
+                        </div>
+                        <div class="text-center">
+                          <span class="inline-block w-8 h-8 bg-orange-500 text-white rounded-full font-bold leading-8">C</span>
+                          <p class="mt-1 text-gray-600">≥85% accuracy</p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
         </main>
@@ -678,8 +902,11 @@
     <script>
       let stockTrendsChart = null;
       let categoriesChart = null;
+      let performanceRankingChart = null;
+      let salesAccuracyChart = null;
       let allMedicines = [];
       let allMovements = [];
+      let staffPerformanceData = [];
 
       async function logout() {
         try {
@@ -779,6 +1006,17 @@
           .getElementById("closeStockModal")
           .addEventListener("click", closeAddStockModal);
 
+        // Performance tab event listeners
+        document
+          .getElementById("refreshPerformanceBtn")
+          .addEventListener("click", loadStaffPerformanceData);
+        document
+          .getElementById("exportPerformanceBtn")
+          .addEventListener("click", exportPerformanceReport);
+        document
+          .getElementById("performancePeriod")
+          .addEventListener("change", loadStaffPerformanceData);
+
         document
           .getElementById("inventorySearch")
           .addEventListener("input", filterInventoryTable);
@@ -861,6 +1099,9 @@
           updateAlertsTab(medicines);
           populateMedicineDropdown(medicines);
           populateCategoryFilter(medicines);
+
+          // Load staff performance data
+          await loadStaffPerformanceData();
 
           showNotification("All reports loaded successfully!", "success");
         } catch (error) {
@@ -1418,6 +1659,370 @@
         notification.textContent = message;
         notification.className = `notification show ${type}`;
         setTimeout(() => notification.classList.remove("show"), 3000);
+      }
+
+      // =============================================
+      // STAFF PERFORMANCE FUNCTIONS
+      // =============================================
+
+      async function loadStaffPerformanceData() {
+        try {
+          const days = parseInt(document.getElementById("performancePeriod").value) || 7;
+          showNotification("Loading staff performance data...", "info");
+          
+          const performanceData = await getStaffPerformanceAnalysis(days);
+          staffPerformanceData = performanceData;
+          
+          updatePerformanceMetrics(performanceData);
+          updatePerformanceCharts(performanceData);
+          updatePerformanceTable(performanceData);
+          updatePerformanceInsights(performanceData);
+          
+          showNotification("Staff performance data loaded successfully!", "success");
+        } catch (error) {
+          console.error("Error loading staff performance:", error);
+          showNotification("Error loading staff performance data.", "error");
+        }
+      }
+
+      function updatePerformanceMetrics(data) {
+        const activeStaff = data.filter(staff => staff.days_worked > 0).length;
+        const avgGrade = calculateAverageGrade(data);
+        const totalHours = data.reduce((sum, staff) => sum + (staff.total_hours_worked || 0), 0);
+        
+        document.getElementById("activeStaffCount").textContent = activeStaff;
+        document.getElementById("avgPerformanceGrade").textContent = avgGrade;
+        document.getElementById("totalHoursWorked").textContent = Math.round(totalHours);
+      }
+
+      function calculateAverageGrade(data) {
+        if (!data || data.length === 0) return "N/A";
+        
+        const gradePoints = { 'A+': 4.3, 'A': 4.0, 'B': 3.0, 'C': 2.0, 'D': 1.0 };
+        const activeStaff = data.filter(staff => staff.days_worked > 0);
+        
+        if (activeStaff.length === 0) return "N/A";
+        
+        const avgPoints = activeStaff.reduce((sum, staff) => {
+          return sum + (gradePoints[staff.performance_grade] || 1.0);
+        }, 0) / activeStaff.length;
+        
+        if (avgPoints >= 4.2) return "A+";
+        if (avgPoints >= 3.7) return "A";
+        if (avgPoints >= 2.7) return "B";
+        if (avgPoints >= 1.7) return "C";
+        return "D";
+      }
+
+      function updatePerformanceCharts(data) {
+        updatePerformanceRankingChart(data);
+        updateSalesAccuracyChart(data);
+      }
+
+      function updatePerformanceRankingChart(data) {
+        const ctx = document.getElementById("performanceRankingChart").getContext("2d");
+        const activeStaff = data.filter(staff => staff.days_worked > 0).slice(0, 10);
+        
+        if (performanceRankingChart) performanceRankingChart.destroy();
+        
+        performanceRankingChart = new Chart(ctx, {
+          type: "bar",
+          data: {
+            labels: activeStaff.map(staff => staff.staff_name || "Unknown"),
+            datasets: [{
+              label: "Sales per Hour (RWF)",
+              data: activeStaff.map(staff => Math.round(staff.sales_per_hour || 0)),
+              backgroundColor: activeStaff.map(staff => {
+                const grade = staff.performance_grade;
+                return grade === 'A+' ? '#22c55e' : 
+                       grade === 'A' ? '#3b82f6' : 
+                       grade === 'B' ? '#f59e0b' : 
+                       grade === 'C' ? '#ef4444' : '#6b7280';
+              }),
+              borderColor: '#ffffff',
+              borderWidth: 2,
+              borderRadius: 4
+            }]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+              legend: { display: false }
+            },
+            scales: {
+              y: { 
+                beginAtZero: true,
+                title: { display: true, text: 'Sales per Hour (RWF)' }
+              },
+              x: {
+                ticks: { maxRotation: 45 }
+              }
+            }
+          }
+        });
+      }
+
+      function updateSalesAccuracyChart(data) {
+        const ctx = document.getElementById("salesAccuracyChart").getContext("2d");
+        const activeStaff = data.filter(staff => staff.days_worked > 0);
+        
+        if (salesAccuracyChart) salesAccuracyChart.destroy();
+        
+        salesAccuracyChart = new Chart(ctx, {
+          type: "scatter",
+          data: {
+            datasets: [{
+              label: "Staff Performance",
+              data: activeStaff.map(staff => ({
+                x: staff.accuracy_rate || 100,
+                y: staff.sales_per_hour || 0,
+                r: Math.max(5, (staff.total_orders || 0) / 10) // Bubble size based on orders
+              })),
+              backgroundColor: activeStaff.map(staff => {
+                const grade = staff.performance_grade;
+                return grade === 'A+' ? 'rgba(34, 197, 94, 0.7)' : 
+                       grade === 'A' ? 'rgba(59, 130, 246, 0.7)' : 
+                       grade === 'B' ? 'rgba(245, 158, 11, 0.7)' : 
+                       grade === 'C' ? 'rgba(239, 68, 68, 0.7)' : 'rgba(107, 114, 128, 0.7)';
+              }),
+              borderColor: '#ffffff',
+              borderWidth: 2
+            }]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+              tooltip: {
+                callbacks: {
+                  label: function(context) {
+                    const staff = activeStaff[context.dataIndex];
+                    return [
+                      `${staff.staff_name}`,
+                      `Accuracy: ${context.parsed.x}%`,
+                      `Sales/Hour: ${formatCurrency(context.parsed.y)}`,
+                      `Orders: ${staff.total_orders}`,
+                      `Grade: ${staff.performance_grade}`
+                    ];
+                  }
+                }
+              }
+            },
+            scales: {
+              x: { 
+                title: { display: true, text: 'Accuracy Rate (%)' },
+                min: 80, max: 100
+              },
+              y: { 
+                title: { display: true, text: 'Sales per Hour (RWF)' },
+                beginAtZero: true
+              }
+            }
+          }
+        });
+      }
+
+      function updatePerformanceTable(data) {
+        const tbody = document.getElementById("performanceTable");
+        
+        if (!data || data.length === 0) {
+          tbody.innerHTML = '<tr><td colspan="12" class="px-6 py-4 text-center text-gray-500">No performance data available for the selected period.</td></tr>';
+          return;
+        }
+        
+        tbody.innerHTML = data.map((staff, index) => {
+          const gradeColors = {
+            'A+': 'bg-green-100 text-green-800',
+            'A': 'bg-blue-100 text-blue-800',
+            'B': 'bg-yellow-100 text-yellow-800',
+            'C': 'bg-orange-100 text-orange-800',
+            'D': 'bg-red-100 text-red-800'
+          };
+          
+          const gradeClass = gradeColors[staff.performance_grade] || 'bg-gray-100 text-gray-800';
+          
+          return `
+            <tr class="hover:bg-gray-50 ${index < 3 ? 'bg-blue-50' : ''}">
+              <td class="px-6 py-4 whitespace-nowrap">
+                <div class="flex items-center">
+                  <div class="w-10 h-10 rounded-full bg-primary text-white flex items-center justify-center text-sm font-semibold">
+                    ${(staff.staff_name || 'U').charAt(0)}
+                  </div>
+                  <div class="ml-3">
+                    <div class="text-sm font-medium text-gray-900">${staff.staff_name || 'Unknown'}</div>
+                    <div class="text-sm text-gray-500">Rank #${staff.efficiency_rank}</div>
+                  </div>
+                </div>
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap">
+                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${gradeClass}">
+                  ${staff.performance_grade || 'N/A'}
+                </span>
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 text-center">${staff.days_worked || 0}</td>
+              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 text-center">${Math.round(staff.total_hours_worked || 0)}</td>
+              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 text-center font-semibold">${staff.total_orders || 0}</td>
+              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 text-center font-semibold">${formatCurrency(staff.total_sales || 0)}</td>
+              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 text-center">${formatCurrency(staff.average_order_value || 0)}</td>
+              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 text-center">${Math.round((staff.orders_per_hour || 0) * 100) / 100}</td>
+              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 text-center font-medium">${formatCurrency(staff.sales_per_hour || 0)}</td>
+              <td class="px-6 py-4 whitespace-nowrap text-sm text-center">
+                <span class="text-green-600 font-semibold">${Math.round(staff.accuracy_rate || 100)}%</span>
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 text-center">${staff.average_transaction_time || 0}s</td>
+              <td class="px-6 py-4 whitespace-nowrap text-sm text-center">
+                <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
+                  staff.efficiency_rank <= 3 ? 'bg-yellow-100 text-yellow-800' : 
+                  staff.efficiency_rank <= 5 ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'
+                }">
+                  #${staff.efficiency_rank}
+                </span>
+              </td>
+            </tr>
+          `;
+        }).join("");
+      }
+
+      function updatePerformanceInsights(data) {
+        // Update top performers
+        const topPerformers = data
+          .filter(staff => staff.days_worked > 0)
+          .sort((a, b) => b.sales_per_hour - a.sales_per_hour)
+          .slice(0, 5);
+
+        const topPerformersElement = document.getElementById("topPerformers");
+        if (topPerformersElement) {
+          topPerformersElement.innerHTML = topPerformers.map((staff, index) => {
+            const medalClass = index === 0 ? 'text-yellow-500' : index === 1 ? 'text-gray-400' : index === 2 ? 'text-orange-600' : 'text-blue-500';
+            const medalIcon = index < 3 ? 'fa-medal' : 'fa-star';
+            
+            return `
+              <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                <div class="flex items-center space-x-3">
+                  <i class="fas ${medalIcon} ${medalClass} text-lg"></i>
+                  <div>
+                    <p class="font-medium text-gray-900">${staff.staff_name || 'Unknown'}</p>
+                    <p class="text-sm text-gray-600">Grade: ${staff.performance_grade} • ${staff.total_orders} orders</p>
+                  </div>
+                </div>
+                <div class="text-right">
+                  <p class="font-semibold text-primary">${formatCurrency(staff.sales_per_hour || 0)}/hr</p>
+                  <p class="text-sm text-gray-500">${Math.round(staff.accuracy_rate || 100)}% accuracy</p>
+                </div>
+              </div>
+            `;
+          }).join("") || '<p class="text-gray-500">No performance data available.</p>';
+        }
+
+        // Update performance insights
+        const insights = generatePerformanceInsights(data);
+        const insightsElement = document.getElementById("performanceInsights");
+        if (insightsElement) {
+          insightsElement.innerHTML = insights.map(insight => `
+            <div class="flex items-start space-x-3 p-3 bg-gray-50 rounded-lg">
+              <i class="fas ${insight.icon} ${insight.color} text-lg mt-1"></i>
+              <div>
+                <p class="font-medium text-gray-900">${insight.title}</p>
+                <p class="text-sm text-gray-600">${insight.description}</p>
+              </div>
+            </div>
+          `).join("");
+        }
+      }
+
+      function generatePerformanceInsights(data) {
+        const insights = [];
+        const activeStaff = data.filter(staff => staff.days_worked > 0);
+        
+        if (activeStaff.length === 0) {
+          return [{
+            icon: 'fa-info-circle',
+            color: 'text-blue-500',
+            title: 'No Data Available',
+            description: 'No staff performance data available for the selected period.'
+          }];
+        }
+
+        // Team performance overview
+        const avgAccuracy = activeStaff.reduce((sum, staff) => sum + (staff.accuracy_rate || 100), 0) / activeStaff.length;
+        const avgSalesPerHour = activeStaff.reduce((sum, staff) => sum + (staff.sales_per_hour || 0), 0) / activeStaff.length;
+        
+        insights.push({
+          icon: 'fa-users',
+          color: 'text-blue-500',
+          title: 'Team Overview',
+          description: `${activeStaff.length} active staff with ${Math.round(avgAccuracy)}% avg accuracy and ${formatCurrency(avgSalesPerHour)}/hour avg sales.`
+        });
+
+        // High performers
+        const highPerformers = activeStaff.filter(staff => ['A+', 'A'].includes(staff.performance_grade));
+        if (highPerformers.length > 0) {
+          insights.push({
+            icon: 'fa-star',
+            color: 'text-green-500',
+            title: 'Excellent Performance',
+            description: `${highPerformers.length} staff members achieving A or A+ grades with outstanding sales and accuracy.`
+          });
+        }
+
+        // Improvement opportunities
+        const needsImprovement = activeStaff.filter(staff => ['C', 'D'].includes(staff.performance_grade));
+        if (needsImprovement.length > 0) {
+          insights.push({
+            icon: 'fa-chart-line',
+            color: 'text-orange-500',
+            title: 'Growth Opportunities',
+            description: `${needsImprovement.length} staff members could benefit from additional training or support.`
+          });
+        }
+
+        // Efficiency insights
+        const fastWorkers = activeStaff.filter(staff => (staff.orders_per_hour || 0) > 3);
+        if (fastWorkers.length > 0) {
+          insights.push({
+            icon: 'fa-clock',
+            color: 'text-purple-500',
+            title: 'High Efficiency',
+            description: `${fastWorkers.length} staff members processing more than 3 orders per hour, showing excellent efficiency.`
+          });
+        }
+
+        return insights;
+      }
+
+      async function exportPerformanceReport() {
+        try {
+          if (!staffPerformanceData || staffPerformanceData.length === 0) {
+            showNotification("No performance data to export. Please load data first.", "warning");
+            return;
+          }
+
+          showNotification("Preparing performance export...", "info");
+          
+          let csvContent = "Staff Performance Report\n";
+          csvContent += `Generated: ${new Date().toLocaleDateString()}\n`;
+          csvContent += `Period: ${document.getElementById("performancePeriod").value} days\n\n`;
+          
+          csvContent += "Staff Name,Grade,Days Worked,Total Hours,Orders Processed,Total Sales,Avg Order Value,Orders/Hour,Sales/Hour,Accuracy Rate,Avg Transaction Time,Efficiency Rank\n";
+          
+          staffPerformanceData.forEach(staff => {
+            csvContent += `"${staff.staff_name || 'Unknown'}","${staff.performance_grade || 'N/A'}",${staff.days_worked || 0},${Math.round(staff.total_hours_worked || 0)},${staff.total_orders || 0},${Math.round(staff.total_sales || 0)},${Math.round(staff.average_order_value || 0)},${Math.round((staff.orders_per_hour || 0) * 100) / 100},${Math.round(staff.sales_per_hour || 0)},${Math.round(staff.accuracy_rate || 100)},${staff.average_transaction_time || 0},${staff.efficiency_rank || 0}\n`;
+          });
+
+          const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+          const link = document.createElement("a");
+          link.href = URL.createObjectURL(blob);
+          link.download = `staff_performance_report_${new Date().toISOString().split('T')[0]}.csv`;
+          document.body.appendChild(link);
+          link.click();
+          document.body.removeChild(link);
+          
+          showNotification("Performance report exported successfully!", "success");
+        } catch (error) {
+          console.error("Export error:", error);
+          showNotification("Error exporting performance report.", "error");
+        }
       }
     </script>
 

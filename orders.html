@@ -1,538 +1,834 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Orders - Nyina wa Jambo Pharmacy</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
     <script src="supabase.js"></script>
     <script src="notification-system.js"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-</head>
-<body class="bg-gray-100">
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"
+    />
+  </head>
+  <body class="bg-gray-100">
     <div class="flex h-screen bg-gray-100">
-        <!-- Sidebar -->
-        <aside id="sidebar" class="w-64 bg-green-800 text-white flex-shrink-0 hidden lg:block">
-            <div class="p-6">
-                <a href="dashboard.html" class="text-2xl font-bold text-white flex items-center">
-                    <i class="fas fa-pills mr-3"></i>
-                    <span>Nyina wa Jambo</span>
-                </a>
-            </div>
-            <nav class="mt-6">
-                <a href="dashboard.html" class="flex items-center py-3 px-6 text-gray-300 hover:bg-green-600 hover:text-white transition-colors">
-                    <i class="fas fa-tachometer-alt w-6 text-center"></i>
-                    <span class="ml-4">Dashboard</span>
-                </a>
-                <a href="medicines.html" class="flex items-center py-3 px-6 text-gray-300 hover:bg-green-600 hover:text-white transition-colors receptionist-only">
-                    <i class="fas fa-capsules w-6 text-center"></i>
-                    <span class="ml-4">Medicines</span>
-                </a>
-                <a href="suppliers.html" class="flex items-center py-3 px-6 text-gray-300 hover:bg-green-600 hover:text-white transition-colors admin-only">
-                    <i class="fas fa-truck w-6 text-center"></i>
-                    <span class="ml-4">Suppliers</span>
-                </a>
-                <!-- <a href="customers.html" class="flex items-center py-3 px-6 text-gray-300 hover:bg-green-600 hover:text-white transition-colors receptionist-only">
+      <!-- Sidebar -->
+      <aside
+        id="sidebar"
+        class="w-64 bg-green-800 text-white flex-shrink-0 hidden lg:block"
+      >
+        <div class="p-6">
+          <a
+            href="dashboard.html"
+            class="text-2xl font-bold text-white flex items-center"
+          >
+            <i class="fas fa-pills mr-3"></i>
+            <span>Nyina wa Jambo</span>
+          </a>
+        </div>
+        <nav class="mt-6">
+          <a
+            href="dashboard.html"
+            class="flex items-center py-3 px-6 text-gray-300 hover:bg-green-600 hover:text-white transition-colors"
+          >
+            <i class="fas fa-tachometer-alt w-6 text-center"></i>
+            <span class="ml-4">Dashboard</span>
+          </a>
+          <a
+            href="medicines.html"
+            class="flex items-center py-3 px-6 text-gray-300 hover:bg-green-600 hover:text-white transition-colors receptionist-only"
+          >
+            <i class="fas fa-capsules w-6 text-center"></i>
+            <span class="ml-4">Medicines</span>
+          </a>
+          <a
+            href="suppliers.html"
+            class="flex items-center py-3 px-6 text-gray-300 hover:bg-green-600 hover:text-white transition-colors admin-only"
+          >
+            <i class="fas fa-truck w-6 text-center"></i>
+            <span class="ml-4">Suppliers</span>
+          </a>
+          <!-- <a href="customers.html" class="flex items-center py-3 px-6 text-gray-300 hover:bg-green-600 hover:text-white transition-colors receptionist-only">
                     <i class="fas fa-users w-6 text-center"></i>
                     <span class="ml-4">Customers</span>
                 </a> -->
-                <a href="orders.html" class="flex items-center py-3 px-6 bg-green-600 text-white receptionist-only">
-                    <i class="fas fa-shopping-cart w-6 text-center"></i>
-                    <span class="ml-4">Orders</span>
-                </a>
-                <a
+          <a
+            href="orders.html"
+            class="flex items-center py-3 px-6 bg-green-600 text-white receptionist-only"
+          >
+            <i class="fas fa-shopping-cart w-6 text-center"></i>
+            <span class="ml-4">Orders</span>
+          </a>
+          <a
             href="user-management.html"
             class="flex items-center py-3 px-6 text-gray-300 hover:bg-green-600 hover:text-white transition-colors admin-only"
           >
             <i class="fas fa-user-cog w-6 text-center"></i>
             <span class="ml-4">User Management</span>
           </a>
-                <a href="reports.html" class="flex items-center py-3 px-6 text-gray-300 hover:bg-green-600 hover:text-white transition-colors admin-only">
-                    <i class="fas fa-chart-line w-6 text-center"></i>
-                    <span class="ml-4">Reports</span>
-                </a>
-            </nav>
-            <div class="mt-auto p-6 bottom-0">
-                <button onclick="logout()" class="w-full flex items-center justify-center py-2 px-4 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors">
-                    <i class="fas fa-sign-out-alt mr-2"></i>
-                    <span>Logout</span>
-                </button>
-            </div>
-        </aside>
-
-        <!-- Main content -->
-        <div class="flex-1 flex flex-col overflow-hidden">
-            <!-- Top bar -->
-            <header class="bg-white shadow-sm flex justify-between items-center p-4">
-                <button id="menu-toggle" class="text-gray-700 lg:hidden">
-                    <i class="fas fa-bars text-xl"></i>
-                </button>
-                <h1 class="text-xl font-semibold text-gray-800 hidden lg:block">Orders Management</h1>
-                <div class="relative">
-                    <button id="userAvatar" class="flex items-center space-x-2">
-                        <img src="" alt="User Avatar" class="w-10 h-10 rounded-full">
-                        <span id="currentUser" class="text-gray-700 font-medium hidden md:block"></span>
-                    </button>
-                    <div id="userDropdown" class="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg z-50 hidden">
-                        <div class="py-1">
-                            <div class="px-4 py-2 text-sm text-gray-500 border-b">
-                                <span id="userInfo"></span>
-                            </div>
-                             <a href="index.html?home=true" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
-                                <i class="fas fa-home mr-2"></i>Home Page
-                            </a>
-                            <button onclick="logout()" class="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
-                                <i class="fas fa-sign-out-alt mr-2"></i>Logout
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            </header>
-
-            <!-- Main content area -->
-            <main class="flex-1 overflow-x-hidden overflow-y-auto bg-gray-100 p-6">
-                <div class="container mx-auto">
-                    <!-- Page Header -->
-                    <div class="mb-8">
-                        <div class="flex justify-between items-center mb-4">
-                            <div>
-                                <h1 class="text-3xl font-bold text-gray-900">Orders Management</h1>
-                                <p class="text-gray-600 mt-2">Manage pharmacy orders and transactions</p>
-                            </div>
-                            <button id="addOrderBtn" class="bg-primary text-white px-6 py-3 rounded-lg hover:bg-green-600 transition-colors shadow-md">
-                                <i class="fas fa-plus mr-2"></i>New Order
-                            </button>
-                        </div>
-                        
-                        <!-- Quick Stats -->
-                        <div id="orderStats" class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-                            <div class="bg-white rounded-lg shadow-sm p-4 border-l-4 border-blue-500">
-                                <div class="flex items-center">
-                                    <div class="flex-shrink-0">
-                                        <i class="fas fa-shopping-cart text-blue-500 text-xl"></i>
-                                    </div>
-                                    <div class="ml-3">
-                                        <p class="text-sm font-medium text-gray-500">Today's Orders</p>
-                                        <p id="todayOrders" class="text-2xl font-semibold text-gray-900">-</p>
-                                    </div>
-                                </div>
-                            </div>
-                            
-                            <div class="bg-white rounded-lg shadow-sm p-4 border-l-4 border-green-500">
-                                <div class="flex items-center">
-                                    <div class="flex-shrink-0">
-                                        <i class="fas fa-money-bill-wave text-green-500 text-xl"></i>
-                                    </div>
-                                    <div class="ml-3">
-                                        <p class="text-sm font-medium text-gray-500">Today's Revenue</p>
-                                        <p id="todayRevenue" class="text-2xl font-semibold text-gray-900">-</p>
-                                    </div>
-                                </div>
-                            </div>
-                            
-                            <div class="bg-white rounded-lg shadow-sm p-4 border-l-4 border-yellow-500">
-                                <div class="flex items-center">
-                                    <div class="flex-shrink-0">
-                                        <i class="fas fa-clock text-yellow-500 text-xl"></i>
-                                    </div>
-                                    <div class="ml-3">
-                                        <p class="text-sm font-medium text-gray-500">Pending Orders</p>
-                                        <p id="pendingOrders" class="text-2xl font-semibold text-gray-900">-</p>
-                                    </div>
-                                </div>
-                            </div>
-                            
-                            <div class="bg-white rounded-lg shadow-sm p-4 border-l-4 border-purple-500">
-                                <div class="flex items-center">
-                                    <div class="flex-shrink-0">
-                                        <i class="fas fa-users text-purple-500 text-xl"></i>
-                                    </div>
-                                    <div class="ml-3">
-                                        <p class="text-sm font-medium text-gray-500">Total Customers</p>
-                                        <p id="totalCustomers" class="text-2xl font-semibold text-gray-900">-</p>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Filters -->
-                    <div class="bg-white rounded-lg shadow-sm p-6 mb-6">
-                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                            <div>
-                                <label class="block text-sm font-medium text-gray-700 mb-2">Search Orders</label>
-                                <input type="text" id="orderSearch" placeholder="Search by customer name..." class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-primary focus:border-primary" />
-                            </div>
-                            <div>
-                                <label class="block text-sm font-medium text-gray-700 mb-2">Filter by Status</label>
-                                <select id="statusFilter" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-primary focus:border-primary">
-                                    <option value="">All Statuses</option>
-                                    <option value="pending">Pending</option>
-                                    <option value="processing">Processing</option>
-                                    <option value="completed">Completed</option>
-                                    <option value="cancelled">Cancelled</option>
-                                </select>
-                            </div>
-                            <div class="flex items-end">
-                                <button id="exportBtn" class="bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700 transition-colors">
-                                    <i class="fas fa-download mr-2"></i>Export to Excel
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Orders Table -->
-                    <div class="bg-white rounded-lg shadow-sm overflow-hidden">
-                        <div class="overflow-x-auto">
-                            <table class="min-w-full divide-y divide-gray-200">
-                                <thead class="bg-gray-50">
-                                    <tr>
-                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Order ID</th>
-                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Customer</th>
-                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
-                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Total</th>
-                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Items</th>
-                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="ordersTable" class="bg-white divide-y divide-gray-200">
-                                    <!-- Table content will be loaded here -->
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-                </div>
-            </main>
+          <a
+            href="reports.html"
+            class="flex items-center py-3 px-6 text-gray-300 hover:bg-green-600 hover:text-white transition-colors admin-only"
+          >
+            <i class="fas fa-chart-line w-6 text-center"></i>
+            <span class="ml-4">Reports</span>
+          </a>
+        </nav>
+        <div class="mt-auto p-6 bottom-0">
+          <button
+            onclick="logout()"
+            class="w-full flex items-center justify-center py-2 px-4 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
+          >
+            <i class="fas fa-sign-out-alt mr-2"></i>
+            <span>Logout</span>
+          </button>
         </div>
+      </aside>
+
+      <!-- Main content -->
+      <div class="flex-1 flex flex-col overflow-hidden">
+        <!-- Top bar -->
+        <header
+          class="bg-white shadow-sm flex justify-between items-center p-4"
+        >
+          <button id="menu-toggle" class="text-gray-700 lg:hidden">
+            <i class="fas fa-bars text-xl"></i>
+          </button>
+          <h1 class="text-xl font-semibold text-gray-800 hidden lg:block">
+            Orders Management
+          </h1>
+          <div class="flex items-center space-x-4">
+            <div class="relative">
+              <button id="userAvatar" class="flex items-center space-x-2">
+                <img src="" alt="User Avatar" class="w-10 h-10 rounded-full" />
+                <span
+                  id="currentUser"
+                  class="text-gray-700 font-medium hidden md:block"
+                ></span>
+              </button>
+              <div
+                id="userDropdown"
+                class="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg z-50 hidden"
+              >
+                <div class="py-1">
+                  <div class="px-4 py-2 text-sm text-gray-500 border-b">
+                    <span id="userInfo"></span>
+                  </div>
+                  <a
+                    href="index.html?home=true"
+                    class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                  >
+                    <i class="fas fa-home mr-2"></i>Home Page
+                  </a>
+                  <button
+                    onclick="logout()"
+                    class="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                  >
+                    <i class="fas fa-sign-out-alt mr-2"></i>Logout
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </header>
+
+        <!-- Main content area -->
+        <main class="flex-1 overflow-x-hidden overflow-y-auto bg-gray-100 p-6">
+          <div class="container mx-auto">
+            <!-- Page Header -->
+            <div class="mb-8">
+              <div class="flex justify-between items-center mb-4">
+                <div>
+                  <h1 class="text-3xl font-bold text-gray-900">
+                    Orders Management
+                  </h1>
+                  <p class="text-gray-600 mt-2">
+                    Manage pharmacy orders and transactions
+                  </p>
+                </div>
+                <button
+                  id="addOrderBtn"
+                  class="bg-primary text-white px-6 py-3 rounded-lg hover:bg-green-600 transition-colors shadow-md"
+                >
+                  <i class="fas fa-plus mr-2"></i>New Order
+                </button>
+              </div>
+
+              <!-- Quick Stats -->
+              <div
+                id="orderStats"
+                class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6"
+              >
+                <div
+                  class="bg-white rounded-lg shadow-sm p-4 border-l-4 border-blue-500"
+                >
+                  <div class="flex items-center">
+                    <div class="flex-shrink-0">
+                      <i class="fas fa-shopping-cart text-blue-500 text-xl"></i>
+                    </div>
+                    <div class="ml-3">
+                      <p class="text-sm font-medium text-gray-500">
+                        Today's Orders
+                      </p>
+                      <p
+                        id="todayOrders"
+                        class="text-2xl font-semibold text-gray-900"
+                      >
+                        -
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                <div
+                  class="bg-white rounded-lg shadow-sm p-4 border-l-4 border-green-500"
+                >
+                  <div class="flex items-center">
+                    <div class="flex-shrink-0">
+                      <i
+                        class="fas fa-money-bill-wave text-green-500 text-xl"
+                      ></i>
+                    </div>
+                    <div class="ml-3">
+                      <p class="text-sm font-medium text-gray-500">
+                        Today's Revenue
+                      </p>
+                      <p
+                        id="todayRevenue"
+                        class="text-2xl font-semibold text-gray-900"
+                      >
+                        -
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                <div
+                  class="bg-white rounded-lg shadow-sm p-4 border-l-4 border-yellow-500"
+                >
+                  <div class="flex items-center">
+                    <div class="flex-shrink-0">
+                      <i class="fas fa-clock text-yellow-500 text-xl"></i>
+                    </div>
+                    <div class="ml-3">
+                      <p class="text-sm font-medium text-gray-500">
+                        Pending Orders
+                      </p>
+                      <p
+                        id="pendingOrders"
+                        class="text-2xl font-semibold text-gray-900"
+                      >
+                        -
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                <div
+                  class="bg-white rounded-lg shadow-sm p-4 border-l-4 border-purple-500"
+                >
+                  <div class="flex items-center">
+                    <div class="flex-shrink-0">
+                      <i class="fas fa-users text-purple-500 text-xl"></i>
+                    </div>
+                    <div class="ml-3">
+                      <p class="text-sm font-medium text-gray-500">
+                        Total Customers
+                      </p>
+                      <p
+                        id="totalCustomers"
+                        class="text-2xl font-semibold text-gray-900"
+                      >
+                        -
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Filters -->
+            <div class="bg-white rounded-lg shadow-sm p-6 mb-6">
+              <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div>
+                  <label class="block text-sm font-medium text-gray-700 mb-2"
+                    >Search Orders</label
+                  >
+                  <input
+                    type="text"
+                    id="orderSearch"
+                    placeholder="Search by customer name..."
+                    class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-primary focus:border-primary"
+                  />
+                </div>
+                <div>
+                  <label class="block text-sm font-medium text-gray-700 mb-2"
+                    >Filter by Status</label
+                  >
+                  <select
+                    id="statusFilter"
+                    class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-primary focus:border-primary"
+                  >
+                    <option value="">All Statuses</option>
+                    <option value="pending">Pending</option>
+                    <option value="processing">Processing</option>
+                    <option value="completed">Completed</option>
+                    <option value="cancelled">Cancelled</option>
+                  </select>
+                </div>
+                <div class="flex items-end">
+                  <button
+                    id="exportBtn"
+                    class="bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700 transition-colors"
+                  >
+                    <i class="fas fa-download mr-2"></i>Export to Excel
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <!-- Orders Table -->
+            <div class="bg-white rounded-lg shadow-sm overflow-hidden">
+              <div class="overflow-x-auto">
+                <table class="min-w-full divide-y divide-gray-200">
+                  <thead class="bg-gray-50">
+                    <tr>
+                      <th
+                        class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                      >
+                        Order ID
+                      </th>
+                      <th
+                        class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                      >
+                        Customer
+                      </th>
+                      <th
+                        class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                      >
+                        Date
+                      </th>
+                      <th
+                        class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                      >
+                        Total
+                      </th>
+                      <th
+                        class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                      >
+                        Status
+                      </th>
+                      <th
+                        class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                      >
+                        Items
+                      </th>
+                      <th
+                        class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                      >
+                        Actions
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody
+                    id="ordersTable"
+                    class="bg-white divide-y divide-gray-200"
+                  >
+                    <!-- Table content will be loaded here -->
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </main>
+      </div>
     </div>
 
     <!-- Order Modal -->
     <div id="orderModal" class="modal">
-        <div class="modal-content">
-            <div class="flex justify-between items-center mb-6">
-                <h2 class="text-xl font-semibold">New Order</h2>
-                <button id="closeOrderModal" class="text-gray-400 hover:text-gray-600">
-                    <i class="fas fa-times text-xl"></i>
-                </button>
-            </div>
-            <form id="orderForm">
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-2">Customer</label>
-                        <div class="flex space-x-2">
-                            <select id="orderCustomer" required class="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-primary focus:border-primary">
-                                <option value="">Select Customer</option>
-                                <option value="walk-in">Walk-in Customer</option>
-                            </select>
-                            <button type="button" onclick="showNewCustomerForm()" class="px-3 py-2 bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200" title="Add New Customer">
-                                <i class="fas fa-plus"></i>
-                            </button>
-                        </div>
-                    </div>
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-2">Status</label>
-                        <select id="orderStatus" required class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-primary focus:border-primary">
-                            <option value="pending">Pending</option>
-                            <option value="processing">Processing</option>
-                            <option value="completed">Completed</option>
-                        </select>
-                    </div>
-                </div>
-
-                <div class="mb-6">
-                    <label class="block text-sm font-medium text-gray-700 mb-2">Medicines</label>
-                    <div id="orderMedicines" class="space-y-3">
-                        <!-- Medicine items will be added here -->
-                    </div>
-                    <button type="button" id="addMedicineItem" class="mt-3 px-4 py-2 bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200">
-                        <i class="fas fa-plus mr-2"></i>Add Medicine
-                    </button>
-                </div>
-
-                <div class="flex justify-between items-center mb-6">
-                    <div class="text-lg font-semibold">
-                        Total: <span id="orderTotal">0</span> RWF
-                    </div>
-                </div>
-
-                <div class="flex justify-end space-x-4">
-                    <button type="button" id="cancelOrder" class="px-4 py-2 text-gray-600 hover:text-gray-800">
-                        Cancel
-                    </button>
-                    <button type="submit" class="bg-primary text-white px-6 py-2 rounded-md hover:bg-green-600">
-                        Create Order
-                    </button>
-                </div>
-            </form>
+      <div class="modal-content">
+        <div class="flex justify-between items-center mb-6">
+          <h2 class="text-xl font-semibold">New Order</h2>
+          <button
+            id="closeOrderModal"
+            class="text-gray-400 hover:text-gray-600"
+          >
+            <i class="fas fa-times text-xl"></i>
+          </button>
         </div>
+        <form id="orderForm">
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-2"
+                >Customer</label
+              >
+              <div class="flex space-x-2">
+                <select
+                  id="orderCustomer"
+                  required
+                  class="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-primary focus:border-primary"
+                >
+                  <option value="">Select Customer</option>
+                  <option value="walk-in">Walk-in Customer</option>
+                </select>
+                <button
+                  type="button"
+                  onclick="showNewCustomerForm()"
+                  class="px-3 py-2 bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200"
+                  title="Add New Customer"
+                >
+                  <i class="fas fa-plus"></i>
+                </button>
+              </div>
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-2"
+                >Status</label
+              >
+              <select
+                id="orderStatus"
+                required
+                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-primary focus:border-primary"
+              >
+                <option value="pending">Pending</option>
+                <option value="processing">Processing</option>
+                <option value="completed">Completed</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="mb-6">
+            <label class="block text-sm font-medium text-gray-700 mb-2"
+              >Medicines</label
+            >
+            <div id="orderMedicines" class="space-y-3">
+              <!-- Medicine items will be added here -->
+            </div>
+            <button
+              type="button"
+              id="addMedicineItem"
+              class="mt-3 px-4 py-2 bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200"
+            >
+              <i class="fas fa-plus mr-2"></i>Add Medicine
+            </button>
+          </div>
+
+          <div class="flex justify-between items-center mb-6">
+            <div class="text-lg font-semibold">
+              Total: <span id="orderTotal">0</span> RWF
+            </div>
+          </div>
+
+          <div class="flex justify-end space-x-4">
+            <button
+              type="button"
+              id="cancelOrder"
+              class="px-4 py-2 text-gray-600 hover:text-gray-800"
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              class="bg-primary text-white px-6 py-2 rounded-md hover:bg-green-600"
+            >
+              Create Order
+            </button>
+          </div>
+        </form>
+      </div>
     </div>
 
     <!-- Notification -->
     <div id="notification" class="notification"></div>
 
     <script>
-        let availableMedicines = [];
-        let availableCustomers = [];
-        let orderItems = [];
+      let availableMedicines = [];
+      let availableCustomers = [];
+      let orderItems = [];
 
-        document.addEventListener("DOMContentLoaded", async function () {
-            if (!await isAuthenticated()) {
-                window.location.href = 'login.html';
-                return;
+      document.addEventListener("DOMContentLoaded", async function () {
+        if (!(await isAuthenticated())) {
+          window.location.href = "login.html";
+          return;
+        }
+
+        const user = await getUserProfile();
+        if (!user || (user.role !== "admin" && user.role !== "receptionist")) {
+          showNotification(
+            "Access denied. Admin or receptionist privileges required.",
+            "error"
+          );
+          setTimeout(() => logout(), 2000);
+          return;
+        }
+
+        await updateNavigation();
+        renderOrders();
+        loadCustomers();
+        loadMedicines();
+        setupEventListeners();
+        updateOrderStats();
+      });
+
+      async function updateNavigation() {
+        try {
+          const user = await getUserProfile();
+          if (user) {
+            document.getElementById("currentUser").textContent = `${
+              user.full_name || "User"
+            }`;
+            document.getElementById("userInfo").textContent = `${
+              user.full_name || "User"
+            } (${user.role || "staff"})`;
+
+            const avatarImg = document.querySelector("#userAvatar img");
+            if (avatarImg) {
+              avatarImg.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(
+                user.full_name || "User"
+              )}&background=16a34a&color=fff&bold=true`;
             }
 
-            const user = await getUserProfile();
-            if (!user || (user.role !== 'admin' && user.role !== 'receptionist')) {
-                showNotification('Access denied. Admin or receptionist privileges required.', 'error');
-                setTimeout(() => logout(), 2000);
-                return;
-            }
+            const adminElements = document.querySelectorAll(".admin-only");
+            adminElements.forEach(
+              (el) =>
+                (el.style.display = user.role === "admin" ? "flex" : "none")
+            );
 
-            await updateNavigation();
-            renderOrders();
-            loadCustomers();
-            loadMedicines();
-            setupEventListeners();
-            updateOrderStats();
+            const receptionistElements =
+              document.querySelectorAll(".receptionist-only");
+            receptionistElements.forEach(
+              (el) =>
+                (el.style.display =
+                  user.role === "receptionist" || user.role === "admin"
+                    ? "flex"
+                    : "none")
+            );
+          } else {
+            document.getElementById("currentUser").textContent = "Guest";
+            document.getElementById("userInfo").textContent = "Guest User";
+          }
+        } catch (error) {
+          console.error("Error updating navigation:", error);
+          document.getElementById("currentUser").textContent = "User";
+          document.getElementById("userInfo").textContent = "User";
+        }
+      }
+
+      function setupEventListeners() {
+        document
+          .getElementById("orderSearch")
+          .addEventListener("input", renderOrders);
+        document
+          .getElementById("statusFilter")
+          .addEventListener("change", renderOrders);
+        document
+          .getElementById("addOrderBtn")
+          .addEventListener("click", openOrderModal);
+        document
+          .getElementById("closeOrderModal")
+          .addEventListener("click", closeOrderModal);
+        document
+          .getElementById("cancelOrder")
+          .addEventListener("click", closeOrderModal);
+        document
+          .getElementById("orderForm")
+          .addEventListener("submit", saveOrder);
+        document
+          .getElementById("addMedicineItem")
+          .addEventListener("click", addMedicineItem);
+        document
+          .getElementById("exportBtn")
+          .addEventListener("click", exportToExcel);
+
+        // Sidebar toggle
+        const menuToggle = document.getElementById("menu-toggle");
+        const sidebar = document.getElementById("sidebar");
+        menuToggle.addEventListener("click", (e) => {
+          e.stopPropagation();
+          sidebar.classList.toggle("hidden");
         });
 
-        async function updateNavigation() {
-            try {
-                const user = await getUserProfile();
-                if (user) {
-                    document.getElementById('currentUser').textContent = `${user.full_name || 'User'}`;
-                    document.getElementById('userInfo').textContent = `${user.full_name || 'User'} (${user.role || 'staff'})`;
-                    
-                    const avatarImg = document.querySelector('#userAvatar img');
-                    if (avatarImg) {
-                        avatarImg.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(user.full_name || 'User')}&background=16a34a&color=fff&bold=true`;
-                    }
+        // User dropdown
+        const userAvatar = document.getElementById("userAvatar");
+        const userDropdown = document.getElementById("userDropdown");
+        userAvatar.addEventListener("click", (e) => {
+          e.stopPropagation();
+          userDropdown.classList.toggle("hidden");
+        });
 
-                    const adminElements = document.querySelectorAll('.admin-only');
-                    adminElements.forEach(el => el.style.display = (user.role === 'admin') ? 'flex' : 'none');
-                    
-                    const receptionistElements = document.querySelectorAll('.receptionist-only');
-                    receptionistElements.forEach(el => el.style.display = (user.role === 'receptionist' || user.role === 'admin') ? 'flex' : 'none');
-                } else {
-                    document.getElementById('currentUser').textContent = 'Guest';
-                    document.getElementById('userInfo').textContent = 'Guest User';
-                }
-            } catch (error) {
-                console.error('Error updating navigation:', error);
-                document.getElementById('currentUser').textContent = 'User';
-                document.getElementById('userInfo').textContent = 'User';
-            }
+        // Close dropdown/sidebar when clicking outside
+        document.addEventListener("click", function (e) {
+          if (
+            !sidebar.classList.contains("hidden") &&
+            !sidebar.contains(e.target) &&
+            !menuToggle.contains(e.target)
+          ) {
+            sidebar.classList.add("hidden");
+          }
+          if (
+            !userDropdown.classList.contains("hidden") &&
+            !userAvatar.contains(e.target)
+          ) {
+            userDropdown.classList.add("hidden");
+          }
+        });
+      }
+
+      async function loadCustomers() {
+        try {
+          availableCustomers = await fetchCustomers();
+          const customerSelect = document.getElementById("orderCustomer");
+          customerSelect.innerHTML =
+            '<option value="">Select Customer</option>' +
+            '<option value="walk-in">Walk-in Customer</option>' +
+            availableCustomers
+              .map(
+                (customer) =>
+                  `<option value="${customer.id}">${customer.name} - ${customer.customer_id}</option>`
+              )
+              .join("");
+        } catch (error) {
+          console.error("Error loading customers:", error);
+          showNotification(
+            "Error loading customers. Please try again.",
+            "error"
+          );
         }
+      }
 
-        function setupEventListeners() {
-            document.getElementById('orderSearch').addEventListener('input', renderOrders);
-            document.getElementById('statusFilter').addEventListener('change', renderOrders);
-            document.getElementById('addOrderBtn').addEventListener('click', openOrderModal);
-            document.getElementById('closeOrderModal').addEventListener('click', closeOrderModal);
-            document.getElementById('cancelOrder').addEventListener('click', closeOrderModal);
-            document.getElementById('orderForm').addEventListener('submit', saveOrder);
-            document.getElementById('addMedicineItem').addEventListener('click', addMedicineItem);
-            document.getElementById('exportBtn').addEventListener('click', exportToExcel);
-
-            // Sidebar toggle
-            const menuToggle = document.getElementById('menu-toggle');
-            const sidebar = document.getElementById('sidebar');
-            menuToggle.addEventListener('click', (e) => {
-                e.stopPropagation();
-                sidebar.classList.toggle('hidden');
-            });
-
-            // User dropdown
-            const userAvatar = document.getElementById('userAvatar');
-            const userDropdown = document.getElementById('userDropdown');
-            userAvatar.addEventListener('click', (e) => {
-                e.stopPropagation();
-                userDropdown.classList.toggle('hidden');
-            });
-
-            // Close dropdown/sidebar when clicking outside
-            document.addEventListener('click', function(e) {
-                if (!sidebar.classList.contains('hidden') && !sidebar.contains(e.target) && !menuToggle.contains(e.target)) {
-                    sidebar.classList.add('hidden');
-                }
-                if (!userDropdown.classList.contains('hidden') && !userAvatar.contains(e.target)) {
-                    userDropdown.classList.add('hidden');
-                }
-            });
+      async function loadMedicines() {
+        try {
+          availableMedicines = await fetchMedicines();
+          if (availableMedicines.length === 0) {
+            showNotification(
+              "No medicines available. Please add medicines first.",
+              "warning"
+            );
+          }
+        } catch (error) {
+          console.error("Error loading medicines:", error);
+          showNotification(
+            "Error loading medicines. Please try again.",
+            "error"
+          );
         }
+      }
 
-        async function loadCustomers() {
-            try {
-                availableCustomers = await fetchCustomers();
-                const customerSelect = document.getElementById("orderCustomer");
-                customerSelect.innerHTML = '<option value="">Select Customer</option>' +
-                    '<option value="walk-in">Walk-in Customer</option>' +
-                    availableCustomers.map(customer => 
-                        `<option value="${customer.id}">${customer.name} - ${customer.customer_id}</option>`
-                    ).join("");
-            } catch (error) {
-                console.error('Error loading customers:', error);
-                showNotification('Error loading customers. Please try again.', 'error');
-            }
+      async function updateOrderStats() {
+        try {
+          const orders = await fetchOrders();
+          const today = new Date().toISOString().split("T")[0];
+
+          // Today's orders
+          const todayOrders = orders.filter((order) => {
+            const orderDate =
+              order.order_date ||
+              new Date(order.created_at).toISOString().split("T")[0];
+            return orderDate === today;
+          });
+
+          // Today's completed orders
+          const completedToday = todayOrders.filter(
+            (order) => order.status === "completed"
+          );
+
+          // Today's revenue
+          const todayRevenue = completedToday.reduce(
+            (sum, order) => sum + (order.total_amount || 0),
+            0
+          );
+
+          // Pending orders
+          const pendingOrders = orders.filter(
+            (order) =>
+              order.status === "pending" || order.status === "processing"
+          );
+
+          // Update the display
+          document.getElementById("todayOrders").textContent =
+            todayOrders.length;
+          document.getElementById("todayRevenue").textContent =
+            Math.round(todayRevenue).toLocaleString() + " RWF";
+          document.getElementById("pendingOrders").textContent =
+            pendingOrders.length;
+          document.getElementById("totalCustomers").textContent =
+            availableCustomers.length;
+        } catch (error) {
+          console.error("Error updating stats:", error);
+          // Set fallback values
+          document.getElementById("todayOrders").textContent = "0";
+          document.getElementById("todayRevenue").textContent = "0 RWF";
+          document.getElementById("pendingOrders").textContent = "0";
+          document.getElementById("totalCustomers").textContent = "0";
         }
+      }
 
-        async function loadMedicines() {
-            try {
-                availableMedicines = await fetchMedicines();
-                if (availableMedicines.length === 0) {
-                    showNotification('No medicines available. Please add medicines first.', 'warning');
-                }
-            } catch (error) {
-                console.error('Error loading medicines:', error);
-                showNotification('Error loading medicines. Please try again.', 'error');
-            }
-        }
+      async function renderOrders() {
+        const tbody = document.getElementById("ordersTable");
+        const searchTerm = document
+          .getElementById("orderSearch")
+          .value.toLowerCase();
+        const statusFilter = document.getElementById("statusFilter").value;
 
-        async function updateOrderStats() {
-            try {
-                const orders = await fetchOrders();
-                const today = new Date().toISOString().split('T')[0];
-                
-                // Today's orders
-                const todayOrders = orders.filter(order => {
-                    const orderDate = order.order_date || new Date(order.created_at).toISOString().split('T')[0];
-                    return orderDate === today;
-                });
-                
-                // Today's completed orders
-                const completedToday = todayOrders.filter(order => order.status === 'completed');
-                
-                // Today's revenue
-                const todayRevenue = completedToday.reduce((sum, order) => sum + (order.total_amount || 0), 0);
-                
-                // Pending orders
-                const pendingOrders = orders.filter(order => order.status === 'pending' || order.status === 'processing');
-                
-                // Update the display
-                document.getElementById('todayOrders').textContent = todayOrders.length;
-                document.getElementById('todayRevenue').textContent = Math.round(todayRevenue).toLocaleString() + ' RWF';
-                document.getElementById('pendingOrders').textContent = pendingOrders.length;
-                document.getElementById('totalCustomers').textContent = availableCustomers.length;
-            } catch (error) {
-                console.error('Error updating stats:', error);
-                // Set fallback values
-                document.getElementById('todayOrders').textContent = '0';
-                document.getElementById('todayRevenue').textContent = '0 RWF';
-                document.getElementById('pendingOrders').textContent = '0';
-                document.getElementById('totalCustomers').textContent = '0';
-            }
-        }
+        tbody.innerHTML =
+          '<tr><td colspan="7" class="px-6 py-4 text-center text-gray-500">Loading orders...</td></tr>';
 
-        async function renderOrders() {
-            const tbody = document.getElementById("ordersTable");
-            const searchTerm = document.getElementById("orderSearch").value.toLowerCase();
-            const statusFilter = document.getElementById("statusFilter").value;
+        try {
+          const orders = await fetchOrders();
+          let filteredOrders = orders.filter((order) => {
+            const customerName = order.customer_name || "";
+            const matchesSearch = customerName
+              .toLowerCase()
+              .includes(searchTerm);
+            const matchesStatus =
+              !statusFilter || order.status === statusFilter;
+            return matchesSearch && matchesStatus;
+          });
 
-            tbody.innerHTML = '<tr><td colspan="7" class="px-6 py-4 text-center text-gray-500">Loading orders...</td></tr>';
+          if (filteredOrders.length === 0) {
+            tbody.innerHTML =
+              '<tr><td colspan="7" class="px-6 py-4 text-center text-gray-500">No orders found.</td></tr>';
+            return;
+          }
 
-            try {
-                const orders = await fetchOrders();
-                let filteredOrders = orders.filter(order => {
-                    const customerName = order.customer_name || '';
-                    const matchesSearch = customerName.toLowerCase().includes(searchTerm);
-                    const matchesStatus = !statusFilter || order.status === statusFilter;
-                    return matchesSearch && matchesStatus;
-                });
+          tbody.innerHTML = filteredOrders
+            .map((order) => {
+              const statusClass =
+                {
+                  pending: "bg-yellow-100 text-yellow-800",
+                  processing: "bg-blue-100 text-blue-800",
+                  completed: "bg-green-100 text-green-800",
+                  cancelled: "bg-red-100 text-red-800",
+                }[order.status] || "bg-gray-100 text-gray-800";
 
-                if (filteredOrders.length === 0) {
-                    tbody.innerHTML = '<tr><td colspan="7" class="px-6 py-4 text-center text-gray-500">No orders found.</td></tr>';
-                    return;
-                }
+              const itemCount = order.items_count || order.quantity || 1;
+              const orderDate = order.order_date
+                ? new Date(order.order_date).toLocaleDateString()
+                : order.created_at
+                ? new Date(order.created_at).toLocaleDateString()
+                : "N/A";
 
-                tbody.innerHTML = filteredOrders.map(order => {
-                    const statusClass = {
-                        'pending': 'bg-yellow-100 text-yellow-800',
-                        'processing': 'bg-blue-100 text-blue-800',
-                        'completed': 'bg-green-100 text-green-800',
-                        'cancelled': 'bg-red-100 text-red-800'
-                    }[order.status] || 'bg-gray-100 text-gray-800';
-
-                    const itemCount = order.items_count || order.quantity || 1;
-                    const orderDate = order.order_date ? new Date(order.order_date).toLocaleDateString() : 
-                                     order.created_at ? new Date(order.created_at).toLocaleDateString() : 'N/A';
-
-                    return `
+              return `
                         <tr class="hover:bg-gray-50">
-                            <td class="px-6 py-4 whitespace-nowrap font-medium text-gray-900">${order.order_number || '#' + order.id}</td>
-                            <td class="px-6 py-4 whitespace-nowrap text-gray-900">${order.customer_name || 'N/A'}</td>
+                            <td class="px-6 py-4 whitespace-nowrap font-medium text-gray-900">${
+                              order.order_number || "#" + order.id
+                            }</td>
+                            <td class="px-6 py-4 whitespace-nowrap text-gray-900">${
+                              order.customer_name || "N/A"
+                            }</td>
                             <td class="px-6 py-4 whitespace-nowrap text-gray-900">${orderDate}</td>
-                            <td class="px-6 py-4 whitespace-nowrap text-gray-900">${Math.round(order.total_amount || order.total || 0).toLocaleString()} RWF</td>
+                            <td class="px-6 py-4 whitespace-nowrap text-gray-900">${Math.round(
+                              order.total_amount || order.total || 0
+                            ).toLocaleString()} RWF</td>
                             <td class="px-6 py-4 whitespace-nowrap">
                                 <span class="px-2 py-1 text-xs font-semibold rounded-full ${statusClass}">
-                                    ${order.status.charAt(0).toUpperCase() + order.status.slice(1)}
+                                    ${
+                                      order.status.charAt(0).toUpperCase() +
+                                      order.status.slice(1)
+                                    }
                                 </span>
                             </td>
-                            <td class="px-6 py-4 whitespace-nowrap text-gray-900">${itemCount} item${itemCount !== 1 ? 's' : ''}</td>
+                            <td class="px-6 py-4 whitespace-nowrap text-gray-900">${itemCount} item${
+                itemCount !== 1 ? "s" : ""
+              }</td>
                             <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                                <button onclick="viewOrder(${order.id})" class="text-indigo-600 hover:text-indigo-900 mr-3" title="View Details">
+                                <button onclick="viewOrder(${
+                                  order.id
+                                })" class="text-indigo-600 hover:text-indigo-900 mr-3" title="View Details">
                                     <i class="fas fa-eye"></i>
                                 </button>
-                                ${order.status === 'pending' ? `
+                                ${
+                                  order.status === "pending"
+                                    ? `
                                     <button onclick="updateOrderStatusLocal(${order.id}, 'processing')" class="text-blue-600 hover:text-blue-900 mr-3" title="Start Processing">
                                         <i class="fas fa-play"></i>
                                     </button>
-                                ` : ''}
-                                ${order.status === 'processing' ? `
+                                `
+                                    : ""
+                                }
+                                ${
+                                  order.status === "processing"
+                                    ? `
                                     <button onclick="updateOrderStatusLocal(${order.id}, 'completed')" class="text-green-600 hover:text-green-900 mr-3" title="Complete Order">
                                         <i class="fas fa-check"></i>
                                     </button>
-                                ` : ''}
-                                <button onclick="deleteOrderLocal(${order.id})" class="text-red-600 hover:text-red-900" title="Delete Order">
+                                `
+                                    : ""
+                                }
+                                <button onclick="deleteOrderLocal(${
+                                  order.id
+                                })" class="text-red-600 hover:text-red-900" title="Delete Order">
                                     <i class="fas fa-trash"></i>
                                 </button>
                             </td>
                         </tr>
                     `;
-                }).join("");
-            } catch (error) {
-                console.error('Error loading orders:', error);
-                tbody.innerHTML = '<tr><td colspan="7" class="px-6 py-4 text-center text-red-500">Error loading orders. Please try again.</td></tr>';
-            }
+            })
+            .join("");
+        } catch (error) {
+          console.error("Error loading orders:", error);
+          tbody.innerHTML =
+            '<tr><td colspan="7" class="px-6 py-4 text-center text-red-500">Error loading orders. Please try again.</td></tr>';
         }
+      }
 
-        function openOrderModal() {
-            const modal = document.getElementById("orderModal");
-            const form = document.getElementById("orderForm");
-            form.reset();
-            orderItems = [];
-            
-            // Reset medicine container
-            const medicineContainer = document.getElementById("orderMedicines");
-            medicineContainer.innerHTML = "";
-            
-            // Add one medicine item by default
-            addMedicineItem();
-            
-            updateOrderTotal();
-            modal.classList.add("show");
-        }
+      function openOrderModal() {
+        const modal = document.getElementById("orderModal");
+        const form = document.getElementById("orderForm");
+        form.reset();
+        orderItems = [];
 
-        function closeOrderModal() {
-            document.getElementById("orderModal").classList.remove("show");
-        }
+        // Reset medicine container
+        const medicineContainer = document.getElementById("orderMedicines");
+        medicineContainer.innerHTML = "";
 
-        function addMedicineItem() {
-            const container = document.getElementById("orderMedicines");
-            const itemIndex = orderItems.length;
-            const medicineItem = { medicineId: "", quantity: 1, price: 0, medicineName: "" };
-            orderItems.push(medicineItem);
+        // Add one medicine item by default
+        addMedicineItem();
 
-            const itemDiv = document.createElement("div");
-            itemDiv.className = "flex space-x-3 items-end medicine-item";
-            itemDiv.setAttribute("data-index", itemIndex);
-            itemDiv.innerHTML = `
+        updateOrderTotal();
+        modal.classList.add("show");
+      }
+
+      function closeOrderModal() {
+        document.getElementById("orderModal").classList.remove("show");
+      }
+
+      function addMedicineItem() {
+        const container = document.getElementById("orderMedicines");
+        const itemIndex = orderItems.length;
+        const medicineItem = {
+          medicineId: "",
+          quantity: 1,
+          price: 0,
+          medicineName: "",
+        };
+        orderItems.push(medicineItem);
+
+        const itemDiv = document.createElement("div");
+        itemDiv.className = "flex space-x-3 items-end medicine-item";
+        itemDiv.setAttribute("data-index", itemIndex);
+        itemDiv.innerHTML = `
                 <div class="flex-1">
                     <label class="block text-sm font-medium text-gray-700 mb-1">Medicine</label>
                     <select class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-primary focus:border-primary" onchange="updateMedicineItem(${itemIndex}, 'medicineId', this.value)">
                         <option value="">Select Medicine</option>
-                        ${availableMedicines.map(med => `<option value="${med.id}" data-price="${med.selling_price || med.price}" data-name="${med.name}" data-stock="${med.stock}">${med.name} - ${Math.round(med.selling_price || med.price || 0).toLocaleString()} RWF (Stock: ${med.stock || 0})</option>`).join("")}
+                        ${availableMedicines
+                          .map(
+                            (med) =>
+                              `<option value="${med.id}" data-price="${
+                                med.selling_price || med.price
+                              }" data-name="${med.name}" data-stock="${
+                                med.stock
+                              }">${med.name} - ${Math.round(
+                                med.selling_price || med.price || 0
+                              ).toLocaleString()} RWF (Stock: ${
+                                med.stock || 0
+                              })</option>`
+                          )
+                          .join("")}
                     </select>
                 </div>
                 <div class="w-24">
@@ -551,255 +847,348 @@
                     <i class="fas fa-trash"></i>
                 </button>
             `;
-            container.appendChild(itemDiv);
-        }
+        container.appendChild(itemDiv);
+      }
 
-        function updateMedicineItem(index, field, value) {
-            if (index >= orderItems.length) return;
-            
-            const itemDiv = document.querySelector(`[data-index="${index}"]`);
-            if (!itemDiv) return;
-            
-            if (field === 'medicineId') {
-                const medicine = availableMedicines.find(m => m.id == value);
-                if (medicine) {
-                    orderItems[index].medicineId = value;
-                    orderItems[index].price = medicine.selling_price || medicine.price || 0;
-                    orderItems[index].medicineName = medicine.name;
-                    orderItems[index].stock = medicine.stock || 0;
-                    
-                    // Update price input
-                    const priceInput = itemDiv.querySelector('input[readonly]');
-                    if (priceInput) priceInput.value = Math.round(orderItems[index].price).toLocaleString();
-                    
-                    // Validate stock
-                    const quantityInput = itemDiv.querySelector('input[type="number"]:not([readonly])');
-                    if (quantityInput) {
-                        quantityInput.max = medicine.stock || 0;
-                        if (parseInt(quantityInput.value) > (medicine.stock || 0)) {
-                            quantityInput.value = medicine.stock || 0;
-                            orderItems[index].quantity = medicine.stock || 0;
-                            showNotification(`Quantity adjusted to available stock (${medicine.stock || 0})`, 'warning');
-                        }
-                    }
-                } else {
-                    orderItems[index].medicineId = "";
-                    orderItems[index].price = 0;
-                    orderItems[index].medicineName = "";
-                    orderItems[index].stock = 0;
-                }
-            } else if (field === 'quantity') {
-                const quantity = parseInt(value) || 1;
-                const stock = orderItems[index].stock || 0;
-                
-                if (quantity > stock) {
-                    showNotification(`Insufficient stock. Available: ${stock}`, 'error');
-                    const quantityInput = itemDiv.querySelector('input[type="number"]:not([readonly])');
-                    if (quantityInput) quantityInput.value = stock;
-                    orderItems[index].quantity = stock;
-                } else {
-                    orderItems[index].quantity = quantity;
-                }
+      function updateMedicineItem(index, field, value) {
+        if (index >= orderItems.length) return;
+
+        const itemDiv = document.querySelector(`[data-index="${index}"]`);
+        if (!itemDiv) return;
+
+        if (field === "medicineId") {
+          const medicine = availableMedicines.find((m) => m.id == value);
+          if (medicine) {
+            orderItems[index].medicineId = value;
+            orderItems[index].price =
+              medicine.selling_price || medicine.price || 0;
+            orderItems[index].medicineName = medicine.name;
+            orderItems[index].stock = medicine.stock || 0;
+
+            // Update price input
+            const priceInput = itemDiv.querySelector("input[readonly]");
+            if (priceInput)
+              priceInput.value = Math.round(
+                orderItems[index].price
+              ).toLocaleString();
+
+            // Validate stock
+            const quantityInput = itemDiv.querySelector(
+              'input[type="number"]:not([readonly])'
+            );
+            if (quantityInput) {
+              quantityInput.max = medicine.stock || 0;
+              if (parseInt(quantityInput.value) > (medicine.stock || 0)) {
+                quantityInput.value = medicine.stock || 0;
+                orderItems[index].quantity = medicine.stock || 0;
+                showNotification(
+                  `Quantity adjusted to available stock (${
+                    medicine.stock || 0
+                  })`,
+                  "warning"
+                );
+              }
             }
-            
-            // Update total for this item
-            const total = orderItems[index].quantity * orderItems[index].price;
-            const totalInput = itemDiv.querySelectorAll('input[readonly]')[1];
-            if (totalInput) totalInput.value = Math.round(total).toLocaleString();
-            
-            updateOrderTotal();
+          } else {
+            orderItems[index].medicineId = "";
+            orderItems[index].price = 0;
+            orderItems[index].medicineName = "";
+            orderItems[index].stock = 0;
+          }
+        } else if (field === "quantity") {
+          const quantity = parseInt(value) || 1;
+          const stock = orderItems[index].stock || 0;
+
+          if (quantity > stock) {
+            showNotification(
+              `Insufficient stock. Available: ${stock}`,
+              "error"
+            );
+            const quantityInput = itemDiv.querySelector(
+              'input[type="number"]:not([readonly])'
+            );
+            if (quantityInput) quantityInput.value = stock;
+            orderItems[index].quantity = stock;
+          } else {
+            orderItems[index].quantity = quantity;
+          }
         }
 
-        function removeMedicineItem(index) {
-            const itemDiv = document.querySelector(`[data-index="${index}"]`);
-            if (itemDiv) {
-                itemDiv.remove();
-                orderItems.splice(index, 1);
-                
-                // Re-index remaining items
-                document.querySelectorAll('.medicine-item').forEach((div, newIndex) => {
-                    div.setAttribute('data-index', newIndex);
-                    div.innerHTML = div.innerHTML.replace(/\d+/g, (match, offset, string) => {
-                        // Only replace function calls, not other numbers
-                        if (string.substring(offset - 20, offset).includes('updateMedicineItem') || 
-                            string.substring(offset - 20, offset).includes('removeMedicineItem')) {
-                            return newIndex;
-                        }
-                        return match;
-                    });
-                });
-                
-                updateOrderTotal();
-            }
-        }
+        // Update total for this item
+        const total = orderItems[index].quantity * orderItems[index].price;
+        const totalInput = itemDiv.querySelectorAll("input[readonly]")[1];
+        if (totalInput) totalInput.value = Math.round(total).toLocaleString();
 
-        function updateOrderMedicines() {
-            const container = document.getElementById("orderMedicines");
-            container.innerHTML = "";
-            orderItems.forEach((item, index) => {
-                // Re-create each medicine item with current data
-                const itemDiv = document.createElement("div");
-                itemDiv.className = "flex space-x-3 items-end medicine-item";
-                itemDiv.setAttribute("data-index", index);
-                
-                const selectedMedicine = availableMedicines.find(m => m.id == item.medicineId);
-                const price = selectedMedicine ? (selectedMedicine.selling_price || selectedMedicine.price || 0) : 0;
-                const total = item.quantity * price;
-                
-                itemDiv.innerHTML = `
+        updateOrderTotal();
+      }
+
+      function removeMedicineItem(index) {
+        const itemDiv = document.querySelector(`[data-index="${index}"]`);
+        if (itemDiv) {
+          itemDiv.remove();
+          orderItems.splice(index, 1);
+
+          // Re-index remaining items
+          document
+            .querySelectorAll(".medicine-item")
+            .forEach((div, newIndex) => {
+              div.setAttribute("data-index", newIndex);
+              div.innerHTML = div.innerHTML.replace(
+                /\d+/g,
+                (match, offset, string) => {
+                  // Only replace function calls, not other numbers
+                  if (
+                    string
+                      .substring(offset - 20, offset)
+                      .includes("updateMedicineItem") ||
+                    string
+                      .substring(offset - 20, offset)
+                      .includes("removeMedicineItem")
+                  ) {
+                    return newIndex;
+                  }
+                  return match;
+                }
+              );
+            });
+
+          updateOrderTotal();
+        }
+      }
+
+      function updateOrderMedicines() {
+        const container = document.getElementById("orderMedicines");
+        container.innerHTML = "";
+        orderItems.forEach((item, index) => {
+          // Re-create each medicine item with current data
+          const itemDiv = document.createElement("div");
+          itemDiv.className = "flex space-x-3 items-end medicine-item";
+          itemDiv.setAttribute("data-index", index);
+
+          const selectedMedicine = availableMedicines.find(
+            (m) => m.id == item.medicineId
+          );
+          const price = selectedMedicine
+            ? selectedMedicine.selling_price || selectedMedicine.price || 0
+            : 0;
+          const total = item.quantity * price;
+
+          itemDiv.innerHTML = `
                     <div class="flex-1">
                         <label class="block text-sm font-medium text-gray-700 mb-1">Medicine</label>
                         <select class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-primary focus:border-primary" onchange="updateMedicineItem(${index}, 'medicineId', this.value)">
                             <option value="">Select Medicine</option>
-                            ${availableMedicines.map(med => `<option value="${med.id}" data-price="${med.selling_price || med.price}" data-name="${med.name}" data-stock="${med.stock}" ${med.id == item.medicineId ? 'selected' : ''}>${med.name} - ${Math.round(med.selling_price || med.price || 0).toLocaleString()} RWF (Stock: ${med.stock || 0})</option>`).join("")}
+                            ${availableMedicines
+                              .map(
+                                (med) =>
+                                  `<option value="${med.id}" data-price="${
+                                    med.selling_price || med.price
+                                  }" data-name="${med.name}" data-stock="${
+                                    med.stock
+                                  }" ${
+                                    med.id == item.medicineId ? "selected" : ""
+                                  }>${med.name} - ${Math.round(
+                                    med.selling_price || med.price || 0
+                                  ).toLocaleString()} RWF (Stock: ${
+                                    med.stock || 0
+                                  })</option>`
+                              )
+                              .join("")}
                         </select>
                     </div>
                     <div class="w-24">
                         <label class="block text-sm font-medium text-gray-700 mb-1">Qty</label>
-                        <input type="number" min="1" max="${selectedMedicine?.stock || 999}" value="${item.quantity}" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-primary focus:border-primary" onchange="updateMedicineItem(${index}, 'quantity', this.value)">
+                        <input type="number" min="1" max="${
+                          selectedMedicine?.stock || 999
+                        }" value="${
+            item.quantity
+          }" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-primary focus:border-primary" onchange="updateMedicineItem(${index}, 'quantity', this.value)">
                     </div>
                     <div class="w-32">
                         <label class="block text-sm font-medium text-gray-700 mb-1">Price</label>
-                        <input type="number" step="0.01" min="0" value="${Math.round(price).toLocaleString()}" class="w-full px-3 py-2 border border-gray-300 rounded-md bg-gray-50" readonly>
+                        <input type="number" step="0.01" min="0" value="${Math.round(
+                          price
+                        ).toLocaleString()}" class="w-full px-3 py-2 border border-gray-300 rounded-md bg-gray-50" readonly>
                     </div>
                     <div class="w-32">
                         <label class="block text-sm font-medium text-gray-700 mb-1">Total</label>
-                        <input type="number" step="0.01" min="0" value="${Math.round(total).toLocaleString()}" class="w-full px-3 py-2 border border-gray-300 rounded-md bg-gray-50" readonly>
+                        <input type="number" step="0.01" min="0" value="${Math.round(
+                          total
+                        ).toLocaleString()}" class="w-full px-3 py-2 border border-gray-300 rounded-md bg-gray-50" readonly>
                     </div>
                     <button type="button" onclick="removeMedicineItem(${index})" class="px-3 py-2 text-red-600 hover:text-red-800 h-10" title="Remove Item">
                         <i class="fas fa-trash"></i>
                     </button>
                 `;
-                container.appendChild(itemDiv);
+          container.appendChild(itemDiv);
+        });
+      }
+
+      function updateOrderTotal() {
+        const total = orderItems.reduce(
+          (sum, item) => sum + item.price * item.quantity,
+          0
+        );
+        document.getElementById("orderTotal").textContent =
+          Math.round(total).toLocaleString();
+      }
+
+      async function saveOrder(e) {
+        e.preventDefault();
+        const customerId = document.getElementById("orderCustomer").value;
+        const status = document.getElementById("orderStatus").value;
+
+        if (!customerId) {
+          showNotification("Please select a customer", "error");
+          return;
+        }
+
+        // Validate medicines
+        const validMedicines = orderItems.filter(
+          (item) => item.medicineId && item.quantity > 0
+        );
+        if (validMedicines.length === 0) {
+          showNotification("Please add at least one medicine", "error");
+          return;
+        }
+
+        // Validate stock for all items
+        for (const item of validMedicines) {
+          const medicine = availableMedicines.find(
+            (m) => m.id == item.medicineId
+          );
+          if (!medicine) {
+            showNotification(`Invalid medicine selected`, "error");
+            return;
+          }
+          if (item.quantity > (medicine.stock || 0)) {
+            showNotification(
+              `Insufficient stock for ${medicine.name}. Available: ${
+                medicine.stock || 0
+              }`,
+              "error"
+            );
+            return;
+          }
+        }
+
+        // Handle customer data
+        let customer;
+        let finalCustomerId;
+
+        if (customerId === "walk-in") {
+          // Create a temporary walk-in customer
+          try {
+            const walkInCustomer = await addCustomer({
+              name: "Walk-in Customer",
+              phone: "",
+              email: "",
+              address: "",
             });
+            customer = walkInCustomer;
+            finalCustomerId = walkInCustomer.id;
+          } catch (error) {
+            // If we can't create a walk-in customer, use null
+            customer = { name: "Walk-in Customer" };
+            finalCustomerId = null;
+          }
+        } else {
+          customer = availableCustomers.find((c) => c.id == customerId);
+          finalCustomerId = parseInt(customerId);
         }
 
-        function updateOrderTotal() {
-            const total = orderItems.reduce((sum, item) => sum + (item.price * item.quantity), 0);
-            document.getElementById("orderTotal").textContent = Math.round(total).toLocaleString();
-        }
+        const total = validMedicines.reduce((sum, item) => {
+          const medicine = availableMedicines.find(
+            (m) => m.id == item.medicineId
+          );
+          const price = medicine
+            ? medicine.selling_price || medicine.price || 0
+            : 0;
+          return sum + price * item.quantity;
+        }, 0);
 
-        async function saveOrder(e) {
-            e.preventDefault();
-            const customerId = document.getElementById("orderCustomer").value;
-            const status = document.getElementById("orderStatus").value;
-
-            if (!customerId) {
-                showNotification("Please select a customer", "error");
-                return;
-            }
-            
-            // Validate medicines
-            const validMedicines = orderItems.filter(item => item.medicineId && item.quantity > 0);
-            if (validMedicines.length === 0) {
-                showNotification("Please add at least one medicine", "error");
-                return;
-            }
-
-            // Validate stock for all items
-            for (const item of validMedicines) {
-                const medicine = availableMedicines.find(m => m.id == item.medicineId);
-                if (!medicine) {
-                    showNotification(`Invalid medicine selected`, "error");
-                    return;
-                }
-                if (item.quantity > (medicine.stock || 0)) {
-                    showNotification(`Insufficient stock for ${medicine.name}. Available: ${medicine.stock || 0}`, "error");
-                    return;
-                }
-            }
-
-            // Handle customer data
-            let customer;
-            let finalCustomerId;
-            
-            if (customerId === 'walk-in') {
-                // Create a temporary walk-in customer
-                try {
-                    const walkInCustomer = await addCustomer({
-                        name: 'Walk-in Customer',
-                        phone: '',
-                        email: '',
-                        address: ''
-                    });
-                    customer = walkInCustomer;
-                    finalCustomerId = walkInCustomer.id;
-                } catch (error) {
-                    // If we can't create a walk-in customer, use null
-                    customer = { name: 'Walk-in Customer' };
-                    finalCustomerId = null;
-                }
-            } else {
-                customer = availableCustomers.find(c => c.id == customerId);
-                finalCustomerId = parseInt(customerId);
-            }
-
-            const total = validMedicines.reduce((sum, item) => {
-                const medicine = availableMedicines.find(m => m.id == item.medicineId);
-                const price = medicine ? (medicine.selling_price || medicine.price || 0) : 0;
-                return sum + (price * item.quantity);
-            }, 0);
-
-            const orderData = {
-                customerId: finalCustomerId,
-                customerName: customer?.name || 'Walk-in Customer',
-                date: new Date().toISOString().split("T")[0],
-                total: total,
-                status: status,
-                medicines: validMedicines.map(item => {
-                    const medicine = availableMedicines.find(m => m.id == item.medicineId);
-                    return {
-                        medicineId: parseInt(item.medicineId),
-                        medicineName: medicine?.name || 'Unknown',
-                        quantity: item.quantity,
-                        price: medicine ? (medicine.selling_price || medicine.price || 0) : 0
-                    };
-                })
+        const orderData = {
+          customerId: finalCustomerId,
+          customerName: customer?.name || "Walk-in Customer",
+          date: new Date().toISOString().split("T")[0],
+          total: total,
+          status: status,
+          medicines: validMedicines.map((item) => {
+            const medicine = availableMedicines.find(
+              (m) => m.id == item.medicineId
+            );
+            return {
+              medicineId: parseInt(item.medicineId),
+              medicineName: medicine?.name || "Unknown",
+              quantity: item.quantity,
+              price: medicine
+                ? medicine.selling_price || medicine.price || 0
+                : 0,
             };
+          }),
+        };
 
-            try {
-                const submitBtn = e.target.querySelector('button[type="submit"]');
-                const originalText = submitBtn.innerHTML;
-                submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Creating...';
-                submitBtn.disabled = true;
+        try {
+          const submitBtn = e.target.querySelector('button[type="submit"]');
+          const originalText = submitBtn.innerHTML;
+          submitBtn.innerHTML =
+            '<i class="fas fa-spinner fa-spin mr-2"></i>Creating...';
+          submitBtn.disabled = true;
 
-                await addOrder(orderData);
-                renderOrders();
-                updateOrderStats();
-                closeOrderModal();
-                showNotification("Order created successfully!", "success");
-            } catch (error) {
-                console.error('Order creation error:', error);
-                showNotification(error.message || "Error creating order.", "error");
-            } finally {
-                const submitBtn = e.target.querySelector('button[type="submit"]');
-                if (submitBtn) {
-                    submitBtn.innerHTML = '<i class="fas fa-plus mr-2"></i>Create Order';
-                    submitBtn.disabled = false;
-                }
-            }
+          await addOrder(orderData);
+          renderOrders();
+          updateOrderStats();
+          closeOrderModal();
+          showNotification("Order created successfully!", "success");
+        } catch (error) {
+          console.error("Order creation error:", error);
+          showNotification(error.message || "Error creating order.", "error");
+        } finally {
+          const submitBtn = e.target.querySelector('button[type="submit"]');
+          if (submitBtn) {
+            submitBtn.innerHTML =
+              '<i class="fas fa-plus mr-2"></i>Create Order';
+            submitBtn.disabled = false;
+          }
         }
+      }
 
-        async function viewOrder(id) {
-            try {
-                const order = await getOrderDetails(id);
-                
-                let orderDetails = `
+      async function viewOrder(id) {
+        try {
+          const order = await getOrderDetails(id);
+
+          let orderDetails = `
                     <div class="space-y-4">
                         <div class="grid grid-cols-2 gap-4">
                             <div>
                                 <h4 class="font-semibold text-gray-700">Order Information</h4>
-                                <p><strong>Order Number:</strong> ${order.order_number || '#' + order.id}</p>
-                                <p><strong>Date:</strong> ${new Date(order.order_date || order.created_at).toLocaleDateString()}</p>
-                                <p><strong>Status:</strong> <span class="px-2 py-1 rounded text-sm ${getStatusClass(order.status)}">${order.status.toUpperCase()}</span></p>
-                                <p><strong>Total:</strong> ${Math.round(order.total_amount).toLocaleString()} RWF</p>
+                                <p><strong>Order Number:</strong> ${
+                                  order.order_number || "#" + order.id
+                                }</p>
+                                <p><strong>Date:</strong> ${new Date(
+                                  order.order_date || order.created_at
+                                ).toLocaleDateString()}</p>
+                                <p><strong>Status:</strong> <span class="px-2 py-1 rounded text-sm ${getStatusClass(
+                                  order.status
+                                )}">${order.status.toUpperCase()}</span></p>
+                                <p><strong>Total:</strong> ${Math.round(
+                                  order.total_amount
+                                ).toLocaleString()} RWF</p>
                             </div>
                             <div>
                                 <h4 class="font-semibold text-gray-700">Customer Information</h4>
-                                <p><strong>Name:</strong> ${order.customers?.name || 'Walk-in Customer'}</p>
-                                <p><strong>Customer ID:</strong> ${order.customers?.customer_id || 'N/A'}</p>
-                                <p><strong>Phone:</strong> ${order.customers?.phone || 'N/A'}</p>
-                                <p><strong>Served by:</strong> ${order.user_profiles?.full_name || 'Unknown'}</p>
+                                <p><strong>Name:</strong> ${
+                                  order.customers?.name || "Walk-in Customer"
+                                }</p>
+                                <p><strong>Customer ID:</strong> ${
+                                  order.customers?.customer_id || "N/A"
+                                }</p>
+                                <p><strong>Phone:</strong> ${
+                                  order.customers?.phone || "N/A"
+                                }</p>
+                                <p><strong>Served by:</strong> ${
+                                  order.user_profiles?.full_name || "Unknown"
+                                }</p>
                             </div>
                         </div>
                         
@@ -816,14 +1205,26 @@
                                         </tr>
                                     </thead>
                                     <tbody>
-                                        ${(order.order_items || []).map(item => `
+                                        ${(order.order_items || [])
+                                          .map(
+                                            (item) => `
                                             <tr class="border-t border-gray-200">
-                                                <td class="px-4 py-2">${item.medicine_name}</td>
-                                                <td class="px-4 py-2">${item.quantity}</td>
-                                                <td class="px-4 py-2">${Math.round(item.unit_price || 0).toLocaleString()} RWF</td>
-                                                <td class="px-4 py-2">${Math.round(item.total_price || 0).toLocaleString()} RWF</td>
+                                                <td class="px-4 py-2">${
+                                                  item.medicine_name
+                                                }</td>
+                                                <td class="px-4 py-2">${
+                                                  item.quantity
+                                                }</td>
+                                                <td class="px-4 py-2">${Math.round(
+                                                  item.unit_price || 0
+                                                ).toLocaleString()} RWF</td>
+                                                <td class="px-4 py-2">${Math.round(
+                                                  item.total_price || 0
+                                                ).toLocaleString()} RWF</td>
                                             </tr>
-                                        `).join('')}
+                                        `
+                                          )
+                                          .join("")}
                                     </tbody>
                                 </table>
                             </div>
@@ -831,10 +1232,10 @@
                     </div>
                 `;
 
-                // Create a modal for order details
-                const modal = document.createElement('div');
-                modal.className = 'modal show';
-                modal.innerHTML = `
+          // Create a modal for order details
+          const modal = document.createElement("div");
+          modal.className = "modal show";
+          modal.innerHTML = `
                     <div class="modal-content">
                         <div class="flex justify-between items-center mb-6">
                             <h2 class="text-xl font-semibold">Order Details</h2>
@@ -850,215 +1251,288 @@
                         </div>
                     </div>
                 `;
-                document.body.appendChild(modal);
-            } catch (error) {
-                console.error('Error viewing order:', error);
-                showNotification("Error loading order details.", "error");
-            }
+          document.body.appendChild(modal);
+        } catch (error) {
+          console.error("Error viewing order:", error);
+          showNotification("Error loading order details.", "error");
         }
+      }
 
-        function getStatusClass(status) {
-            const classes = {
-                'pending': 'bg-yellow-100 text-yellow-800',
-                'processing': 'bg-blue-100 text-blue-800',
-                'completed': 'bg-green-100 text-green-800',
-                'cancelled': 'bg-red-100 text-red-800'
-            };
-            return classes[status] || 'bg-gray-100 text-gray-800';
+      function getStatusClass(status) {
+        const classes = {
+          pending: "bg-yellow-100 text-yellow-800",
+          processing: "bg-blue-100 text-blue-800",
+          completed: "bg-green-100 text-green-800",
+          cancelled: "bg-red-100 text-red-800",
+        };
+        return classes[status] || "bg-gray-100 text-gray-800";
+      }
+
+      async function updateOrderStatus(id, newStatus) {
+        try {
+          await updateOrderStatus(id, newStatus);
+          renderOrders();
+          showNotification(`Order status updated to ${newStatus}!`, "success");
+        } catch (error) {
+          console.error("Error updating order status:", error);
+          showNotification("Error updating order status.", "error");
         }
+      }
 
-        async function updateOrderStatus(id, newStatus) {
-            try {
-                await updateOrderStatus(id, newStatus);
-                renderOrders();
-                showNotification(`Order status updated to ${newStatus}!`, "success");
-            } catch (error) {
-                console.error('Error updating order status:', error);
-                showNotification("Error updating order status.", "error");
-            }
+      async function updateOrderStatusLocal(id, newStatus) {
+        try {
+          await updateOrderStatus(id, newStatus);
+          renderOrders();
+          updateOrderStats();
+          showNotification(`Order status updated to ${newStatus}!`, "success");
+        } catch (error) {
+          console.error("Error updating order status:", error);
+          showNotification("Error updating order status.", "error");
         }
+      }
 
-        async function updateOrderStatusLocal(id, newStatus) {
-            try {
-                await updateOrderStatus(id, newStatus);
-                renderOrders();
-                updateOrderStats();
-                showNotification(`Order status updated to ${newStatus}!`, "success");
-            } catch (error) {
-                console.error('Error updating order status:', error);
-                showNotification("Error updating order status.", "error");
-            }
+      async function deleteOrderLocal(id) {
+        if (confirm("Are you sure you want to delete this order?")) {
+          try {
+            await deleteOrder(id);
+            renderOrders();
+            updateOrderStats();
+            showNotification("Order deleted successfully!", "success");
+          } catch (error) {
+            showNotification("Error deleting order.", "error");
+          }
         }
+      }
 
-        async function deleteOrderLocal(id) {
-            if (confirm("Are you sure you want to delete this order?")) {
-                try {
-                    await deleteOrder(id);
-                    renderOrders();
-                    updateOrderStats();
-                    showNotification("Order deleted successfully!", "success");
-                } catch (error) {
-                    showNotification("Error deleting order.", "error");
-                }
-            }
+      async function exportToExcel() {
+        try {
+          const orders = await fetchOrders();
+          if (orders.length === 0) {
+            showNotification("No orders to export.", "info");
+            return;
+          }
+
+          // Create CSV content
+          const headers = [
+            "Order Number",
+            "Customer",
+            "Date",
+            "Total (RWF)",
+            "Status",
+            "Items Count",
+            "Served By",
+          ];
+          const csvContent = [
+            headers.join(","),
+            ...orders.map((order) =>
+              [
+                order.order_number || "#" + order.id,
+                `"${order.customer_name || "N/A"}"`,
+                order.order_date ||
+                  new Date(order.created_at).toISOString().split("T")[0],
+                Math.round(order.total_amount || 0),
+                order.status,
+                order.items_count || 0,
+                `"${order.served_by_name || "Unknown"}"`,
+              ].join(",")
+            ),
+          ].join("\n");
+
+          // Create and download file
+          const blob = new Blob([csvContent], {
+            type: "text/csv;charset=utf-8;",
+          });
+          const link = document.createElement("a");
+          const url = URL.createObjectURL(blob);
+          link.setAttribute("href", url);
+          link.setAttribute(
+            "download",
+            `orders_export_${new Date().toISOString().split("T")[0]}.csv`
+          );
+          link.style.visibility = "hidden";
+          document.body.appendChild(link);
+          link.click();
+          document.body.removeChild(link);
+
+          showNotification("Orders exported successfully!", "success");
+        } catch (error) {
+          console.error("Export error:", error);
+          showNotification("Error exporting orders.", "error");
         }
+      }
 
-        async function exportToExcel() {
-            try {
-                const orders = await fetchOrders();
-                if (orders.length === 0) {
-                    showNotification("No orders to export.", "info");
-                    return;
-                }
+      function showNewCustomerForm() {
+        const customerName = prompt("Enter customer name:");
+        if (customerName && customerName.trim()) {
+          const phone = prompt("Enter customer phone (optional):");
+          const newCustomer = {
+            name: customerName.trim(),
+            phone: phone ? phone.trim() : "",
+            email: "",
+            address: "",
+          };
 
-                // Create CSV content
-                const headers = ['Order Number', 'Customer', 'Date', 'Total (RWF)', 'Status', 'Items Count', 'Served By'];
-                const csvContent = [
-                    headers.join(','),
-                    ...orders.map(order => [
-                        order.order_number || '#' + order.id,
-                        `"${order.customer_name || 'N/A'}"`,
-                        order.order_date || new Date(order.created_at).toISOString().split('T')[0],
-                        Math.round(order.total_amount || 0),
-                        order.status,
-                        order.items_count || 0,
-                        `"${order.served_by_name || 'Unknown'}"`
-                    ].join(','))
-                ].join('\n');
-
-                // Create and download file
-                const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-                const link = document.createElement('a');
-                const url = URL.createObjectURL(blob);
-                link.setAttribute('href', url);
-                link.setAttribute('download', `orders_export_${new Date().toISOString().split('T')[0]}.csv`);
-                link.style.visibility = 'hidden';
-                document.body.appendChild(link);
-                link.click();
-                document.body.removeChild(link);
-                
-                showNotification("Orders exported successfully!", "success");
-            } catch (error) {
-                console.error('Export error:', error);
-                showNotification("Error exporting orders.", "error");
-            }
+          addCustomerAndSelect(newCustomer);
         }
+      }
 
-        function showNewCustomerForm() {
-            const customerName = prompt("Enter customer name:");
-            if (customerName && customerName.trim()) {
-                const phone = prompt("Enter customer phone (optional):");
-                const newCustomer = {
-                    name: customerName.trim(),
-                    phone: phone ? phone.trim() : '',
-                    email: '',
-                    address: ''
-                };
-                
-                addCustomerAndSelect(newCustomer);
-            }
-        }
+      async function addCustomerAndSelect(customerData) {
+        try {
+          const newCustomer = await addCustomer(customerData);
+          availableCustomers.push(newCustomer);
 
-        async function addCustomerAndSelect(customerData) {
-            try {
-                const newCustomer = await addCustomer(customerData);
-                availableCustomers.push(newCustomer);
-                
-                // Update customer select options
-                const customerSelect = document.getElementById("orderCustomer");
-                const newOption = document.createElement("option");
-                newOption.value = newCustomer.id;
-                newOption.textContent = `${newCustomer.name} - ${newCustomer.customer_id}`;
-                newOption.selected = true;
-                customerSelect.appendChild(newOption);
-                
-                showNotification("Customer added and selected!", "success");
-            } catch (error) {
-                console.error('Error adding customer:', error);
-                showNotification("Error adding customer. Please try again.", "error");
-            }
-        }
+          // Update customer select options
+          const customerSelect = document.getElementById("orderCustomer");
+          const newOption = document.createElement("option");
+          newOption.value = newCustomer.id;
+          newOption.textContent = `${newCustomer.name} - ${newCustomer.customer_id}`;
+          newOption.selected = true;
+          customerSelect.appendChild(newOption);
 
-        function showNotification(message, type = "info") {
-            const notification = document.getElementById("notification");
-            notification.textContent = message;
-            notification.className = `notification show ${type}`;
-            setTimeout(() => notification.classList.remove("show"), 3000);
+          showNotification("Customer added and selected!", "success");
+        } catch (error) {
+          console.error("Error adding customer:", error);
+          showNotification("Error adding customer. Please try again.", "error");
         }
+      }
+
+      function showNotification(message, type = "info") {
+        const notification = document.getElementById("notification");
+        notification.textContent = message;
+        notification.className = `notification show ${type}`;
+        setTimeout(() => notification.classList.remove("show"), 3000);
+      }
     </script>
 
     <style>
-        :root {
-            --primary: #16a34a; /* Green-600 */
-        }
-        .bg-primary { background-color: var(--primary); }
-        .text-primary { color: var(--primary); }
-        .border-primary { border-color: var(--primary); }
-        .ring-primary { --tw-ring-color: var(--primary); }
-        .hover\:bg-green-600:hover { background-color: #15803d; } /* Green-700 */
+      :root {
+        --primary: #16a34a; /* Green-600 */
+      }
+      .bg-primary {
+        background-color: var(--primary);
+      }
+      .text-primary {
+        color: var(--primary);
+      }
+      .border-primary {
+        border-color: var(--primary);
+      }
+      .ring-primary {
+        --tw-ring-color: var(--primary);
+      }
+      .hover\:bg-green-600:hover {
+        background-color: #15803d;
+      } /* Green-700 */
 
-        .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.5); }
-        .modal.show { display: flex; align-items: center; justify-content: center; }
-        .modal-content { 
-            background: white; 
-            padding: 2rem; 
-            border-radius: 0.5rem; 
-            width: 90%; 
-            max-width: 900px; 
-            max-height: 90vh; 
-            overflow-y: auto; 
-            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+      .modal {
+        display: none;
+        position: fixed;
+        z-index: 1000;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.5);
+      }
+      .modal.show {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+      .modal-content {
+        background: white;
+        padding: 2rem;
+        border-radius: 0.5rem;
+        width: 90%;
+        max-width: 900px;
+        max-height: 90vh;
+        overflow-y: auto;
+        box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1),
+          0 10px 10px -5px rgba(0, 0, 0, 0.04);
+      }
+
+      .medicine-item {
+        background: #f9fafb;
+        padding: 1rem;
+        border-radius: 0.5rem;
+        border: 1px solid #e5e7eb;
+        margin-bottom: 0.75rem;
+      }
+
+      .medicine-item:hover {
+        border-color: #d1d5db;
+      }
+
+      .notification {
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        padding: 1rem 1.5rem;
+        border-radius: 0.5rem;
+        color: white;
+        font-weight: 500;
+        transform: translateX(120%);
+        opacity: 0;
+        transition: transform 0.3s ease, opacity 0.3s ease;
+        z-index: 1001;
+        max-width: 400px;
+      }
+      .notification.show {
+        transform: translateX(0);
+        opacity: 1;
+      }
+      .notification.success {
+        background-color: #10b981;
+      }
+      .notification.warning {
+        background-color: #f59e0b;
+      }
+      .notification.error {
+        background-color: #ef4444;
+      }
+      .notification.info {
+        background-color: #3b82f6;
+      }
+
+      .loading-skeleton {
+        background: linear-gradient(
+          90deg,
+          #f0f0f0 25%,
+          #e0e0e0 50%,
+          #f0f0f0 75%
+        );
+        background-size: 200% 100%;
+        animation: loading 1.5s infinite;
+      }
+
+      @keyframes loading {
+        0% {
+          background-position: 200% 0;
         }
-        
-        .medicine-item {
-            background: #f9fafb;
-            padding: 1rem;
-            border-radius: 0.5rem;
-            border: 1px solid #e5e7eb;
-            margin-bottom: 0.75rem;
+        100% {
+          background-position: -200% 0;
         }
-        
-        .medicine-item:hover {
-            border-color: #d1d5db;
-        }
-        
-        .notification { position: fixed; top: 20px; right: 20px; padding: 1rem 1.5rem; border-radius: 0.5rem; color: white; font-weight: 500; transform: translateX(120%); opacity: 0; transition: transform 0.3s ease, opacity 0.3s ease; z-index: 1001; max-width: 400px; }
-        .notification.show { transform: translateX(0); opacity: 1; }
-        .notification.success { background-color: #10b981; }
-        .notification.warning { background-color: #f59e0b; }
-        .notification.error { background-color: #ef4444; }
-        .notification.info { background-color: #3b82f6; }
-        
-        .loading-skeleton {
-            background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
-            background-size: 200% 100%;
-            animation: loading 1.5s infinite;
-        }
-        
-        @keyframes loading {
-            0% { background-position: 200% 0; }
-            100% { background-position: -200% 0; }
-        }
-        
-        .status-badge {
-            font-size: 0.75rem;
-            font-weight: 600;
-            padding: 0.25rem 0.75rem;
-            border-radius: 9999px;
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
-        }
-        
-        .btn-action {
-            transition: all 0.2s;
-            padding: 0.5rem;
-            border-radius: 0.375rem;
-        }
-        
-        .btn-action:hover {
-            transform: translateY(-1px);
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-        }
+      }
+
+      .status-badge {
+        font-size: 0.75rem;
+        font-weight: 600;
+        padding: 0.25rem 0.75rem;
+        border-radius: 9999px;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+      }
+
+      .btn-action {
+        transition: all 0.2s;
+        padding: 0.5rem;
+        border-radius: 0.375rem;
+      }
+
+      .btn-action:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+      }
     </style>
-</body>
+  </body>
 </html>
