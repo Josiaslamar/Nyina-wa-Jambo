@@ -916,20 +916,62 @@ async function getIndividualStaffMetrics(staffId, days = 30) {
   }
 }
 
-// 4. PEAK HOURS ANALYSIS
+// 4. PEAK HOURS ANALYSIS (Simplified)
 async function getPeakHoursAnalysis(days = 30) {
   if (!(await isReceptionist())) throw new Error("Permission denied: Staff only");
   
   try {
-    const { data, error } = await supabase.rpc('get_peak_hours_analysis', {
-      analysis_date: new Date().toISOString().split('T')[0],
-      period_days: days
-    });
-    if (error) throw new Error(`Peak hours error: ${error.message}`);
-    return data || [];
+    // Try the RPC function first, fall back to basic query if it fails
+    try {
+      const { data, error } = await supabase.rpc('get_peak_hours_analysis', {
+        analysis_date: new Date().toISOString().split('T')[0],
+        period_days: days
+      });
+      if (error) throw error;
+      return data || [];
+    } catch (rpcError) {
+      console.warn('Peak hours RPC failed, using fallback query:', rpcError.message);
+      
+      // Fallback: Basic query for peak hours
+      const startDate = new Date(Date.now() - days * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
+      const { data, error } = await supabase
+        .from('orders')
+        .select('created_at, total_amount')
+        .gte('order_date', startDate)
+        .eq('status', 'completed')
+        .eq('is_active', true);
+      
+      if (error) throw error;
+      
+      // Process data to group by hour
+      const hourStats = {};
+      data.forEach(order => {
+        const hour = new Date(order.created_at).getHours();
+        if (!hourStats[hour]) {
+          hourStats[hour] = {
+            hour_of_day: hour,
+            average_orders: 0,
+            average_revenue: 0,
+            peak_staff_needed: 1,
+            customer_wait_time: 0,
+            order_count: 0
+          };
+        }
+        hourStats[hour].order_count += 1;
+        hourStats[hour].average_revenue += parseFloat(order.total_amount || 0);
+      });
+      
+      // Calculate averages
+      Object.values(hourStats).forEach(stat => {
+        stat.average_orders = stat.order_count / days;
+        stat.average_revenue = stat.average_revenue / days;
+      });
+      
+      return Object.values(hourStats).sort((a, b) => b.average_orders - a.average_orders);
+    }
   } catch (error) {
-    showError(error.message);
-    throw error;
+    console.error('Peak hours analysis error:', error.message);
+    return [];
   }
 }
 
@@ -1078,7 +1120,7 @@ async function closeCashRegisterSession(sessionId, closingBalance, notes = null)
   }
 }
 
-// 8. MEDICINE DISPENSING PERFORMANCE
+// 8. MEDICINE DISPENSING PERFORMANCE (Simplified)
 async function getMedicineDispensingPerformance(days = 7) {
   if (!(await isReceptionist())) throw new Error("Permission denied: Staff only");
   
@@ -1086,16 +1128,60 @@ async function getMedicineDispensingPerformance(days = 7) {
     const startDate = new Date(Date.now() - days * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
     const endDate = new Date().toISOString().split('T')[0];
     
-    const { data, error } = await supabase.rpc('get_medicine_dispensing_performance', {
-      start_date: startDate,
-      end_date: endDate
-    });
-    
-    if (error) throw new Error(`Dispensing performance error: ${error.message}`);
-    return data || [];
+    // Try the RPC function first, fall back to basic query if it fails
+    try {
+      const { data, error } = await supabase.rpc('get_medicine_dispensing_performance', {
+        start_date: startDate,
+        end_date: endDate
+      });
+      
+      if (error) throw error;
+      return data || [];
+    } catch (rpcError) {
+      console.warn('RPC function failed, using fallback query:', rpcError.message);
+      
+      // Fallback: Basic query for medicine performance
+      const { data, error } = await supabase
+        .from('order_items')
+        .select(`
+          medicine_name,
+          quantity,
+          orders!inner(
+            order_date,
+            status,
+            is_active
+          )
+        `)
+        .gte('orders.order_date', startDate)
+        .lte('orders.order_date', endDate)
+        .eq('orders.status', 'completed')
+        .eq('orders.is_active', true)
+        .eq('is_active', true);
+      
+      if (error) throw error;
+      
+      // Process data to group by medicine
+      const medicineStats = {};
+      data.forEach(item => {
+        if (!medicineStats[item.medicine_name]) {
+          medicineStats[item.medicine_name] = {
+            medicine_name: item.medicine_name,
+            total_dispensed: 0,
+            dispensing_staff_count: 1,
+            average_per_staff: 0,
+            fastest_dispensing_time: 0,
+            slowest_dispensing_time: 0,
+            error_rate: 0
+          };
+        }
+        medicineStats[item.medicine_name].total_dispensed += item.quantity;
+      });
+      
+      return Object.values(medicineStats).sort((a, b) => b.total_dispensed - a.total_dispensed);
+    }
   } catch (error) {
-    showError(error.message);
-    throw error;
+    console.error('Medicine dispensing performance error:', error.message);
+    return [];
   }
 }
 
@@ -1257,7 +1343,7 @@ async function getCustomerFlowAnalysis(days = 30) {
   }
 }
 
-// 13. WEEKLY PERFORMANCE SUMMARY
+// 13. WEEKLY PERFORMANCE SUMMARY (Simplified)
 async function getWeeklyPerformanceSummary() {
   if (!(await isReceptionist())) throw new Error("Permission denied: Staff only");
   
@@ -1267,33 +1353,74 @@ async function getWeeklyPerformanceSummary() {
     const endOfWeek = new Date(startOfWeek);
     endOfWeek.setDate(endOfWeek.getDate() + 6);
     
-    const { data: weeklyData, error } = await supabase.rpc('generate_sales_report', {
-      start_date: startOfWeek.toISOString().split('T')[0],
-      end_date: endOfWeek.toISOString().split('T')[0]
-    });
-    
-    if (error) throw new Error(`Weekly summary error: ${error.message}`);
-    
-    // Get staff performance for the week
-    const staffPerformance = await getStaffPerformanceAnalysis(7);
-    
-    // Get top medicines for the week
-    const topMedicines = await supabase.rpc('get_top_selling_medicines', {
-      start_date: startOfWeek.toISOString().split('T')[0],
-      end_date: endOfWeek.toISOString().split('T')[0],
-      limit_count: 5
-    });
-    
+    // Try RPC function first, fall back to basic query
+    try {
+      const { data: weeklyData, error } = await supabase.rpc('generate_sales_report', {
+        start_date: startOfWeek.toISOString().split('T')[0],
+        end_date: endOfWeek.toISOString().split('T')[0]
+      });
+      
+      if (error) throw error;
+      
+      // Calculate totals from daily data
+      const totals = weeklyData?.reduce((acc, day) => ({
+        total_orders: acc.total_orders + (day.total_orders || 0),
+        total_revenue: acc.total_revenue + (day.gross_sales || 0),
+        avg_order_value: 0, // Will calculate after
+        top_medicines_count: 0
+      }), { total_orders: 0, total_revenue: 0, avg_order_value: 0, top_medicines_count: 0 }) || {};
+      
+      if (totals.total_orders > 0) {
+        totals.avg_order_value = totals.total_revenue / totals.total_orders;
+      }
+      
+      return {
+        sales_data: totals,
+        top_medicines: [],
+        week_start: startOfWeek.toISOString().split('T')[0],
+        week_end: endOfWeek.toISOString().split('T')[0]
+      };
+      
+    } catch (rpcError) {
+      console.warn('Weekly summary RPC failed, using fallback:', rpcError.message);
+      
+      // Fallback: Basic query for weekly summary
+      const { data, error } = await supabase
+        .from('orders')
+        .select('total_amount, order_date')
+        .gte('order_date', startOfWeek.toISOString().split('T')[0])
+        .lte('order_date', endOfWeek.toISOString().split('T')[0])
+        .eq('status', 'completed')
+        .eq('is_active', true);
+      
+      if (error) throw error;
+      
+      const totals = {
+        total_orders: data.length,
+        total_revenue: data.reduce((sum, order) => sum + parseFloat(order.total_amount || 0), 0),
+        avg_order_value: 0,
+        top_medicines_count: 0
+      };
+      
+      if (totals.total_orders > 0) {
+        totals.avg_order_value = totals.total_revenue / totals.total_orders;
+      }
+      
+      return {
+        sales_data: totals,
+        top_medicines: [],
+        week_start: startOfWeek.toISOString().split('T')[0],
+        week_end: endOfWeek.toISOString().split('T')[0]
+      };
+    }
+  } catch (error) {
+    console.warn('Weekly summary error:', error.message);
     return {
-      sales_data: weeklyData,
-      staff_performance: staffPerformance,
-      top_medicines: topMedicines.data || [],
+      sales_data: { total_orders: 0, total_revenue: 0, avg_order_value: 0, top_medicines_count: 0 },
+      top_medicines: [],
       week_start: startOfWeek.toISOString().split('T')[0],
       week_end: endOfWeek.toISOString().split('T')[0]
     };
-  } catch (error) {
-    showError(error.message);
-    throw error;
   }
 }
 

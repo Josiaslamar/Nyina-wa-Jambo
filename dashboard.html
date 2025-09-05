@@ -164,22 +164,6 @@
         background-color: #fef2f2;
         border-left: 4px solid #ef4444;
       }
-      .performance-grade-a {
-        background-color: #22c55e;
-        color: white;
-      }
-      .performance-grade-b {
-        background-color: #3b82f6;
-        color: white;
-      }
-      .performance-grade-c {
-        background-color: #f59e0b;
-        color: white;
-      }
-      .performance-grade-d {
-        background-color: #ef4444;
-        color: white;
-      }
     </style>
   </head>
   <body class="bg-gray-100">
@@ -657,7 +641,7 @@
           let posMetrics = null;
           let currentShift = null;
           let cashSession = null;
-          let staffPerformance = [];
+          let analyticsData = {};
 
           try {
             if (user.role === "admin" || user.role === "receptionist") {
@@ -688,10 +672,32 @@
 
               cashSession = cashData?.[0] || null;
 
-              // Get staff performance data for admin
-              if (user.role === "admin") {
-                staffPerformance = await getStaffPerformanceAnalysis(7);
-              }
+              // Get analytics data
+              const [peakHours, medicinePerformance, customerFlow, weeklyPerformance] = await Promise.all([
+                getPeakHoursAnalysis(7).catch(err => {
+                  console.warn('Peak hours analysis failed:', err);
+                  return [];
+                }),
+                getMedicineDispensingPerformance(7).catch(err => {
+                  console.warn('Medicine dispensing performance failed:', err);
+                  return [];
+                }),
+                getCustomerFlowAnalysis(7).catch(err => {
+                  console.warn('Customer flow analysis failed:', err);
+                  return [];
+                }),
+                getWeeklyPerformanceSummary().catch(err => {
+                  console.warn('Weekly performance summary failed:', err);
+                  return null;
+                })
+              ]);
+
+              analyticsData = {
+                peakHours: peakHours || [],
+                medicinePerformance: medicinePerformance || [],
+                customerFlow: customerFlow || [],
+                weeklyPerformance: weeklyPerformance || null
+              };
             }
           } catch (posError) {
             console.warn("POS Analytics data unavailable:", posError.message);
@@ -801,51 +807,119 @@
               : "";
             */
 
-          // Generate staff performance HTML for admin
-          const staffPerformanceHtml =
-            user.role === "admin" && staffPerformance.length > 0
+          // Generate analytics statistics HTML for admin and receptionist
+          const analyticsStatsHtml =
+            (user.role === "admin" || user.role === "receptionist") && analyticsData
               ? `
             <div class="bg-white p-6 rounded-xl shadow-lg mb-8">
-              <h2 class="text-xl font-bold text-gray-800 mb-4">Staff Performance (Last 7 Days)</h2>
-              <div class="space-y-3 max-h-60 overflow-y-auto">
-                ${staffPerformance
-                  .slice(0, 5)
-                  .map(
-                    (staff) => `
-                  <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                    <div class="flex items-center space-x-3">
-                      <div class="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center">
-                        <span class="text-sm font-semibold text-blue-700">${
-                          staff.staff_name?.charAt(0) || "U"
-                        }</span>
-                      </div>
-                      <div>
-                        <p class="font-medium text-gray-800">${
-                          staff.staff_name || "Unknown"
-                        }</p>
-                        <p class="text-sm text-gray-600">${
-                          staff.total_orders || 0
-                        } orders • ${formatCurrency(staff.total_sales || 0)}</p>
-                      </div>
-                    </div>
-                    <div class="flex items-center space-x-2">
-                      <span class="text-sm text-gray-600">${
-                        staff.accuracy_rate || 100
-                      }% accuracy</span>
-                      <span class="px-2 py-1 text-xs rounded-full performance-grade-${
-                        staff.performance_grade?.toLowerCase() || "d"
-                      }">
-                        Grade ${staff.performance_grade || "D"}
-                      </span>
-                    </div>
+              <h2 class="text-xl font-bold text-gray-800 mb-6">Analytics Insights (Last 7 Days)</h2>
+              
+              <!-- Weekly Performance Summary -->
+              ${analyticsData.weeklyPerformance && analyticsData.weeklyPerformance.sales_data ? `
+              <div class="bg-gradient-to-r from-blue-50 to-indigo-50 p-4 rounded-lg mb-6">
+                <h3 class="text-lg font-semibold text-gray-800 mb-3">Weekly Summary</h3>
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                  <div class="text-center">
+                    <p class="text-2xl font-bold text-blue-600">${analyticsData.weeklyPerformance.sales_data.total_orders || 0}</p>
+                    <p class="text-sm text-gray-600">Total Orders</p>
                   </div>
-                `
-                  )
-                  .join("")}
+                  <div class="text-center">
+                    <p class="text-2xl font-bold text-green-600">${formatCurrency(analyticsData.weeklyPerformance.sales_data.total_revenue || 0)}</p>
+                    <p class="text-sm text-gray-600">Total Revenue</p>
+                  </div>
+                  <div class="text-center">
+                    <p class="text-2xl font-bold text-purple-600">${Math.round(analyticsData.weeklyPerformance.sales_data.avg_order_value || 0)}</p>
+                    <p class="text-sm text-gray-600">Avg Order Value</p>
+                  </div>
+                  <div class="text-center">
+                    <p class="text-2xl font-bold text-orange-600">${analyticsData.weeklyPerformance.top_medicines.length || 0}</p>
+                    <p class="text-sm text-gray-600">Top Medicines</p>
+                  </div>
+                </div>
               </div>
+              ` : ''}
+
+              <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <!-- Peak Hours Analysis -->
+                <div class="bg-gray-50 p-4 rounded-lg">
+                  <h4 class="font-semibold text-gray-800 mb-3 flex items-center">
+                    <i class="fas fa-clock text-blue-500 mr-2"></i>
+                    Peak Hours Analysis
+                  </h4>
+                  <div class="space-y-2 max-h-40 overflow-y-auto">
+                    ${analyticsData.peakHours.length > 0 ? 
+                      analyticsData.peakHours.slice(0, 5).map(hour => `
+                        <div class="flex justify-between items-center text-sm">
+                          <span>${hour.hour_of_day || hour.hour || 0}:00 - ${(hour.hour_of_day || hour.hour || 0) + 1}:00</span>
+                          <div class="flex items-center space-x-2">
+                            <span class="text-gray-600">${Math.round(hour.average_orders || hour.order_count || 0)} avg orders</span>
+                            <span class="px-2 py-1 bg-blue-100 text-blue-800 rounded text-xs">
+                              ${formatCurrency(hour.average_revenue || hour.revenue || 0)}
+                            </span>
+                          </div>
+                        </div>
+                      `).join('') : 
+                      '<p class="text-gray-500 text-sm">No peak hours data available</p>'
+                    }
+                  </div>
+                </div>
+
+                <!-- Top Medicines Performance -->
+                <div class="bg-gray-50 p-4 rounded-lg">
+                  <h4 class="font-semibold text-gray-800 mb-3 flex items-center">
+                    <i class="fas fa-pills text-green-500 mr-2"></i>
+                    Top Dispensed Medicines
+                  </h4>
+                  <div class="space-y-2 max-h-40 overflow-y-auto">
+                    ${analyticsData.medicinePerformance.length > 0 ? 
+                      analyticsData.medicinePerformance.slice(0, 5).map(med => `
+                        <div class="flex justify-between items-center text-sm">
+                          <span class="font-medium">${med.medicine_name || 'Unknown'}</span>
+                          <div class="flex items-center space-x-2">
+                            <span class="text-gray-600">${med.total_dispensed || 0} units</span>
+                            <span class="px-2 py-1 bg-green-100 text-green-800 rounded text-xs">
+                              ${(med.error_rate || 0).toFixed(1)}% error rate
+                            </span>
+                          </div>
+                        </div>
+                      `).join('') : 
+                      '<p class="text-gray-500 text-sm">No dispensing data available</p>'
+                    }
+                  </div>
+                </div>
+              </div>
+
+              <!-- Customer Flow Insights -->
+              ${analyticsData.customerFlow.length > 0 ? `
+              <div class="mt-6 bg-gradient-to-r from-purple-50 to-pink-50 p-4 rounded-lg">
+                <h4 class="font-semibold text-gray-800 mb-3 flex items-center">
+                  <i class="fas fa-users text-purple-500 mr-2"></i>
+                  Customer Flow Insights
+                </h4>
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+                  <div class="text-center">
+                    <p class="text-lg font-bold text-purple-600">${analyticsData.customerFlow.reduce((sum, flow) => sum + (flow.customer_count || 0), 0)}</p>
+                    <p class="text-gray-600">Total Customers</p>
+                  </div>
+                  <div class="text-center">
+                    <p class="text-lg font-bold text-purple-600">${analyticsData.customerFlow.length > 0 ? Math.round(analyticsData.customerFlow.reduce((sum, flow) => sum + (flow.average_wait_time || 0), 0) / analyticsData.customerFlow.length) : 0}s</p>
+                    <p class="text-gray-600">Avg Wait Time</p>
+                  </div>
+                  <div class="text-center">
+                    <p class="text-lg font-bold text-purple-600">${analyticsData.customerFlow.length > 0 ? analyticsData.customerFlow.reduce((peak, flow) => (flow.customer_count || 0) > (peak.customer_count || 0) ? flow : peak, {}).hour || 'N/A' : 'N/A'}:00</p>
+                    <p class="text-gray-600">Peak Hour</p>
+                  </div>
+                  <div class="text-center">
+                    <p class="text-lg font-bold text-purple-600">${formatCurrency(analyticsData.customerFlow.reduce((sum, flow) => sum + (flow.revenue || 0), 0))}</p>
+                    <p class="text-gray-600">Flow Revenue</p>
+                  </div>
+                </div>
+              </div>
+              ` : ''}
+
               <div class="mt-4 text-center">
                 <a href="reports.html" class="text-blue-600 hover:text-blue-800 text-sm font-medium">
-                  View Full Performance Report →
+                  View Detailed Analytics Report →
                 </a>
               </div>
             </div>
@@ -973,8 +1047,8 @@
                 </div>
               </div>
 
-              <!-- Staff Performance Section -->
-              ${staffPerformanceHtml}
+              <!-- Analytics Statistics Section -->
+              ${analyticsStatsHtml}
 
               <!-- Content Grid -->
               <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">

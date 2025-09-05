@@ -392,7 +392,6 @@
                 <span class="hidden sm:inline">Login</span>
               </button>
               <button
-
             </div>
           </div>
         </nav>
@@ -876,12 +875,17 @@
     <script>
       // Initialize Supabase client
       const SUPABASE_URL = "https://jcmscgxrxicwowsezbui.supabase.co";
-      const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImpjbXNjZ3hyeGljd293c2V6YnVpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTY3NjExNzcsImV4cCI6MjA3MjMzNzE3N30.QqfFKCqV4oIsuNw5TAJoCbE7tVu7m8s8g8M6YzwcU68";
-      const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
-        auth: {
-          persistSession: true,
-        },
-      });
+      const SUPABASE_ANON_KEY =
+        "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImpjbXNjZ3hyeGljd293c2V6YnVpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTY3NjExNzcsImV4cCI6MjA3MjMzNzE3N30.QqfFKCqV4oIsuNw5TAJoCbE7tVu7m8s8g8M6YzwcU68";
+      const supabase = window.supabase.createClient(
+        SUPABASE_URL,
+        SUPABASE_ANON_KEY,
+        {
+          auth: {
+            persistSession: true,
+          },
+        }
+      );
 
       // Language translations
       const translations = {
@@ -1114,7 +1118,10 @@
       // Check session and redirect if authenticated
       async function checkSession() {
         try {
-          const { data: { user }, error } = await supabase.auth.getUser();
+          const {
+            data: { user },
+            error,
+          } = await supabase.auth.getUser();
           if (error) {
             console.error("Session check error:", error.message);
             return false;
@@ -1157,9 +1164,8 @@
         const isAuthenticated = await checkSession();
         if (!isAuthenticated) {
           window.location.href = "login.html";
-
-          }
         }
+      }
 
       document.addEventListener("DOMContentLoaded", function () {
         checkSession().then((isAuthenticated) => {
@@ -1167,9 +1173,11 @@
             document.getElementById("landingPage").style.display = "block";
             setLanguage("rw");
           }
-          document.getElementById("languageSwitcher").addEventListener("change", function (e) {
-            setLanguage(e.target.value);
-          });
+          document
+            .getElementById("languageSwitcher")
+            .addEventListener("change", function (e) {
+              setLanguage(e.target.value);
+            });
         });
       });
     </script>
