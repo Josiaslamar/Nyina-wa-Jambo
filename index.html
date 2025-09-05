@@ -392,13 +392,7 @@
                 <span class="hidden sm:inline">Login</span>
               </button>
               <button
-                onclick="window.location.href='signup.html'"
-                id="signupBtn"
-                class="bg-primary text-white hover:bg-primary-dark px-3 sm:px-4 py-2 rounded-md border border-primary hover:border-primary-dark transition-colors btn-hover"
-              >
-                <i class="fas fa-sign-in-alt mr-0 sm:mr-2"></i>
-                <span class="hidden sm:inline">Signup</span>
-              </button>
+
             </div>
           </div>
         </nav>
@@ -1163,8 +1157,9 @@
         const isAuthenticated = await checkSession();
         if (!isAuthenticated) {
           window.location.href = "login.html";
+
+          }
         }
-      }
 
       document.addEventListener("DOMContentLoaded", function () {
         checkSession().then((isAuthenticated) => {
