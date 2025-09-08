@@ -1,0 +1,1212 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Cash Book - Nyina wa Jambo Pharmacy</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+    <script src="supabase.js"></script>
+    <script src="notification-system.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/exceljs/dist/exceljs.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"
+    />
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  </head>
+  <body class="bg-gray-100">
+    <div class="flex h-screen bg-gray-100">
+      <!-- Sidebar -->
+      <aside
+        id="sidebar"
+        class="w-64 bg-green-800 text-white flex-shrink-0 hidden lg:block"
+      >
+        <div class="p-6">
+          <a
+            href="dashboard.html"
+            class="text-2xl font-bold text-white flex items-center"
+          >
+            <i class="fas fa-pills mr-3"></i>
+            <span>Nyina wa Jambo</span>
+          </a>
+        </div>
+        <nav class="mt-6">
+          <a
+            href="dashboard.html"
+            class="flex items-center py-3 px-6 text-gray-300 hover:bg-green-600 hover:text-white transition-colors"
+          >
+            <i class="fas fa-tachometer-alt w-6 text-center"></i>
+            <span class="ml-4">Dashboard</span>
+          </a>
+          <a
+            href="medicines.html"
+            class="flex items-center py-3 px-6 text-gray-300 hover:bg-green-600 hover:text-white transition-colors receptionist-only"
+          >
+            <i class="fas fa-capsules w-6 text-center"></i>
+            <span class="ml-4">Medicines</span>
+          </a>
+          <a
+            href="suppliers.html"
+            class="flex items-center py-3 px-6 text-gray-300 hover:bg-green-600 hover:text-white transition-colors admin-only"
+          >
+            <i class="fas fa-truck w-6 text-center"></i>
+            <span class="ml-4">Suppliers</span>
+          </a>
+          <a
+            href="customers.html"
+            class="flex items-center py-3 px-6 text-gray-300 hover:bg-green-600 hover:text-white transition-colors"
+          >
+            <i class="fas fa-users w-6 text-center"></i>
+            <span class="ml-4">Customers</span>
+          </a>
+          <a
+            href="orders.html"
+            class="flex items-center py-3 px-6 text-gray-300 hover:bg-green-600 hover:text-white transition-colors receptionist-only"
+          >
+            <i class="fas fa-shopping-cart w-6 text-center"></i>
+            <span class="ml-4">Orders</span>
+          </a>
+          <a
+            href="user-management.html"
+            class="flex items-center py-3 px-6 text-gray-300 hover:bg-green-600 hover:text-white transition-colors admin-only"
+          >
+            <i class="fas fa-user-cog w-6 text-center"></i>
+            <span class="ml-4">User Management</span>
+          </a>
+          <a
+            href="reports.html"
+            class="flex items-center py-3 px-6 text-gray-300 hover:bg-green-600 hover:text-white transition-colors admin-only"
+          >
+            <i class="fas fa-chart-line w-6 text-center"></i>
+            <span class="ml-4">Reports</span>
+          </a>
+          <a
+            href="cash-book.html"
+            class="flex items-center py-3 px-6 bg-green-600 text-white admin-only"
+          >
+            <i class="fas fa-book w-6 text-center"></i>
+            <span class="ml-4">Cash Book</span>
+          </a>
+        </nav>
+        <div class="mt-auto p-6 bottom-0">
+          <button
+            onclick="logout()"
+            class="w-full flex items-center justify-center py-2 px-4 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
+          >
+            <i class="fas fa-sign-out-alt mr-2"></i>
+            <span>Logout</span>
+          </button>
+        </div>
+      </aside>
+
+      <!-- Main content -->
+      <div class="flex-1 flex flex-col overflow-hidden">
+        <!-- Top bar -->
+        <header
+          class="bg-white shadow-sm flex justify-between items-center p-4"
+        >
+          <button id="menu-toggle" class="text-gray-700 lg:hidden">
+            <i class="fas fa-bars text-xl"></i>
+          </button>
+          <h1 class="text-xl font-semibold text-gray-800 hidden lg:block">
+            Cash Book Management
+          </h1>
+          <div class="flex items-center space-x-4">
+            <div class="relative">
+              <button id="userAvatar" class="flex items-center space-x-2">
+                <img src="" alt="User Avatar" class="w-10 h-10 rounded-full" />
+                <span
+                  id="currentUser"
+                  class="text-gray-700 font-medium hidden md:block"
+                ></span>
+              </button>
+              <div
+                id="userDropdown"
+                class="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg z-50 hidden"
+              >
+                <div class="py-1">
+                  <div class="px-4 py-2 text-sm text-gray-500 border-b">
+                    <span id="userInfo"></span>
+                  </div>
+                  <a
+                    href="index.html?home=true"
+                    class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                  >
+                    <i class="fas fa-home mr-2"></i>Home Page
+                  </a>
+                  <button
+                    onclick="logout()"
+                    class="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                  >
+                    <i class="fas fa-sign-out-alt mr-2"></i>Logout
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </header>
+
+        <!-- Main content area -->
+        <main class="flex-1 overflow-x-hidden overflow-y-auto bg-gray-100 p-6">
+          <div class="container mx-auto">
+            <!-- Page Header -->
+            <div class="mb-8">
+              <div class="flex justify-between items-center mb-4">
+                <div>
+                  <h1 class="text-3xl font-bold text-gray-900">Cash Book</h1>
+                  <p class="text-gray-600 mt-2">
+                    Track all cash transactions and financial records
+                  </p>
+                </div>
+                <div class="flex space-x-3">
+                  <button
+                    id="addCashEntryBtn"
+                    class="bg-primary text-white px-6 py-3 rounded-lg hover:bg-green-600 transition-colors shadow-md"
+                  >
+                    <i class="fas fa-plus mr-2"></i>Add Cash Entry
+                  </button>
+                  <button
+                    id="exportCashBookBtn"
+                    class="bg-green-600 text-white px-6 py-3 rounded-lg hover:bg-green-700 transition-colors shadow-md"
+                  >
+                    <i class="fas fa-download mr-2"></i>Export Cash Book
+                  </button>
+                </div>
+              </div>
+
+              <!-- Cash Summary Cards -->
+              <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
+                <div
+                  class="bg-white rounded-lg shadow-sm p-6 border-l-4 border-green-500"
+                >
+                  <div class="flex items-center">
+                    <div class="flex-shrink-0">
+                      <i class="fas fa-coins text-green-500 text-2xl"></i>
+                    </div>
+                    <div class="ml-4">
+                      <p class="text-sm font-medium text-gray-500">Cash In Hand</p>
+                      <p
+                        id="cashInHand"
+                        class="text-2xl font-semibold text-gray-900"
+                      >
+                        0 RWF
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                <div
+                  class="bg-white rounded-lg shadow-sm p-6 border-l-4 border-blue-500"
+                >
+                  <div class="flex items-center">
+                    <div class="flex-shrink-0">
+                      <i class="fas fa-arrow-up text-blue-500 text-2xl"></i>
+                    </div>
+                    <div class="ml-4">
+                      <p class="text-sm font-medium text-gray-500">Total Cash In</p>
+                      <p
+                        id="totalCashIn"
+                        class="text-2xl font-semibold text-gray-900"
+                      >
+                        0 RWF
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                <div
+                  class="bg-white rounded-lg shadow-sm p-6 border-l-4 border-red-500"
+                >
+                  <div class="flex items-center">
+                    <div class="flex-shrink-0">
+                      <i class="fas fa-arrow-down text-red-500 text-2xl"></i>
+                    </div>
+                    <div class="ml-4">
+                      <p class="text-sm font-medium text-gray-500">Total Cash Out</p>
+                      <p
+                        id="totalCashOut"
+                        class="text-2xl font-semibold text-gray-900"
+                      >
+                        0 RWF
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                <div
+                  class="bg-white rounded-lg shadow-sm p-6 border-l-4 border-purple-500"
+                >
+                  <div class="flex items-center">
+                    <div class="flex-shrink-0">
+                      <i class="fas fa-calendar text-purple-500 text-2xl"></i>
+                    </div>
+                    <div class="ml-4">
+                      <p class="text-sm font-medium text-gray-500">Today's Entries</p>
+                      <p
+                        id="todayEntries"
+                        class="text-2xl font-semibold text-gray-900"
+                      >
+                        0
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Filters -->
+            <div class="bg-white rounded-lg shadow-sm p-6 mb-6">
+              <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                <div>
+                  <label class="block text-sm font-medium text-gray-700 mb-2"
+                    >Date From</label
+                  >
+                  <input
+                    type="date"
+                    id="dateFrom"
+                    class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-primary focus:border-primary"
+                  />
+                </div>
+                <div>
+                  <label class="block text-sm font-medium text-gray-700 mb-2"
+                    >Date To</label
+                  >
+                  <input
+                    type="date"
+                    id="dateTo"
+                    class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-primary focus:border-primary"
+                  />
+                </div>
+                <div>
+                  <label class="block text-sm font-medium text-gray-700 mb-2"
+                    >Transaction Type</label
+                  >
+                  <select
+                    id="transactionFilter"
+                    class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-primary focus:border-primary"
+                  >
+                    <option value="">All Transactions</option>
+                    <option value="cash_in">Cash In</option>
+                    <option value="cash_out">Cash Out</option>
+                  </select>
+                </div>
+                <div class="flex items-end">
+                  <button
+                    id="filterBtn"
+                    class="w-full bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition-colors"
+                  >
+                    <i class="fas fa-filter mr-2"></i>Apply Filters
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <!-- Cash Book Table -->
+            <div class="bg-white rounded-lg shadow-sm overflow-hidden">
+              <div class="overflow-x-auto">
+                <table class="min-w-full divide-y divide-gray-200">
+                  <thead class="bg-gray-50">
+                    <tr>
+                      <th
+                        class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                      >
+                        Date
+                      </th>
+                      <th
+                        class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                      >
+                        Description
+                      </th>
+                      <th
+                        class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                      >
+                        Type
+                      </th>
+                      <th
+                        class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                      >
+                        Category
+                      </th>
+                      <th
+                        class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                      >
+                        Cash In
+                      </th>
+                      <th
+                        class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                      >
+                        Cash Out
+                      </th>
+                      <th
+                        class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                      >
+                        Balance
+                      </th>
+                      <th
+                        class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                      >
+                        Actions
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody
+                    id="cashBookTable"
+                    class="bg-white divide-y divide-gray-200"
+                  >
+                    <!-- Table content will be loaded here -->
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            <!-- Cash Flow Chart -->
+            <div class="bg-white rounded-lg shadow-sm p-6 mt-6">
+              <h3 class="text-lg font-bold text-gray-800 mb-4">Cash Flow Trend</h3>
+              <canvas id="cashFlowChart" width="400" height="200"></canvas>
+            </div>
+          </div>
+        </main>
+      </div>
+    </div>
+
+    <!-- Add Cash Entry Modal -->
+    <div id="cashEntryModal" class="modal">
+      <div class="modal-content">
+        <div class="flex justify-between items-center mb-6">
+          <h2 id="cashEntryModalTitle" class="text-xl font-semibold">Add Cash Entry</h2>
+          <button
+            id="closeCashEntryModal"
+            class="text-gray-400 hover:text-gray-600"
+          >
+            <i class="fas fa-times text-xl"></i>
+          </button>
+        </div>
+        <form id="cashEntryForm">
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-2"
+                >Date</label
+              >
+              <input
+                type="date"
+                id="entryDate"
+                required
+                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-primary focus:border-primary"
+              />
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-2"
+                >Transaction Type</label
+              >
+              <select
+                id="transactionType"
+                required
+                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-primary focus:border-primary"
+              >
+                <option value="">Select Type</option>
+                <option value="cash_in">Cash In</option>
+                <option value="cash_out">Cash Out</option>
+              </select>
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-2"
+                >Amount (RWF)</label
+              >
+              <input
+                type="number"
+                id="entryAmount"
+                required
+                min="0"
+                step="0.01"
+                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-primary focus:border-primary"
+              />
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-2"
+                >Category</label
+              >
+              <select
+                id="entryCategory"
+                required
+                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-primary focus:border-primary"
+              >
+                <option value="">Select Category</option>
+                <option value="sales">Sales</option>
+                <option value="purchase">Purchase</option>
+                <option value="expenses">Expenses</option>
+                <option value="salary">Salary</option>
+                <option value="rent">Rent</option>
+                <option value="utilities">Utilities</option>
+                <option value="loan">Loan</option>
+                <option value="other">Other</option>
+              </select>
+            </div>
+            <div class="md:col-span-2">
+              <label class="block text-sm font-medium text-gray-700 mb-2"
+                >Description</label
+              >
+              <textarea
+                id="entryDescription"
+                required
+                rows="3"
+                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-primary focus:border-primary"
+                placeholder="Enter transaction description..."
+              ></textarea>
+            </div>
+            <div class="md:col-span-2">
+              <label class="block text-sm font-medium text-gray-700 mb-2"
+                >Reference/Receipt No. (Optional)</label
+              >
+              <input
+                type="text"
+                id="entryReference"
+                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-primary focus:border-primary"
+                placeholder="Receipt number or reference"
+              />
+            </div>
+          </div>
+          <div class="flex justify-end space-x-4 mt-6">
+            <button
+              type="button"
+              id="cancelCashEntry"
+              class="px-4 py-2 text-gray-600 hover:text-gray-800"
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              class="bg-primary text-white px-6 py-2 rounded-md hover:bg-green-600"
+            >
+              Save Entry
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- Notification -->
+    <div id="notification" class="notification"></div>
+
+    <script>
+      let allCashEntries = [];
+      let cashFlowChart = null;
+      let currentEditId = null;
+
+      async function logout() {
+        try {
+          const { error } = await supabase.auth.signOut();
+          if (error) throw error;
+          window.location.href = "login.html";
+        } catch (error) {
+          showNotification("Error signing out: " + error.message, "error");
+        }
+      }
+
+      document.addEventListener("DOMContentLoaded", async function () {
+        if (!(await isAuthenticated())) {
+          window.location.href = "login.html";
+          return;
+        }
+
+        const user = await getUserProfile();
+        if (!user || user.role !== "admin") {
+          showNotification(
+            "Access denied. Admin privileges required.",
+            "error"
+          );
+          setTimeout(() => logout(), 2000);
+          return;
+        }
+
+        await updateNavigation();
+        setupEventListeners();
+        initializeDates();
+        await loadCashBookData();
+        await updateCashSummary();
+        createCashFlowChart();
+      });
+
+      async function updateNavigation() {
+        try {
+          const user = await getUserProfile();
+          if (user) {
+            document.getElementById("currentUser").textContent = `${
+              user.full_name || "User"
+            }`;
+            document.getElementById("userInfo").textContent = `${
+              user.full_name || "User"
+            } (${user.role || "staff"})`;
+
+            const avatarImg = document.querySelector("#userAvatar img");
+            if (avatarImg) {
+              avatarImg.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(
+                user.full_name || "User"
+              )}&background=16a34a&color=fff&bold=true`;
+            }
+
+            const adminElements = document.querySelectorAll(".admin-only");
+            adminElements.forEach(
+              (el) => (el.style.display = user.role === "admin" ? "flex" : "none")
+            );
+
+            const receptionistElements =
+              document.querySelectorAll(".receptionist-only");
+            receptionistElements.forEach(
+              (el) =>
+                (el.style.display =
+                  user.role === "receptionist" || user.role === "admin"
+                    ? "flex"
+                    : "none")
+            );
+          }
+        } catch (error) {
+          console.error("Error updating navigation:", error);
+        }
+      }
+
+      function setupEventListeners() {
+        document
+          .getElementById("addCashEntryBtn")
+          .addEventListener("click", openCashEntryModal);
+        document
+          .getElementById("closeCashEntryModal")
+          .addEventListener("click", closeCashEntryModal);
+        document
+          .getElementById("cancelCashEntry")
+          .addEventListener("click", closeCashEntryModal);
+        document
+          .getElementById("cashEntryForm")
+          .addEventListener("submit", saveCashEntry);
+        document
+          .getElementById("exportCashBookBtn")
+          .addEventListener("click", exportCashBook);
+        document
+          .getElementById("filterBtn")
+          .addEventListener("click", applyFilters);
+
+        // Sidebar toggle
+        const menuToggle = document.getElementById("menu-toggle");
+        const sidebar = document.getElementById("sidebar");
+        menuToggle.addEventListener("click", (e) => {
+          e.stopPropagation();
+          sidebar.classList.toggle("hidden");
+        });
+
+        // User dropdown
+        const userAvatar = document.getElementById("userAvatar");
+        const userDropdown = document.getElementById("userDropdown");
+        userAvatar.addEventListener("click", (e) => {
+          e.stopPropagation();
+          userDropdown.classList.toggle("hidden");
+        });
+
+        // Close dropdown/sidebar when clicking outside
+        document.addEventListener("click", function (e) {
+          if (
+            !sidebar.classList.contains("hidden") &&
+            !sidebar.contains(e.target) &&
+            !menuToggle.contains(e.target)
+          ) {
+            sidebar.classList.add("hidden");
+          }
+          if (
+            !userDropdown.classList.contains("hidden") &&
+            !userAvatar.contains(e.target)
+          ) {
+            userDropdown.classList.add("hidden");
+          }
+        });
+      }
+
+      function initializeDates() {
+        const today = new Date().toISOString().split("T")[0];
+        const firstDayOfMonth = new Date(
+          new Date().getFullYear(),
+          new Date().getMonth(),
+          1
+        )
+          .toISOString()
+          .split("T")[0];
+
+        document.getElementById("dateFrom").value = firstDayOfMonth;
+        document.getElementById("dateTo").value = today;
+        document.getElementById("entryDate").value = today;
+      }
+
+      async function loadCashBookData() {
+        try {
+          // In a real implementation, this would fetch from a cash_book table
+          // For now, we'll simulate with some sample data
+          allCashEntries = await fetchCashBookEntries();
+          renderCashBookTable();
+        } catch (error) {
+          console.error("Error loading cash book data:", error);
+          showNotification("Error loading cash book data", "error");
+        }
+      }
+
+      async function fetchCashBookEntries() {
+        // Simulate cash book entries - replace with actual Supabase query
+        return [
+          {
+            id: 1,
+            date: "2025-09-08",
+            description: "Daily sales collection",
+            type: "cash_in",
+            category: "sales",
+            amount: 250000,
+            reference: "SALE-001",
+            created_at: new Date().toISOString(),
+          },
+          {
+            id: 2,
+            date: "2025-09-08",
+            description: "Medicine purchase from supplier",
+            type: "cash_out",
+            category: "purchase",
+            amount: 150000,
+            reference: "PUR-001",
+            created_at: new Date().toISOString(),
+          },
+          {
+            id: 3,
+            date: "2025-09-07",
+            description: "Rent payment",
+            type: "cash_out",
+            category: "rent",
+            amount: 80000,
+            reference: "RENT-SEP",
+            created_at: new Date().toISOString(),
+          },
+        ];
+      }
+
+      function renderCashBookTable() {
+        const tbody = document.getElementById("cashBookTable");
+        const dateFrom = document.getElementById("dateFrom").value;
+        const dateTo = document.getElementById("dateTo").value;
+        const typeFilter = document.getElementById("transactionFilter").value;
+
+        let filteredEntries = allCashEntries.filter((entry) => {
+          const entryDate = entry.date;
+          const matchesDate =
+            (!dateFrom || entryDate >= dateFrom) &&
+            (!dateTo || entryDate <= dateTo);
+          const matchesType = !typeFilter || entry.type === typeFilter;
+          return matchesDate && matchesType;
+        });
+
+        // Sort by date (newest first)
+        filteredEntries.sort((a, b) => new Date(b.date) - new Date(a.date));
+
+        if (filteredEntries.length === 0) {
+          tbody.innerHTML =
+            '<tr><td colspan="8" class="px-6 py-4 text-center text-gray-500">No cash book entries found.</td></tr>';
+          return;
+        }
+
+        let runningBalance = 0;
+        // Calculate running balance (should start from beginning of time, but simplified here)
+        const startBalance = allCashEntries
+          .filter((e) => e.date < (dateFrom || "1900-01-01"))
+          .reduce((sum, entry) => {
+            return entry.type === "cash_in"
+              ? sum + entry.amount
+              : sum - entry.amount;
+          }, 0);
+
+        runningBalance = startBalance;
+
+        tbody.innerHTML = filteredEntries
+          .map((entry) => {
+            const cashIn = entry.type === "cash_in" ? entry.amount : 0;
+            const cashOut = entry.type === "cash_out" ? entry.amount : 0;
+            runningBalance += cashIn - cashOut;
+
+            const typeClass =
+              entry.type === "cash_in"
+                ? "bg-green-100 text-green-800"
+                : "bg-red-100 text-red-800";
+
+            return `
+                    <tr class="hover:bg-gray-50">
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                            ${new Date(entry.date).toLocaleDateString()}
+                        </td>
+                        <td class="px-6 py-4 text-sm text-gray-900">${
+                          entry.description
+                        }</td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <span class="px-2 py-1 text-xs font-semibold rounded-full ${typeClass}">
+                                ${entry.type.replace("_", " ").toUpperCase()}
+                            </span>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 capitalize">
+                            ${entry.category}
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                            ${cashIn > 0 ? formatCurrency(cashIn) : "-"}
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                            ${cashOut > 0 ? formatCurrency(cashOut) : "-"}
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium ${
+                          runningBalance >= 0 ? "text-green-600" : "text-red-600"
+                        }">
+                            ${formatCurrency(runningBalance)}
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                            <button onclick="editCashEntry(${
+                              entry.id
+                            })" class="text-indigo-600 hover:text-indigo-900 mr-3" title="Edit">
+                                <i class="fas fa-edit"></i>
+                            </button>
+                            <button onclick="deleteCashEntry(${
+                              entry.id
+                            })" class="text-red-600 hover:text-red-900" title="Delete">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </td>
+                    </tr>
+                `;
+          })
+          .join("");
+      }
+
+      async function updateCashSummary() {
+        const dateFrom = document.getElementById("dateFrom").value;
+        const dateTo = document.getElementById("dateTo").value;
+
+        const filteredEntries = allCashEntries.filter((entry) => {
+          const entryDate = entry.date;
+          return (
+            (!dateFrom || entryDate >= dateFrom) &&
+            (!dateTo || entryDate <= dateTo)
+          );
+        });
+
+        const totalCashIn = filteredEntries
+          .filter((e) => e.type === "cash_in")
+          .reduce((sum, e) => sum + e.amount, 0);
+
+        const totalCashOut = filteredEntries
+          .filter((e) => e.type === "cash_out")
+          .reduce((sum, e) => sum + e.amount, 0);
+
+        const cashInHand = totalCashIn - totalCashOut;
+
+        const today = new Date().toISOString().split("T")[0];
+        const todayEntries = filteredEntries.filter(
+          (e) => e.date === today
+        ).length;
+
+        document.getElementById("cashInHand").textContent =
+          formatCurrency(cashInHand);
+        document.getElementById("totalCashIn").textContent =
+          formatCurrency(totalCashIn);
+        document.getElementById("totalCashOut").textContent =
+          formatCurrency(totalCashOut);
+        document.getElementById("todayEntries").textContent = todayEntries;
+      }
+
+      function openCashEntryModal(entryId = null) {
+        const modal = document.getElementById("cashEntryModal");
+        const title = document.getElementById("cashEntryModalTitle");
+        const form = document.getElementById("cashEntryForm");
+        currentEditId = entryId;
+
+        if (entryId) {
+          title.textContent = "Edit Cash Entry";
+          const entry = allCashEntries.find((e) => e.id === entryId);
+          if (entry) {
+            document.getElementById("entryDate").value = entry.date;
+            document.getElementById("transactionType").value = entry.type;
+            document.getElementById("entryAmount").value = entry.amount;
+            document.getElementById("entryCategory").value = entry.category;
+            document.getElementById("entryDescription").value = entry.description;
+            document.getElementById("entryReference").value = entry.reference || "";
+          }
+        } else {
+          title.textContent = "Add Cash Entry";
+          form.reset();
+          document.getElementById("entryDate").value = new Date()
+            .toISOString()
+            .split("T")[0];
+        }
+
+        modal.classList.add("show");
+      }
+
+      function closeCashEntryModal() {
+        document.getElementById("cashEntryModal").classList.remove("show");
+        currentEditId = null;
+      }
+
+      async function saveCashEntry(e) {
+        e.preventDefault();
+
+        const entryData = {
+          date: document.getElementById("entryDate").value,
+          type: document.getElementById("transactionType").value,
+          amount: parseFloat(document.getElementById("entryAmount").value),
+          category: document.getElementById("entryCategory").value,
+          description: document.getElementById("entryDescription").value,
+          reference: document.getElementById("entryReference").value || null,
+        };
+
+        try {
+          if (currentEditId) {
+            // Update existing entry
+            const index = allCashEntries.findIndex(
+              (e) => e.id === currentEditId
+            );
+            if (index !== -1) {
+              allCashEntries[index] = { ...allCashEntries[index], ...entryData };
+            }
+            showNotification("Cash entry updated successfully!", "success");
+          } else {
+            // Add new entry
+            const newEntry = {
+              id: Date.now(), // In real app, this would be from database
+              ...entryData,
+              created_at: new Date().toISOString(),
+            };
+            allCashEntries.push(newEntry);
+            showNotification("Cash entry added successfully!", "success");
+          }
+
+          renderCashBookTable();
+          await updateCashSummary();
+          updateCashFlowChart();
+          closeCashEntryModal();
+        } catch (error) {
+          console.error("Error saving cash entry:", error);
+          showNotification("Error saving cash entry", "error");
+        }
+      }
+
+      function editCashEntry(id) {
+        openCashEntryModal(id);
+      }
+
+      async function deleteCashEntry(id) {
+        if (confirm("Are you sure you want to delete this cash entry?")) {
+          try {
+            allCashEntries = allCashEntries.filter((e) => e.id !== id);
+            renderCashBookTable();
+            await updateCashSummary();
+            updateCashFlowChart();
+            showNotification("Cash entry deleted successfully!", "success");
+          } catch (error) {
+            console.error("Error deleting cash entry:", error);
+            showNotification("Error deleting cash entry", "error");
+          }
+        }
+      }
+
+      function applyFilters() {
+        renderCashBookTable();
+        updateCashSummary();
+        updateCashFlowChart();
+      }
+
+      function createCashFlowChart() {
+        const ctx = document.getElementById("cashFlowChart").getContext("2d");
+
+        // Group entries by date
+        const dailyData = {};
+        allCashEntries.forEach((entry) => {
+          if (!dailyData[entry.date]) {
+            dailyData[entry.date] = { cashIn: 0, cashOut: 0 };
+          }
+          if (entry.type === "cash_in") {
+            dailyData[entry.date].cashIn += entry.amount;
+          } else {
+            dailyData[entry.date].cashOut += entry.amount;
+          }
+        });
+
+        const dates = Object.keys(dailyData).sort();
+        const cashInData = dates.map((date) => dailyData[date].cashIn);
+        const cashOutData = dates.map((date) => dailyData[date].cashOut);
+
+        if (cashFlowChart) {
+          cashFlowChart.destroy();
+        }
+
+        cashFlowChart = new Chart(ctx, {
+          type: "line",
+          data: {
+            labels: dates.map((date) => new Date(date).toLocaleDateString()),
+            datasets: [
+              {
+                label: "Cash In",
+                data: cashInData,
+                borderColor: "#10b981",
+                backgroundColor: "rgba(16, 185, 129, 0.1)",
+                tension: 0.4,
+                fill: true,
+              },
+              {
+                label: "Cash Out",
+                data: cashOutData,
+                borderColor: "#ef4444",
+                backgroundColor: "rgba(239, 68, 68, 0.1)",
+                tension: 0.4,
+                fill: true,
+              },
+            ],
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+              y: {
+                beginAtZero: true,
+                ticks: {
+                  callback: function (value) {
+                    return formatCurrency(value);
+                  },
+                },
+              },
+            },
+            plugins: {
+              tooltip: {
+                callbacks: {
+                  label: function (context) {
+                    return context.dataset.label + ": " + formatCurrency(context.parsed.y);
+                  },
+                },
+              },
+            },
+          },
+        });
+      }
+
+      function updateCashFlowChart() {
+        createCashFlowChart();
+      }
+
+      async function exportCashBook() {
+        try {
+          if (allCashEntries.length === 0) {
+            showNotification("No cash book entries to export.", "info");
+            return;
+          }
+
+          if (typeof ExcelJS === "undefined") {
+            showNotification(
+              "ExcelJS library not loaded. Please refresh the page.",
+              "error"
+            );
+            return;
+          }
+
+          // Create a new workbook
+          const workbook = new ExcelJS.Workbook();
+          const sheetName = `Cash_Book_${new Date().toISOString().split("T")[0]}`;
+          const worksheet = workbook.addWorksheet(sheetName);
+
+          // Define header row
+          const headers = [
+            "Date",
+            "Description",
+            "Type",
+            "Category",
+            "Cash In (RWF)",
+            "Cash Out (RWF)",
+            "Balance (RWF)",
+            "Reference",
+          ];
+          worksheet.addRow(headers);
+
+          // Calculate running balance and add entries
+          let runningBalance = 0;
+          const sortedEntries = [...allCashEntries].sort(
+            (a, b) => new Date(a.date) - new Date(b.date)
+          );
+
+          sortedEntries.forEach((entry) => {
+            const cashIn = entry.type === "cash_in" ? entry.amount : 0;
+            const cashOut = entry.type === "cash_out" ? entry.amount : 0;
+            runningBalance += cashIn - cashOut;
+
+            worksheet.addRow([
+              new Date(entry.date).toLocaleDateString(),
+              entry.description,
+              entry.type.replace("_", " ").toUpperCase(),
+              entry.category.charAt(0).toUpperCase() + entry.category.slice(1),
+              cashIn > 0 ? cashIn : "",
+              cashOut > 0 ? cashOut : "",
+              runningBalance,
+              entry.reference || "",
+            ]);
+          });
+
+          // Style header row
+          const headerRow = worksheet.getRow(1);
+          headerRow.eachCell((cell) => {
+            cell.font = { bold: true };
+            cell.alignment = { vertical: "middle", horizontal: "center" };
+            cell.fill = {
+              type: "pattern",
+              pattern: "solid",
+              fgColor: { argb: "FFD9D9D9" },
+            };
+            cell.border = {
+              top: { style: "thin" },
+              left: { style: "thin" },
+              bottom: { style: "thin" },
+              right: { style: "thin" },
+            };
+          });
+          headerRow.height = 25;
+
+          // Style all data rows
+          worksheet.eachRow((row, rowNumber) => {
+            row.eachCell((cell) => {
+              cell.border = {
+                top: { style: "thin" },
+                left: { style: "thin" },
+                bottom: { style: "thin" },
+                right: { style: "thin" },
+              };
+              cell.alignment = { vertical: "middle", horizontal: "left" };
+            });
+            if (rowNumber > 1) {
+              row.height = 18;
+            }
+          });
+
+          // Set column widths
+          worksheet.columns = [
+            { width: 12 }, // Date
+            { width: 30 }, // Description
+            { width: 12 }, // Type
+            { width: 15 }, // Category
+            { width: 15 }, // Cash In
+            { width: 15 }, // Cash Out
+            { width: 15 }, // Balance
+            { width: 15 }, // Reference
+          ];
+
+          // Enable autofilter
+          worksheet.autoFilter = {
+            from: "A1",
+            to: "H1",
+          };
+
+          // Generate filename
+          const now = new Date();
+          const dateStr = now.toISOString().split("T")[0];
+          const timeStr = now.toTimeString().split(" ")[0].replace(/:/g, "-");
+          const filename = `cash_book_export_${dateStr}_${timeStr}.xlsx`;
+
+          // Write file (ExcelJS → Blob → saveAs)
+          const buffer = await workbook.xlsx.writeBuffer();
+          saveAs(new Blob([buffer]), filename);
+
+          showNotification(
+            `Cash book exported successfully as ${filename}!`,
+            "success"
+          );
+        } catch (error) {
+          console.error("Export error:", error);
+          showNotification("Error exporting cash book. Please try again.", "error");
+        }
+      }
+
+      function formatCurrency(amount) {
+        return Math.round(amount || 0).toLocaleString() + " RWF";
+      }
+
+      function showNotification(message, type = "info") {
+        const notification = document.getElementById("notification");
+        notification.textContent = message;
+        notification.className = `notification show ${type}`;
+        setTimeout(() => notification.classList.remove("show"), 3000);
+      }
+    </script>
+
+    <style>
+      :root {
+        --primary: #16a34a; /* Green-600 */
+      }
+      .bg-primary {
+        background-color: var(--primary);
+      }
+      .text-primary {
+        color: var(--primary);
+      }
+      .border-primary {
+        border-color: var(--primary);
+      }
+      .ring-primary {
+        --tw-ring-color: var(--primary);
+      }
+      .hover\:bg-green-600:hover {
+        background-color: #15803d;
+      } /* Green-700 */
+
+      .modal {
+        display: none;
+        position: fixed;
+        z-index: 1000;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.5);
+      }
+      .modal.show {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+      .modal-content {
+        background: white;
+        padding: 2rem;
+        border-radius: 0.5rem;
+        width: 90%;
+        max-width: 700px;
+        max-height: 90vh;
+        overflow-y: auto;
+        box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1),
+          0 10px 10px -5px rgba(0, 0, 0, 0.04);
+      }
+
+      .notification {
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        padding: 1rem 1.5rem;
+        border-radius: 0.5rem;
+        color: white;
+        font-weight: 500;
+        transform: translateX(120%);
+        opacity: 0;
+        transition: transform 0.3s ease, opacity 0.3s ease;
+        z-index: 1001;
+        max-width: 400px;
+      }
+      .notification.show {
+        transform: translateX(0);
+        opacity: 1;
+      }
+      .notification.success {
+        background-color: #10b981;
+      }
+      .notification.warning {
+        background-color: #f59e0b;
+      }
+      .notification.error {
+        background-color: #ef4444;
+      }
+      .notification.info {
+        background-color: #3b82f6;
+      }
+    </style>
+  </body>
+</html>
