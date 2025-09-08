@@ -122,7 +122,15 @@ CREATE TABLE public.medicines (
     is_active BOOLEAN DEFAULT true,
     created_by UUID REFERENCES auth.users(id),
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-    updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+ controlled_substance BOOLEAN DEFAULT false,
+ insurance_coverage BOOLEAN DEFAULT false,
+ tax_rate DECIMAL(5,2) DEFAULT 0,
+ updated_by UUID REFERENCES auth.users(id),
+ side_effects TEXT,
+ usage_instructions TEXT,
+ contraindications TEXT;
+
 );
 
 -- 7. Customers Table (simplified, no health data)

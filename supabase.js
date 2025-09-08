@@ -1146,6 +1146,9 @@ async function getMedicineDispensingPerformance(days = 7) {
         .select(`
           medicine_name,
           quantity,
+          medicines!inner(
+            strength
+          ),
           orders!inner(
             order_date,
             status,
@@ -1163,9 +1166,10 @@ async function getMedicineDispensingPerformance(days = 7) {
       // Process data to group by medicine
       const medicineStats = {};
       data.forEach(item => {
-        if (!medicineStats[item.medicine_name]) {
-          medicineStats[item.medicine_name] = {
-            medicine_name: item.medicine_name,
+        const medicineKey = `${item.medicine_name}${item.medicines?.strength ? ` (${item.medicines.strength})` : ''}`;
+        if (!medicineStats[medicineKey]) {
+          medicineStats[medicineKey] = {
+            medicine_name: medicineKey,
             total_dispensed: 0,
             dispensing_staff_count: 1,
             average_per_staff: 0,
@@ -1174,7 +1178,7 @@ async function getMedicineDispensingPerformance(days = 7) {
             error_rate: 0
           };
         }
-        medicineStats[item.medicine_name].total_dispensed += item.quantity;
+        medicineStats[medicineKey].total_dispensed += item.quantity;
       });
       
       return Object.values(medicineStats).sort((a, b) => b.total_dispensed - a.total_dispensed);

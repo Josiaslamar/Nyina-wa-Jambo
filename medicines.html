@@ -9,6 +9,8 @@
     <script src="supabase.js"></script>
     <script src="notification-system.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/exceljs/dist/exceljs.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" />
     <style>
       .gradient-bg {
@@ -200,10 +202,10 @@
             <i class="fas fa-truck w-6 text-center"></i>
             <span class="ml-4">Suppliers</span>
           </a>
-          <!-- <a href="customers.html" class="flex items-center py-3 px-6 text-gray-300 hover:bg-green-600 hover:text-white transition-colors receptionist-only">
+          <a href="customers.html" class="flex items-center py-3 px-6 text-gray-300 hover:bg-green-600 hover:text-white transition-colors">
             <i class="fas fa-users w-6 text-center"></i>
             <span class="ml-4">Customers</span>
-          </a> -->
+          </a>
           <a href="orders.html" class="flex items-center py-3 px-6 text-gray-300 hover:bg-green-600 hover:text-white transition-colors receptionist-only">
             <i class="fas fa-shopping-cart w-6 text-center"></i>
             <span class="ml-4">Orders</span>
@@ -250,9 +252,9 @@
                   <div class="px-4 py-2 text-sm text-gray-500 border-b">
                     <span id="userInfo"></span>
                   </div>
-                  <a href="index.html?home=true" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                  <!-- <a href="index.html?home=true" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
                     <i class="fas fa-home mr-2"></i>Home Page
-                  </a>
+                  </a> -->
                   <button onclick="signOut()" class="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
                     <i class="fas fa-sign-out-alt mr-2"></i>Logout
                   </button>
@@ -1350,6 +1352,7 @@
         }
       }
 
+
       function editMedicine(id) {
         openMedicineModal(id);
       }
@@ -1376,48 +1379,149 @@
             return;
           }
 
-          const exportData = medicines.map(m => ({
-            "Medicine Code": m.medicine_code,
-            "Name": m.name,
-            "Generic Name": m.generic_name || "N/A",
-            "Brand Name": m.brand_name || "N/A",
-            "Category": m.category_name,
-            "Dosage Form": m.dosage_form || "N/A",
-            "Strength": m.strength || "N/A",
-            "Unit": m.unit || "N/A",
-            "Cost Price (RWF)": m.cost_price,
-            "Selling Price (RWF)": m.selling_price,
-            "Stock": m.stock,
-            "Supplier": m.supplier_name || "N/A",
-            "Sale Type": m.sale_type,
-            "Requires Prescription": m.requires_prescription ? "Yes" : "No",
-            "Expiry Date": m.expiry_date || "N/A",
-            "Batch Number": m.batch_number || "N/A",
-            "Manufacturer": m.manufacturer || "N/A",
-            "Min Stock Level": m.min_stock_level,
-            "Max Stock Level": m.max_stock_level,
-            "Description": m.description || "N/A",
-            "Storage Conditions": m.storage_conditions || "N/A",
-          }));
+          if (typeof ExcelJS === "undefined") {
+            showNotification("ExcelJS library not loaded. Please refresh the page.", "error", document.getElementById("notificationContainer"));
+            return;
+          }
 
-          const worksheet = XLSX.utils.json_to_sheet(exportData);
-          
+          // Create a new workbook and worksheet
+          const workbook = new ExcelJS.Workbook();
+          const sheetName = `Medicines_${new Date().toISOString().split("T")[0]}`;
+          const worksheet = workbook.addWorksheet(sheetName);
+
+          // Define header row
+          const headers = [
+            "Medicine Code",
+            "Name",
+            "Generic Name", 
+            "Brand Name",
+            "Category",
+            "Dosage Form",
+            "Strength",
+            "Unit",
+            "Cost Price (RWF)",
+            "Selling Price (RWF)",
+            "Stock",
+            "Supplier",
+            "Sale Type",
+            "Requires Prescription",
+            "Expiry Date",
+            "Batch Number",
+            "Manufacturer",
+            "Min Stock Level",
+            "Max Stock Level",
+            "Description",
+            "Storage Conditions"
+          ];
+          worksheet.addRow(headers);
+
+          // Add medicines data
+          medicines.forEach((medicine) => {
+            worksheet.addRow([
+              medicine.medicine_code || "N/A",
+              medicine.name || "N/A",
+              medicine.generic_name || "N/A",
+              medicine.brand_name || "N/A",
+              medicine.category_name || "N/A",
+              medicine.dosage_form || "N/A",
+              medicine.strength || "N/A",
+              medicine.unit || "N/A",
+              medicine.cost_price || 0,
+              medicine.selling_price || 0,
+              medicine.stock || 0,
+              medicine.supplier_name || "N/A",
+              medicine.sale_type || "N/A",
+              medicine.requires_prescription ? "Yes" : "No",
+              medicine.expiry_date || "N/A",
+              medicine.batch_number || "N/A",
+              medicine.manufacturer || "N/A",
+              medicine.min_stock_level || 0,
+              medicine.max_stock_level || 0,
+              medicine.description || "N/A",
+              medicine.storage_conditions || "N/A"
+            ]);
+          });
+
+          // Style header row
+          const headerRow = worksheet.getRow(1);
+          headerRow.eachCell((cell) => {
+            cell.font = { bold: true };
+            cell.alignment = { vertical: "middle", horizontal: "center" };
+            cell.fill = {
+              type: "pattern",
+              pattern: "solid",
+              fgColor: { argb: "FFD9D9D9" }, // light gray background
+            };
+            cell.border = {
+              top: { style: "thin" },
+              left: { style: "thin" },
+              bottom: { style: "thin" },
+              right: { style: "thin" },
+            };
+          });
+          headerRow.height = 25;
+
+          // Style all data rows
+          worksheet.eachRow((row, rowNumber) => {
+            row.eachCell((cell) => {
+              cell.border = {
+                top: { style: "thin" },
+                left: { style: "thin" },
+                bottom: { style: "thin" },
+                right: { style: "thin" },
+              };
+              cell.alignment = { vertical: "middle", horizontal: "left" };
+            });
+            if (rowNumber > 1) {
+              row.height = 18;
+            }
+          });
+
           // Set column widths
-          worksheet["!cols"] = [
-            { wch: 15 }, { wch: 25 }, { wch: 20 }, { wch: 20 }, { wch: 15 }, 
-            { wch: 15 }, { wch: 15 }, { wch: 10 }, { wch: 15 }, { wch: 15 }, 
-            { wch: 10 }, { wch: 20 }, { wch: 10 }, { wch: 15 }, { wch: 15 }, 
-            { wch: 15 }, { wch: 20 }, { wch: 10 }, { wch: 10 }, { wch: 30 }, 
-            { wch: 30 }
+          worksheet.columns = [
+            { width: 15 }, // Medicine Code
+            { width: 25 }, // Name
+            { width: 20 }, // Generic Name
+            { width: 20 }, // Brand Name
+            { width: 15 }, // Category
+            { width: 15 }, // Dosage Form
+            { width: 12 }, // Strength
+            { width: 10 }, // Unit
+            { width: 15 }, // Cost Price
+            { width: 15 }, // Selling Price
+            { width: 8 },  // Stock
+            { width: 20 }, // Supplier
+            { width: 12 }, // Sale Type
+            { width: 18 }, // Prescription
+            { width: 12 }, // Expiry Date
+            { width: 15 }, // Batch Number
+            { width: 20 }, // Manufacturer
+            { width: 12 }, // Min Stock
+            { width: 12 }, // Max Stock
+            { width: 30 }, // Description
+            { width: 30 }  // Storage Conditions
           ];
 
-          const workbook = XLSX.utils.book_new();
-          XLSX.utils.book_append_sheet(workbook, worksheet, "Medicines");
-          XLSX.writeFile(workbook, `Medicines_${new Date().toISOString().split("T")[0]}.xlsx`);
-          
-          showNotification("Excel file exported successfully!", "success", document.getElementById("notificationContainer"));
+          // Enable autofilter
+          worksheet.autoFilter = {
+            from: "A1",
+            to: "U1",
+          };
+
+          // Generate filename
+          const now = new Date();
+          const dateStr = now.toISOString().split("T")[0];
+          const timeStr = now.toTimeString().split(" ")[0].replace(/:/g, "-");
+          const filename = `medicines_export_${dateStr}_${timeStr}.xlsx`;
+
+          // Write file (ExcelJS → Blob → saveAs)
+          const buffer = await workbook.xlsx.writeBuffer();
+          saveAs(new Blob([buffer]), filename);
+
+          showNotification(`Medicines exported successfully as ${filename}!`, "success", document.getElementById("notificationContainer"));
         } catch (error) {
-          showNotification("Error exporting Excel: " + error.message, "error", document.getElementById("notificationContainer"));
+          console.error("Export error:", error);
+          showNotification("Error exporting medicines: " + error.message, "error", document.getElementById("notificationContainer"));
         }
       }
 

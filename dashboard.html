@@ -203,13 +203,13 @@
             <i class="fas fa-truck w-6 text-center"></i>
             <span class="ml-4">Suppliers</span>
           </a>
-          <!-- <a
+          <a
             href="customers.html"
-            class="flex items-center py-3 px-6 text-gray-300 hover:bg-green-600 hover:text-white transition-colors receptionist-only"
+            class="flex items-center py-3 px-6 text-gray-300 hover:bg-green-600 hover:text-white transition-colors"
           >
             <i class="fas fa-users w-6 text-center"></i>
             <span class="ml-4">Customers</span>
-          </a> -->
+          </a>
           <a
             href="orders.html"
             class="flex items-center py-3 px-6 text-gray-300 hover:bg-green-600 hover:text-white transition-colors receptionist-only"
@@ -400,9 +400,6 @@
     </div>
 
     <script>
-      // supabase.js already declares SUPABASE_URL, SUPABASE_ANON_KEY, and supabase client
-      // No need to redeclare them here
-
       // Optimized authentication check
       async function checkAuth() {
         try {
@@ -418,7 +415,7 @@
           return true;
         } catch (error) {
           console.error("Auth check error:", error.message);
-          return false; // Avoid redirect on transient errors
+          return false; 
         }
       }
 
@@ -597,7 +594,7 @@
             await Promise.all([
               supabase
                 .from("orders")
-                .select("total_amount, status, order_date")
+                .select("id, total_amount, status, order_date")
                 .eq("is_active", true)
                 .eq("order_date", new Date().toISOString().split("T")[0]), // Today's orders
 
@@ -608,7 +605,7 @@
 
               supabase
                 .from("medicines")
-                .select("id, name, stock, min_stock_level")
+                .select("id, name, strength, stock, min_stock_level")
                 .eq("is_active", true)
                 .lte("stock", 10), // Low stock threshold
             ]);
@@ -874,7 +871,9 @@
                     ${analyticsData.medicinePerformance.length > 0 ? 
                       analyticsData.medicinePerformance.slice(0, 5).map(med => `
                         <div class="flex justify-between items-center text-sm">
-                          <span class="font-medium">${med.medicine_name || 'Unknown'}</span>
+                          <div class="flex flex-col max-w-40">
+                            <span class="font-medium text-sm leading-tight">${med.medicine_name || 'Unknown'}</span>
+                          </div>
                           <div class="flex items-center space-x-2">
                             <span class="text-gray-600">${med.total_dispensed || 0} units</span>
                             <span class="px-2 py-1 bg-green-100 text-green-800 rounded text-xs">
@@ -933,7 +932,10 @@
                   .map(
                     (item) => `
                 <div class="p-4 bg-white rounded-lg shadow-sm low-stock flex justify-between items-center mb-2">
-                  <span class="font-medium">${item.name}</span>
+                  <div class="flex flex-col">
+                    <span class="font-medium">${item.name}</span>
+                    ${item.strength ? `<span class="text-xs text-gray-500">${item.strength}</span>` : ''}
+                  </div>
                   <div class="flex items-center space-x-2">
                     <span class="text-sm text-gray-600">Stock: ${item.stock}</span>
                     <span class="text-sm font-semibold text-red-600 bg-red-100 px-2 py-1 rounded">Low Stock</span>
@@ -950,7 +952,7 @@
             .map(
               (order) => `
             <div class="p-3 bg-gray-50 rounded-lg flex justify-between items-center">
-              <span class="text-sm">Order ${order.id}</span>
+              <span class="text-sm font-medium">Order #${order.id || 'N/A'}</span>
               <div class="flex items-center space-x-2">
                 <span class="text-sm font-medium">${formatCurrency(
                   order.total_amount || 0

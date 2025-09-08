@@ -8,6 +8,10 @@
     <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
     <script src="supabase.js"></script>
     <script src="notification-system.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/exceljs/dist/exceljs.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
+
     <link
       rel="stylesheet"
       href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"
@@ -51,10 +55,13 @@
             <i class="fas fa-truck w-6 text-center"></i>
             <span class="ml-4">Suppliers</span>
           </a>
-          <!-- <a href="customers.html" class="flex items-center py-3 px-6 text-gray-300 hover:bg-green-600 hover:text-white transition-colors receptionist-only">
-                    <i class="fas fa-users w-6 text-center"></i>
-                    <span class="ml-4">Customers</span>
-                </a> -->
+          <a
+            href="customers.html"
+            class="flex items-center py-3 px-6 text-gray-300 hover:bg-green-600 hover:text-white transition-colors"
+          >
+            <i class="fas fa-users w-6 text-center"></i>
+            <span class="ml-4">Customers</span>
+          </a>
           <a
             href="orders.html"
             class="flex items-center py-3 px-6 bg-green-600 text-white receptionist-only"
@@ -1304,62 +1311,118 @@
         }
       }
 
-      async function exportToExcel() {
-        try {
-          const orders = await fetchOrders();
-          if (orders.length === 0) {
-            showNotification("No orders to export.", "info");
-            return;
-          }
+      // Add this script tag to your HTML head section:
+async function exportToExcel() {
+  try {
+    const orders = await fetchOrders();
+    if (orders.length === 0) {
+      showNotification("No orders to export.", "info");
+      return;
+    }
 
-          // Create CSV content
-          const headers = [
-            "Order Number",
-            "Customer",
-            "Date",
-            "Total (RWF)",
-            "Status",
-            "Items Count",
-            "Served By",
-          ];
-          const csvContent = [
-            headers.join(","),
-            ...orders.map((order) =>
-              [
-                order.order_number || "#" + order.id,
-                `"${order.customer_name || "N/A"}"`,
-                order.order_date ||
-                  new Date(order.created_at).toISOString().split("T")[0],
-                Math.round(order.total_amount || 0),
-                order.status,
-                order.items_count || 0,
-                `"${order.served_by_name || "Unknown"}"`,
-              ].join(",")
-            ),
-          ].join("\n");
+    if (typeof ExcelJS === "undefined") {
+      showNotification("ExcelJS library not loaded. Please refresh the page.", "error");
+      return;
+    }
 
-          // Create and download file
-          const blob = new Blob([csvContent], {
-            type: "text/csv;charset=utf-8;",
-          });
-          const link = document.createElement("a");
-          const url = URL.createObjectURL(blob);
-          link.setAttribute("href", url);
-          link.setAttribute(
-            "download",
-            `orders_export_${new Date().toISOString().split("T")[0]}.csv`
-          );
-          link.style.visibility = "hidden";
-          document.body.appendChild(link);
-          link.click();
-          document.body.removeChild(link);
+    // Create a new workbook and worksheet
+    const workbook = new ExcelJS.Workbook();
+    const sheetName = `Orders_${new Date().toISOString().split("T")[0]}`;
+    const worksheet = workbook.addWorksheet(sheetName);
 
-          showNotification("Orders exported successfully!", "success");
-        } catch (error) {
-          console.error("Export error:", error);
-          showNotification("Error exporting orders.", "error");
-        }
+    // Define header row
+    const headers = [
+      "Order Number",
+      "Customer",
+      "Date",
+      "Total (RWF)",
+      "Status",
+      "Items Count",
+      "Served By",
+    ];
+    worksheet.addRow(headers);
+
+    // Add orders
+    orders.forEach((order) => {
+      worksheet.addRow([
+        order.order_number || "#" + order.id,
+        order.customer_name || "N/A",
+        order.order_date || new Date(order.created_at).toISOString().split("T")[0],
+        Math.round(order.total_amount || 0),
+        order.status.charAt(0).toUpperCase() + order.status.slice(1),
+        order.items_count || 0,
+        order.served_by_name || "Unknown",
+      ]);
+    });
+
+    // Style header row
+    const headerRow = worksheet.getRow(1);
+    headerRow.eachCell((cell) => {
+      cell.font = { bold: true };
+      cell.alignment = { vertical: "middle", horizontal: "center" };
+      cell.fill = {
+        type: "pattern",
+        pattern: "solid",
+        fgColor: { argb: "FFD9D9D9" }, // light gray background
+      };
+      cell.border = {
+        top: { style: "thin" },
+        left: { style: "thin" },
+        bottom: { style: "thin" },
+        right: { style: "thin" },
+      };
+    });
+    headerRow.height = 25;
+
+    // Style all data rows
+    worksheet.eachRow((row, rowNumber) => {
+      row.eachCell((cell) => {
+        cell.border = {
+          top: { style: "thin" },
+          left: { style: "thin" },
+          bottom: { style: "thin" },
+          right: { style: "thin" },
+        };
+        cell.alignment = { vertical: "middle", horizontal: "left" };
+      });
+      if (rowNumber > 1) {
+        row.height = 18;
       }
+    });
+
+    // Set column widths
+    worksheet.columns = [
+      { width: 18 },
+      { width: 25 },
+      { width: 12 },
+      { width: 15 },
+      { width: 12 },
+      { width: 12 },
+      { width: 20 },
+    ];
+
+    // Enable autofilter
+    worksheet.autoFilter = {
+      from: "A1",
+      to: "G1",
+    };
+
+    // Generate filename
+    const now = new Date();
+    const dateStr = now.toISOString().split("T")[0];
+    const timeStr = now.toTimeString().split(" ")[0].replace(/:/g, "-");
+    const filename = `orders_export_${dateStr}_${timeStr}.xlsx`;
+
+    // Write file (ExcelJS → Blob → saveAs)
+    const buffer = await workbook.xlsx.writeBuffer();
+    saveAs(new Blob([buffer]), filename);
+
+    showNotification(`Orders exported successfully as ${filename}!`, "success");
+  } catch (error) {
+    console.error("Export error:", error);
+    showNotification("Error exporting orders. Please try again.", "error");
+  }
+}
 
       function showNewCustomerForm() {
         const customerName = prompt("Enter customer name:");

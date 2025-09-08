@@ -9,6 +9,8 @@
     <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
     <script src="supabase.js"></script>
     <script src="notification-system.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/exceljs/dist/exceljs.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
     <style>
         .modal {
             display: none;
@@ -144,10 +146,10 @@
                     <i class="fas fa-shopping-cart mr-3"></i>
                     <span>Orders</span>
                 </a>
-                <!-- <a href="customers.html" class="flex items-center py-2 px-4 rounded-lg hover:bg-green-700 transition-colors">
+                <a href="customers.html" class="flex items-center py-2 px-4 rounded-lg hover:bg-green-700 transition-colors">
                     <i class="fas fa-users mr-3"></i>
                     <span>Customers</span>
-                </a> -->
+                </a>
                 <a href="suppliers.html" class="flex items-center py-2 px-4 rounded-lg hover:bg-green-700 transition-colors">
                     <i class="fas fa-truck mr-3"></i>
                     <span>Suppliers</span>
@@ -293,9 +295,12 @@
                                     <option value="false">Inactive</option>
                                 </select>
                             </div>
-                            <div class="flex items-end">
-                                <button id="refreshBtn" class="w-full px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors">
+                            <div class="flex items-end space-x-2">
+                                <button id="refreshBtn" class="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors">
                                     <i class="fas fa-sync-alt mr-2"></i>Refresh
+                                </button>
+                                <button id="exportBtn" class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors">
+                                    <i class="fas fa-download mr-2"></i>Export to Excel
                                 </button>
                             </div>
                         </div>
@@ -569,6 +574,7 @@
             document.getElementById('roleFilter').addEventListener('change', filterUsers);
             document.getElementById('statusFilter').addEventListener('change', filterUsers);
             document.getElementById('refreshBtn').addEventListener('click', loadUsers);
+            document.getElementById('exportBtn').addEventListener('click', exportToExcel);
         }
 
         async function loadUsers() {
@@ -921,6 +927,124 @@
         function hideEmptyState() {
             document.getElementById('emptyState').classList.add('hidden');
             document.querySelector('.bg-white.rounded-lg.shadow-sm.overflow-hidden').style.display = 'block';
+        }
+
+        async function exportToExcel() {
+            try {
+                const users = await fetchUsers();
+                if (users.length === 0) {
+                    showNotification("No users to export.", "info");
+                    return;
+                }
+
+                if (typeof ExcelJS === "undefined") {
+                    showNotification("ExcelJS library not loaded. Please refresh the page.", "error");
+                    return;
+                }
+
+                // Create a new workbook and worksheet
+                const workbook = new ExcelJS.Workbook();
+                const sheetName = `Users_${new Date().toISOString().split("T")[0]}`;
+                const worksheet = workbook.addWorksheet(sheetName);
+
+                // Define header row
+                const headers = [
+                    "Full Name",
+                    "Username", 
+                    "Email",
+                    "Role",
+                    "Phone",
+                    "Address",
+                    "Status",
+                    "Created Date",
+                    "Last Login"
+                ];
+                worksheet.addRow(headers);
+
+                // Add users data
+                users.forEach((user) => {
+                    worksheet.addRow([
+                        user.full_name || "N/A",
+                        user.username || "N/A",
+                        user.email || "N/A",
+                        user.role || "N/A",
+                        user.phone || "N/A",
+                        user.address || "N/A",
+                        user.is_active ? "Active" : "Inactive",
+                        user.created_at ? new Date(user.created_at).toLocaleDateString() : "N/A",
+                        user.last_login ? new Date(user.last_login).toLocaleDateString() : "Never"
+                    ]);
+                });
+
+                // Style header row
+                const headerRow = worksheet.getRow(1);
+                headerRow.eachCell((cell) => {
+                    cell.font = { bold: true };
+                    cell.alignment = { vertical: "middle", horizontal: "center" };
+                    cell.fill = {
+                        type: "pattern",
+                        pattern: "solid",
+                        fgColor: { argb: "FFD9D9D9" }, // light gray background
+                    };
+                    cell.border = {
+                        top: { style: "thin" },
+                        left: { style: "thin" },
+                        bottom: { style: "thin" },
+                        right: { style: "thin" },
+                    };
+                });
+                headerRow.height = 25;
+
+                // Style all data rows
+                worksheet.eachRow((row, rowNumber) => {
+                    row.eachCell((cell) => {
+                        cell.border = {
+                            top: { style: "thin" },
+                            left: { style: "thin" },
+                            bottom: { style: "thin" },
+                            right: { style: "thin" },
+                        };
+                        cell.alignment = { vertical: "middle", horizontal: "left" };
+                    });
+                    if (rowNumber > 1) {
+                        row.height = 18;
+                    }
+                });
+
+                // Set column widths
+                worksheet.columns = [
+                    { width: 25 }, // Full Name
+                    { width: 20 }, // Username
+                    { width: 25 }, // Email
+                    { width: 12 }, // Role
+                    { width: 15 }, // Phone
+                    { width: 30 }, // Address
+                    { width: 10 }, // Status
+                    { width: 12 }, // Created Date
+                    { width: 12 }  // Last Login
+                ];
+
+                // Enable autofilter
+                worksheet.autoFilter = {
+                    from: "A1",
+                    to: "I1",
+                };
+
+                // Generate filename
+                const now = new Date();
+                const dateStr = now.toISOString().split("T")[0];
+                const timeStr = now.toTimeString().split(" ")[0].replace(/:/g, "-");
+                const filename = `users_export_${dateStr}_${timeStr}.xlsx`;
+
+                // Write file (ExcelJS → Blob → saveAs)
+                const buffer = await workbook.xlsx.writeBuffer();
+                saveAs(new Blob([buffer]), filename);
+
+                showNotification(`Users exported successfully as ${filename}!`, "success");
+            } catch (error) {
+                console.error("Export error:", error);
+                showNotification("Error exporting users. Please try again.", "error");
+            }
         }
 
         function showNotification(message, type = 'success') {

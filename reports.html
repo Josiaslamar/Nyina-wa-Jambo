@@ -8,6 +8,8 @@
     <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
     <script src="supabase.js"></script>
     <script src="notification-system.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/exceljs/dist/exceljs.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
     <link
       rel="stylesheet"
       href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"
@@ -52,10 +54,10 @@
             <i class="fas fa-truck w-6 text-center"></i>
             <span class="ml-4">Suppliers</span>
           </a>
-          <!-- <a href="customers.html" class="flex items-center py-3 px-6 text-gray-300 hover:bg-green-600 hover:text-white transition-colors receptionist-only">
+          <a href="customers.html" class="flex items-center py-3 px-6 text-gray-300 hover:bg-green-600 hover:text-white transition-colors">
                     <i class="fas fa-users w-6 text-center"></i>
                     <span class="ml-4">Customers</span>
-                </a> -->
+                </a>
           <a
             href="orders.html"
             class="flex items-center py-3 px-6 text-gray-300 hover:bg-green-600 hover:text-white transition-colors receptionist-only"
@@ -1615,41 +1617,184 @@
       async function exportAllReports() {
         try {
           showNotification("Preparing export...", "info");
-          let csvContent =
-            "Medicine Inventory Report\nMedicine,Category,Stock,Value,Status\n";
-          allMedicines.forEach((m) => {
-            const stockLevel = m.stock || 0;
-            const totalValue = stockLevel * (m.selling_price || 0);
-            const stockStatus =
-              stockLevel <= 10 ? "Critical" : stockLevel <= 50 ? "Low" : "Good";
-            csvContent += `"${m.name}","${
-              m.category || m.medicine_categories?.name || "Uncategorized"
-            }",${stockLevel},${formatCurrency(totalValue)},${stockStatus}\n`;
-          });
+          
+          if (!allMedicines.length && !allMovements.length) {
+            showNotification("No data available to export. Please load reports first.", "warning");
+            return;
+          }
 
-          csvContent +=
-            "\n\nStock Movements Report\nDate,Medicine,Movement,Quantity,Previous Stock,New Stock,Reason,Notes\n";
-          allMovements.slice(0, 100).forEach((m) => {
-            csvContent += `"${m.movement_date}","${
-              m.medicine_name
-            }","${m.movement_type.toUpperCase()}",${m.quantity},${
-              m.previous_stock
-            },${m.new_stock},"${m.reason}","${m.notes || ""}"\n`;
-          });
+          if (typeof ExcelJS === "undefined") {
+            showNotification("ExcelJS library not loaded. Please refresh the page.", "error");
+            return;
+          }
 
-          const blob = new Blob([csvContent], {
-            type: "text/csv;charset=utf-8;",
-          });
-          const link = document.createElement("a");
-          link.href = URL.createObjectURL(blob);
-          link.download = `medicine_reports_${
-            new Date().toISOString().split("T")[0]
-          }.csv`;
-          document.body.appendChild(link);
-          link.click();
-          document.body.removeChild(link);
-          showNotification("Reports exported successfully!", "success");
+          // Create a new workbook
+          const workbook = new ExcelJS.Workbook();
+          
+          // Medicine Inventory Sheet
+          if (allMedicines.length > 0) {
+            const inventorySheet = workbook.addWorksheet("Medicine Inventory");
+            
+            // Headers for inventory
+            const inventoryHeaders = ["Medicine", "Category", "Stock", "Selling Price", "Total Value", "Stock Status"];
+            inventorySheet.addRow(inventoryHeaders);
+            
+            // Add inventory data
+            allMedicines.forEach((m) => {
+              const stockLevel = m.stock || 0;
+              const sellingPrice = m.selling_price || 0;
+              const totalValue = stockLevel * sellingPrice;
+              const stockStatus = stockLevel <= 10 ? "Critical" : stockLevel <= 50 ? "Low" : "Good";
+              
+              inventorySheet.addRow([
+                m.name || "N/A",
+                m.category || m.medicine_categories?.name || "Uncategorized",
+                stockLevel,
+                sellingPrice,
+                totalValue,
+                stockStatus
+              ]);
+            });
+
+            // Style inventory sheet
+            const inventoryHeaderRow = inventorySheet.getRow(1);
+            inventoryHeaderRow.eachCell((cell) => {
+              cell.font = { bold: true };
+              cell.alignment = { vertical: "middle", horizontal: "center" };
+              cell.fill = {
+                type: "pattern",
+                pattern: "solid",
+                fgColor: { argb: "FFD9D9D9" }
+              };
+              cell.border = {
+                top: { style: "thin" },
+                left: { style: "thin" },
+                bottom: { style: "thin" },
+                right: { style: "thin" }
+              };
+            });
+            inventoryHeaderRow.height = 25;
+
+            // Style inventory data rows
+            inventorySheet.eachRow((row, rowNumber) => {
+              row.eachCell((cell) => {
+                cell.border = {
+                  top: { style: "thin" },
+                  left: { style: "thin" },
+                  bottom: { style: "thin" },
+                  right: { style: "thin" }
+                };
+                cell.alignment = { vertical: "middle", horizontal: "left" };
+              });
+              if (rowNumber > 1) {
+                row.height = 18;
+              }
+            });
+
+            inventorySheet.columns = [
+              { width: 30 }, // Medicine
+              { width: 20 }, // Category
+              { width: 10 }, // Stock
+              { width: 15 }, // Selling Price
+              { width: 15 }, // Total Value
+              { width: 12 }  // Stock Status
+            ];
+
+            // Enable autofilter
+            inventorySheet.autoFilter = {
+              from: "A1",
+              to: "F1"
+            };
+          }
+
+          // Stock Movements Sheet
+          if (allMovements.length > 0) {
+            const movementsSheet = workbook.addWorksheet("Stock Movements");
+            
+            // Headers for movements
+            const movementHeaders = ["Date", "Medicine", "Movement Type", "Quantity", "Previous Stock", "New Stock", "Reason", "Notes"];
+            movementsSheet.addRow(movementHeaders);
+            
+            // Add movements data (limit to recent 500 for performance)
+            allMovements.slice(0, 500).forEach((m) => {
+              movementsSheet.addRow([
+                m.movement_date || "N/A",
+                m.medicine_name || "N/A",
+                m.movement_type ? m.movement_type.toUpperCase() : "N/A",
+                m.quantity || 0,
+                m.previous_stock || 0,
+                m.new_stock || 0,
+                m.reason || "N/A",
+                m.notes || "N/A"
+              ]);
+            });
+
+            // Style movements sheet
+            const movementHeaderRow = movementsSheet.getRow(1);
+            movementHeaderRow.eachCell((cell) => {
+              cell.font = { bold: true };
+              cell.alignment = { vertical: "middle", horizontal: "center" };
+              cell.fill = {
+                type: "pattern",
+                pattern: "solid",
+                fgColor: { argb: "FFD9D9D9" }
+              };
+              cell.border = {
+                top: { style: "thin" },
+                left: { style: "thin" },
+                bottom: { style: "thin" },
+                right: { style: "thin" }
+              };
+            });
+            movementHeaderRow.height = 25;
+
+            // Style movements data rows
+            movementsSheet.eachRow((row, rowNumber) => {
+              row.eachCell((cell) => {
+                cell.border = {
+                  top: { style: "thin" },
+                  left: { style: "thin" },
+                  bottom: { style: "thin" },
+                  right: { style: "thin" }
+                };
+                cell.alignment = { vertical: "middle", horizontal: "left" };
+              });
+              if (rowNumber > 1) {
+                row.height = 18;
+              }
+            });
+
+            movementsSheet.columns = [
+              { width: 12 }, // Date
+              { width: 25 }, // Medicine
+              { width: 15 }, // Movement Type
+              { width: 10 }, // Quantity
+              { width: 12 }, // Previous Stock
+              { width: 12 }, // New Stock
+              { width: 20 }, // Reason
+              { width: 30 }  // Notes
+            ];
+
+            // Enable autofilter
+            movementsSheet.autoFilter = {
+              from: "A1",
+              to: "H1"
+            };
+          }
+
+          // Generate filename
+          const now = new Date();
+          const dateStr = now.toISOString().split("T")[0];
+          const timeStr = now.toTimeString().split(" ")[0].replace(/:/g, "-");
+          const filename = `medicine_reports_${dateStr}_${timeStr}.xlsx`;
+
+          // Write file (ExcelJS → Blob → saveAs)
+          const buffer = await workbook.xlsx.writeBuffer();
+          saveAs(new Blob([buffer]), filename);
+
+          showNotification(`Reports exported successfully as ${filename}!`, "success");
         } catch (error) {
+          console.error("Export error:", error);
           showNotification("Error exporting reports.", "error");
         }
       }
