@@ -177,6 +177,40 @@
         background-color: #ecfdf5;
       }
 
+      /* Category-specific field styling */
+      .category-fields {
+        transition: all 0.3s ease;
+        border-left: 4px solid transparent;
+      }
+      
+      .category-fields h3 {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+
+      #medicinesFields {
+        border-left-color: #22c55e;
+      }
+
+      #suppliesFields {
+        border-left-color: #3b82f6;
+      }
+
+      #equipmentFields {
+        border-left-color: #8b5cf6;
+      }
+
+      #othersFields {
+        border-left-color: #f59e0b;
+      }
+
+      /* Dynamic modal animations */
+      .modal-content {
+        max-height: 90vh;
+        overflow-y: auto;
+      }
+
       /* Role-based visibility */
       .admin-only {
         display: none !important;
@@ -283,16 +317,100 @@
             <div class="mb-8">
               <div class="flex justify-between items-center">
                 <div>
-                  <h1 class="text-3xl font-bold text-gray-900">Medicines Inventory</h1>
-                  <p class="text-gray-600 mt-2">Manage your pharmacy's medicine stock</p>
+                  <h1 class="text-3xl font-bold text-gray-900">Inventory Management</h1>
+                  <p class="text-gray-600 mt-2">Comprehensive inventory tracking for medicines, supplies, equipment, and more</p>
                 </div>
                 <div class="flex gap-3">
-                  <button id="addMedicineBtn" class="btn-primary">
-                    <i class="fas fa-plus"></i>Add Inventory Item
-                  </button>
                   <button id="importBtn" class="btn-primary admin-only">
                     <i class="fas fa-file-excel"></i>Bulk Import
                   </button>
+                </div>
+              </div>
+            </div>
+
+            <!-- Inventory Categories Guide -->
+            <div class="card rounded-lg shadow-sm p-6 mb-6">
+              <div class="flex justify-between items-center mb-4">
+                <h2 class="text-xl font-semibold text-gray-900">📋 Inventory Categories</h2>
+                <button id="toggleCategoriesGuide" class="text-sm text-blue-600 hover:text-blue-800">
+                  <i class="fas fa-chevron-up" id="categoriesIcon"></i> Hide Guide
+                </button>
+              </div>
+              <div id="categoriesGuide" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                <!-- Medicines Category -->
+                <div class="bg-green-50 border border-green-200 rounded-lg p-4">
+                  <div class="flex items-center mb-3">
+                    <span class="text-2xl mr-2">💊</span>
+                    <h3 class="font-semibold text-green-800">Medicines</h3>
+                  </div>
+                  <p class="text-sm text-green-700 mb-3">Pharmaceutical products intended to diagnose, treat, cure, or prevent disease.</p>
+                  <div class="text-xs text-green-600">
+                    <p class="font-medium mb-1">Examples:</p>
+                    <ul class="space-y-1">
+                      <li>• Antibiotics (Amoxicillin, Azithromycin)</li>
+                      <li>• Painkillers (Paracetamol, Ibuprofen)</li>
+                      <li>• Antimalarials (Artemether-Lumefantrine)</li>
+                      <li>• Vaccines, Insulin, Syrups</li>
+                    </ul>
+                    <p class="font-medium mt-2 text-green-800">Notes: Controlled by regulations, require expiry tracking, prescription status, batch numbers.</p>
+                  </div>
+                </div>
+
+                <!-- Supplies Category -->
+                <div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                  <div class="flex items-center mb-3">
+                    <span class="text-2xl mr-2">🧴</span>
+                    <h3 class="font-semibold text-blue-800">Supplies</h3>
+                  </div>
+                  <p class="text-sm text-blue-700 mb-3">Consumable items used in treatment but are not medicines.</p>
+                  <div class="text-xs text-blue-600">
+                    <p class="font-medium mb-1">Examples:</p>
+                    <ul class="space-y-1">
+                      <li>• Gloves, Masks, Cotton, Bandages</li>
+                      <li>• Alcohol swabs, Syringes, Needles</li>
+                      <li>• IV fluid sets, Catheters</li>
+                      <li>• Gauze, Adhesive tape</li>
+                    </ul>
+                    <p class="font-medium mt-2 text-blue-800">Notes: Often needed in bulk, track stock levels, sterile vs. non-sterile distinction.</p>
+                  </div>
+                </div>
+
+                <!-- Equipment Category -->
+                <div class="bg-purple-50 border border-purple-200 rounded-lg p-4">
+                  <div class="flex items-center mb-3">
+                    <span class="text-2xl mr-2">🩺</span>
+                    <h3 class="font-semibold text-purple-800">Equipment</h3>
+                  </div>
+                  <p class="text-sm text-purple-700 mb-3">Reusable medical devices or tools used for diagnosis, monitoring, or treatment.</p>
+                  <div class="text-xs text-purple-600">
+                    <p class="font-medium mb-1">Examples:</p>
+                    <ul class="space-y-1">
+                      <li>• Thermometers, BP machines</li>
+                      <li>• Glucometers, Nebulizers</li>
+                      <li>• Scales, Stethoscopes</li>
+                      <li>• Pulse oximeters</li>
+                    </ul>
+                    <p class="font-medium mt-2 text-purple-800">Notes: Not consumed, require maintenance/calibration, higher cost, lower turnover.</p>
+                  </div>
+                </div>
+
+                <!-- Others Category -->
+                <div class="bg-orange-50 border border-orange-200 rounded-lg p-4">
+                  <div class="flex items-center mb-3">
+                    <span class="text-2xl mr-2">🛍️</span>
+                    <h3 class="font-semibold text-orange-800">Others</h3>
+                  </div>
+                  <p class="text-sm text-orange-700 mb-3">Items that don't fit neatly into the above categories.</p>
+                  <div class="text-xs text-orange-600">
+                    <p class="font-medium mb-1">Examples:</p>
+                    <ul class="space-y-1">
+                      <li>• Baby formula, Diapers</li>
+                      <li>• Nutritional supplements, Vitamins</li>
+                      <li>• Cosmetics, Soap, Lotion</li>
+                      <li>• Bottled water, Snacks</li>
+                    </ul>
+                    <p class="font-medium mt-2 text-orange-800">Notes: Adds flexibility for non-medical items sold in pharmacy.</p>
+                  </div>
                 </div>
               </div>
             </div>
@@ -301,13 +419,17 @@
             <div class="card rounded-lg shadow-sm p-6 mb-6">
               <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div>
-                  <label class="block text-sm font-medium text-gray-700 mb-2">Search Medicines</label>
+                  <label class="block text-sm font-medium text-gray-700 mb-2">Search Inventory</label>
                   <input type="text" id="medicineSearch" placeholder="Search by name, code, or category..." class="input-focus w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none transition-colors" />
                 </div>
                 <div>
                   <label class="block text-sm font-medium text-gray-700 mb-2">Filter by Category</label>
                   <select id="categoryFilter" class="input-focus w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none transition-colors">
                     <option value="">All Categories</option>
+                    <option value="Medicines">💊 Medicines</option>
+                    <option value="Supplies">🧴 Supplies</option>
+                    <option value="Equipment">🩺 Equipment</option>
+                    <option value="Others">🛍️ Others</option>
                   </select>
                 </div>
                 <div class="flex items-end">
@@ -318,20 +440,34 @@
               </div>
             </div>
 
-            <!-- Medicines Table -->
-            <div class="card rounded-lg shadow-sm overflow-hidden">
+            <!-- Category-Based Inventory Sections -->
+            
+            <!-- Medicines Section -->
+            <div id="medicinesSection" class="card rounded-lg shadow-sm overflow-hidden mb-6">
+              <div class="bg-green-50 border-b border-green-200 px-6 py-4">
+                <div class="flex justify-between items-center">
+                  <div class="flex items-center">
+                    <span class="text-2xl mr-3">💊</span>
+                    <div>
+                      <h3 class="text-lg font-semibold text-green-800">Medicines</h3>
+                      <p class="text-sm text-green-600">Pharmaceutical products for treatment</p>
+                    </div>
+                  </div>
+                  <button id="addMedicineBtn" class="bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700 transition-colors">
+                    <i class="fas fa-plus mr-2"></i>Add Medicine
+                  </button>
+                </div>
+              </div>
               <div class="table-container">
                 <table class="min-w-full divide-y divide-gray-200">
                   <thead class="bg-gray-50">
                     <tr>
                       <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Code</th>
                       <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
-                      <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Category</th>
                       <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Stock</th>
                       <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Expiry Date</th>
                       <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Selling Price</th>
                       <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Supplier</th>
-                      <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Sale Type</th>
                       <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
                     </tr>
                   </thead>
@@ -339,12 +475,116 @@
                 </table>
               </div>
             </div>
+
+            <!-- Supplies Section -->
+            <div id="suppliesSection" class="card rounded-lg shadow-sm overflow-hidden mb-6">
+              <div class="bg-blue-50 border-b border-blue-200 px-6 py-4">
+                <div class="flex justify-between items-center">
+                  <div class="flex items-center">
+                    <span class="text-2xl mr-3">🧴</span>
+                    <div>
+                      <h3 class="text-lg font-semibold text-blue-800">Medical Supplies</h3>
+                      <p class="text-sm text-blue-600">Consumable medical items</p>
+                    </div>
+                  </div>
+                  <button id="addSupplyBtn" class="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition-colors">
+                    <i class="fas fa-plus mr-2"></i>Add Supply
+                  </button>
+                </div>
+              </div>
+              <div class="table-container">
+                <table class="min-w-full divide-y divide-gray-200">
+                  <thead class="bg-gray-50">
+                    <tr>
+                      <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Code</th>
+                      <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
+                      <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Stock</th>
+                      <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Unit</th>
+                      <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Price</th>
+                      <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Supplier</th>
+                      <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody id="suppliesTable" class="bg-white divide-y divide-gray-200"></tbody>
+                </table>
+              </div>
+            </div>
+
+            <!-- Equipment Section -->
+            <div id="equipmentSection" class="card rounded-lg shadow-sm overflow-hidden mb-6">
+              <div class="bg-purple-50 border-b border-purple-200 px-6 py-4">
+                <div class="flex justify-between items-center">
+                  <div class="flex items-center">
+                    <span class="text-2xl mr-3">🩺</span>
+                    <div>
+                      <h3 class="text-lg font-semibold text-purple-800">Medical Equipment</h3>
+                      <p class="text-sm text-purple-600">Reusable medical devices</p>
+                    </div>
+                  </div>
+                  <button id="addEquipmentBtn" class="bg-purple-600 text-white px-4 py-2 rounded-md hover:bg-purple-700 transition-colors">
+                    <i class="fas fa-plus mr-2"></i>Add Equipment
+                  </button>
+                </div>
+              </div>
+              <div class="table-container">
+                <table class="min-w-full divide-y divide-gray-200">
+                  <thead class="bg-gray-50">
+                    <tr>
+                      <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Code</th>
+                      <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
+                      <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Quantity</th>
+                      <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Model/Brand</th>
+                      <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Purchase Price</th>
+                      <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Condition</th>
+                      <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody id="equipmentTable" class="bg-white divide-y divide-gray-200"></tbody>
+                </table>
+              </div>
+            </div>
+
+            <!-- Others Section -->
+            <div id="othersSection" class="card rounded-lg shadow-sm overflow-hidden mb-6">
+              <div class="bg-orange-50 border-b border-orange-200 px-6 py-4">
+                <div class="flex justify-between items-center">
+                  <div class="flex items-center">
+                    <span class="text-2xl mr-3">🛍️</span>
+                    <div>
+                      <h3 class="text-lg font-semibold text-orange-800">Other Items</h3>
+                      <p class="text-sm text-orange-600">Non-medical items and supplements</p>
+                    </div>
+                  </div>
+                  <button id="addOtherBtn" class="bg-orange-600 text-white px-4 py-2 rounded-md hover:bg-orange-700 transition-colors">
+                    <i class="fas fa-plus mr-2"></i>Add Item
+                  </button>
+                </div>
+              </div>
+              <div class="table-container">
+                <table class="min-w-full divide-y divide-gray-200">
+                  <thead class="bg-gray-50">
+                    <tr>
+                      <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Code</th>
+                      <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
+                      <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Stock</th>
+                      <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Unit</th>
+                      <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Price</th>
+                      <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Description</th>
+                      <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody id="othersTable" class="bg-white divide-y divide-gray-200"></tbody>
+                </table>
+              </div>
+            </div>
+              </div>
+            </div>
           </div>
         </main>
       </div>
     </div>
 
-    <!-- Medicine Modal -->
+    <!-- Dynamic Inventory Modal -->
     <div id="medicineModal" class="modal">
       <div class="modal-content">
         <div class="flex justify-between items-center mb-6">
@@ -354,99 +594,305 @@
           </button>
         </div>
         <form id="medicineForm" class="space-y-6">
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <label class="block text-sm font-medium text-gray-700 mb-2">Medicine Code</label>
-              <input type="text" id="medicineCode" required class="input-focus w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none transition-colors" placeholder="e.g., MED001" />
+          <!-- Common Fields for All Categories -->
+          <div class="bg-gray-50 p-4 rounded-lg">
+            <h3 class="text-lg font-medium text-gray-900 mb-4">Basic Information</h3>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">Item Code</label>
+                <input type="text" id="medicineCode" required class="input-focus w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none transition-colors" placeholder="e.g., MED001, SUP001, EQP001" />
+              </div>
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">Item Name</label>
+                <input type="text" id="medicineName" required class="input-focus w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none transition-colors" placeholder="e.g., Paracetamol, Gloves, Thermometer" />
+              </div>
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">Inventory Category</label>
+                <select id="medicineCategory" required class="input-focus w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none transition-colors" onchange="toggleCategoryFields(this.value)">
+                  <option value="">Select Category</option>
+                  <option value="Medicines">💊 Medicines - Pharmaceutical products for treatment</option>
+                  <option value="Supplies">🧴 Supplies - Consumable medical items</option>
+                  <option value="Equipment">🩺 Equipment - Reusable medical devices</option>
+                  <option value="Others">🛍️ Others - Non-medical items and supplements</option>
+                </select>
+                <div id="categoryDescription" class="mt-2 text-sm text-gray-600 hidden"></div>
+              </div>
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">Description</label>
+                <textarea id="medicineDescription" rows="3" class="input-focus w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none transition-colors" placeholder="Detailed description of the item"></textarea>
+              </div>
             </div>
-            <div>
-              <label class="block text-sm font-medium text-gray-700 mb-2">Medicine Name</label>
-              <input type="text" id="medicineName" required class="input-focus w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none transition-colors" placeholder="e.g., Paracetamol" />
+          </div>
+
+          <!-- Medicines-Specific Fields -->
+          <div id="medicinesFields" class="category-fields bg-green-50 p-4 rounded-lg hidden">
+            <h3 class="text-lg font-medium text-green-800 mb-4">🏥 Medicine Information</h3>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">Generic Name</label>
+                <input type="text" id="genericName" class="input-focus w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none transition-colors" placeholder="e.g., Acetaminophen" />
+              </div>
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">Brand Name</label>
+                <input type="text" id="brandName" class="input-focus w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none transition-colors" placeholder="e.g., Panadol" />
+              </div>
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">Dosage Form</label>
+                <select id="dosageForm" class="input-focus w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none transition-colors">
+                  <option value="">Select Dosage Form</option>
+                  <option value="tablet">Tablet</option>
+                  <option value="capsule">Capsule</option>
+                  <option value="syrup">Syrup</option>
+                  <option value="injection">Injection</option>
+                  <option value="cream">Cream</option>
+                  <option value="ointment">Ointment</option>
+                  <option value="drops">Drops</option>
+                  <option value="inhaler">Inhaler</option>
+                </select>
+              </div>
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">Strength/Concentration</label>
+                <input type="text" id="strength" class="input-focus w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none transition-colors" placeholder="e.g., 500mg, 250mg/5ml" />
+              </div>
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">Batch Number</label>
+                <input type="text" id="batchNumber" class="input-focus w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none transition-colors" placeholder="e.g., BT123456" />
+              </div>
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">Manufacturer</label>
+                <input type="text" id="manufacturer" class="input-focus w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none transition-colors" placeholder="e.g., Pfizer, GSK" />
+              </div>
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">Expiry Date <span class="text-red-500">*</span></label>
+                <input type="date" id="medicineExpiry" class="input-focus w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none transition-colors" />
+              </div>
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">Storage Conditions</label>
+                <select id="storageConditions" class="input-focus w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none transition-colors">
+                  <option value="">Select Storage Condition</option>
+                  <option value="room_temperature">Room Temperature (15-25°C)</option>
+                  <option value="cool_dry">Cool & Dry Place</option>
+                  <option value="refrigerated">Refrigerated (2-8°C)</option>
+                  <option value="frozen">Frozen (-18°C or below)</option>
+                  <option value="controlled_room">Controlled Room Temperature</option>
+                </select>
+              </div>
+              <div class="md:col-span-2">
+                <label class="flex items-center">
+                  <input type="checkbox" id="requiresPrescription" class="h-4 w-4 text-green-600 focus:ring-green-500 border-gray-300 rounded mr-2" />
+                  <span class="text-sm font-medium text-gray-700">Requires Prescription</span>
+                </label>
+              </div>
             </div>
-            <div>
-              <label class="block text-sm font-medium text-gray-700 mb-2">Generic Name</label>
-              <input type="text" id="genericName" class="input-focus w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none transition-colors" placeholder="e.g., Acetaminophen" />
+          </div>
+
+          <!-- Supplies-Specific Fields -->
+          <div id="suppliesFields" class="category-fields bg-blue-50 p-4 rounded-lg hidden">
+            <h3 class="text-lg font-medium text-blue-800 mb-4">🧴 Supply Information</h3>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">Supply Type</label>
+                <select id="supplyType" class="input-focus w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none transition-colors">
+                  <option value="">Select Supply Type</option>
+                  <option value="disposable">Disposable</option>
+                  <option value="consumable">Consumable</option>
+                  <option value="protective">Protective Equipment</option>
+                  <option value="surgical">Surgical Supplies</option>
+                  <option value="diagnostic">Diagnostic Supplies</option>
+                </select>
+              </div>
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">Material</label>
+                <input type="text" id="material" class="input-focus w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none transition-colors" placeholder="e.g., Latex, Nitrile, Cotton" />
+              </div>
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">Size/Specification</label>
+                <input type="text" id="sizeSpec" class="input-focus w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none transition-colors" placeholder="e.g., Large, Medium, Small, 10ml" />
+              </div>
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">Package Quantity</label>
+                <input type="number" id="packageQty" min="1" class="input-focus w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none transition-colors" placeholder="e.g., 100 pieces per box" />
+              </div>
+              <div>
+                <label class="flex items-center">
+                  <input type="checkbox" id="isSterile" class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded mr-2" />
+                  <span class="text-sm font-medium text-gray-700">Sterile Product</span>
+                </label>
+              </div>
+              <div>
+                <label class="flex items-center">
+                  <input type="checkbox" id="isSingleUse" class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded mr-2" />
+                  <span class="text-sm font-medium text-gray-700">Single Use Only</span>
+                </label>
+              </div>
             </div>
-            <div>
-              <label class="block text-sm font-medium text-gray-700 mb-2">Brand Name</label>
-              <input type="text" id="brandName" class="input-focus w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none transition-colors" placeholder="e.g., Panadol" />
+          </div>
+
+          <!-- Equipment-Specific Fields -->
+          <div id="equipmentFields" class="category-fields bg-purple-50 p-4 rounded-lg hidden">
+            <h3 class="text-lg font-medium text-purple-800 mb-4">🩺 Equipment Information</h3>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">Equipment Type</label>
+                <select id="equipmentType" class="input-focus w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none transition-colors">
+                  <option value="">Select Equipment Type</option>
+                  <option value="diagnostic">Diagnostic Equipment</option>
+                  <option value="therapeutic">Therapeutic Equipment</option>
+                  <option value="monitoring">Monitoring Equipment</option>
+                  <option value="surgical">Surgical Equipment</option>
+                  <option value="laboratory">Laboratory Equipment</option>
+                </select>
+              </div>
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">Serial Number</label>
+                <input type="text" id="serialNumber" class="input-focus w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none transition-colors" placeholder="e.g., SN123456789" />
+              </div>
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">Model Number</label>
+                <input type="text" id="modelNumber" class="input-focus w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none transition-colors" placeholder="e.g., MDL-2024" />
+              </div>
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">Warranty Expiry</label>
+                <input type="date" id="warrantyExpiry" class="input-focus w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none transition-colors" />
+              </div>
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">Maintenance Schedule</label>
+                <select id="maintenanceSchedule" class="input-focus w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none transition-colors">
+                  <option value="">Select Schedule</option>
+                  <option value="weekly">Weekly</option>
+                  <option value="monthly">Monthly</option>
+                  <option value="quarterly">Quarterly</option>
+                  <option value="annually">Annually</option>
+                  <option value="as_needed">As Needed</option>
+                </select>
+              </div>
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">Last Maintenance Date</label>
+                <input type="date" id="lastMaintenanceDate" class="input-focus w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none transition-colors" />
+              </div>
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">Calibration Due Date</label>
+                <input type="date" id="calibrationDue" class="input-focus w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none transition-colors" />
+              </div>
+              <div>
+                <label class="flex items-center">
+                  <input type="checkbox" id="requiresCalibration" class="h-4 w-4 text-purple-600 focus:ring-purple-500 border-gray-300 rounded mr-2" />
+                  <span class="text-sm font-medium text-gray-700">Requires Regular Calibration</span>
+                </label>
+              </div>
             </div>
-            <div>
-              <label class="block text-sm font-medium text-gray-700 mb-2">Category</label>
-              <select id="medicineCategory" required class="input-focus w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none transition-colors">
-                <option value="">Select Category</option>
-              </select>
+          </div>
+
+          <!-- Others-Specific Fields -->
+          <div id="othersFields" class="category-fields bg-orange-50 p-4 rounded-lg hidden">
+            <h3 class="text-lg font-medium text-orange-800 mb-4">🛍️ Other Item Information</h3>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">Item Type</label>
+                <select id="otherItemType" class="input-focus w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none transition-colors">
+                  <option value="">Select Item Type</option>
+                  <option value="supplement">Health Supplement</option>
+                  <option value="cosmetic">Cosmetic Product</option>
+                  <option value="baby_care">Baby Care</option>
+                  <option value="personal_care">Personal Care</option>
+                  <option value="office_supply">Office Supply</option>
+                  <option value="cleaning">Cleaning Supply</option>
+                </select>
+              </div>
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">Target Demographic</label>
+                <select id="targetDemographic" class="input-focus w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none transition-colors">
+                  <option value="">Select Target</option>
+                  <option value="adults">Adults</option>
+                  <option value="children">Children</option>
+                  <option value="elderly">Elderly</option>
+                  <option value="pregnant">Pregnant Women</option>
+                  <option value="all_ages">All Ages</option>
+                </select>
+              </div>
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">Shelf Life (months)</label>
+                <input type="number" id="shelfLife" min="1" class="input-focus w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none transition-colors" placeholder="e.g., 24 months" />
+              </div>
+              <div>
+                <label class="flex items-center">
+                  <input type="checkbox" id="isOTC" class="h-4 w-4 text-orange-600 focus:ring-orange-500 border-gray-300 rounded mr-2" />
+                  <span class="text-sm font-medium text-gray-700">Over-the-Counter (OTC)</span>
+                </label>
+              </div>
             </div>
-            <div>
-              <label class="block text-sm font-medium text-gray-700 mb-2">Dosage Form</label>
-              <select id="dosageForm" class="input-focus w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none transition-colors">
-                <option value="">Select Dosage Form</option>
-                <option value="tablet">Tablet</option>
-                <option value="capsule">Capsule</option>
-                <option value="syrup">Syrup</option>
-                <option value="injection">Injection</option>
-                <option value="cream">Cream</option>
-              </select>
+          </div>
+
+          <!-- Common Pricing and Inventory Fields -->
+          <div class="bg-gray-50 p-4 rounded-lg">
+            <h3 class="text-lg font-medium text-gray-900 mb-4">💰 Pricing & Inventory</h3>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">Cost Price (RWF)</label>
+                <input type="number" id="costPrice" min="0" step="0.01" class="input-focus w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none transition-colors" placeholder="e.g., 1000" />
+              </div>
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">Selling Price (RWF) <span class="text-red-500">*</span></label>
+                <input type="number" id="sellingPrice" required min="0" step="0.01" class="input-focus w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none transition-colors" placeholder="e.g., 1500" />
+              </div>
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">Current Stock <span class="text-red-500">*</span></label>
+                <input type="number" id="medicineStock" required min="0" class="input-focus w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none transition-colors" placeholder="e.g., 100" />
+              </div>
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">Unit of Measurement</label>
+                <select id="unit" class="input-focus w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none transition-colors">
+                  <option value="">Select Unit</option>
+                  <option value="pieces">Pieces</option>
+                  <option value="bottles">Bottles</option>
+                  <option value="tubes">Tubes</option>
+                  <option value="boxes">Boxes</option>
+                  <option value="packs">Packs</option>
+                  <option value="sets">Sets</option>
+                  <option value="rolls">Rolls</option>
+                </select>
+              </div>
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">Minimum Stock Level</label>
+                <input type="number" id="minStockLevel" min="0" class="input-focus w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none transition-colors" placeholder="e.g., 10" />
+              </div>
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">Maximum Stock Level</label>
+                <input type="number" id="maxStockLevel" min="0" class="input-focus w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none transition-colors" placeholder="e.g., 500" />
+              </div>
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">Supplier</label>
+                <select id="medicineSupplier" class="input-focus w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none transition-colors">
+                  <option value="">Select Supplier</option>
+                </select>
+              </div>
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">Sale Type</label>
+                <select id="saleType" required class="input-focus w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none transition-colors">
+                  <option value="">Select Sale Type</option>
+                  <option value="Private">Private</option>
+                  <option value="Mutuel">Mutuel</option>
+                  <option value="Both">Both</option>
+                </select>
+              </div>
             </div>
-            <div>
-              <label class="block text-sm font-medium text-gray-700 mb-2">Strength</label>
-              <input type="text" id="strength" class="input-focus w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none transition-colors" placeholder="e.g., 500mg" />
-            </div>
-            <div>
-              <label class="block text-sm font-medium text-gray-700 mb-2">Unit</label>
-              <select id="unit" class="input-focus w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none transition-colors">
-                <option value="">Select Unit</option>
-                <option value="pieces">Pieces</option>
-                <option value="bottles">Bottles</option>
-                <option value="tubes">Tubes</option>
-              </select>
-            </div>
-            <div>
-              <label class="block text-sm font-medium text-gray-700 mb-2">Cost Price (RWF)</label>
-              <input type="number" id="costPrice" min="0" step="0.01" class="input-focus w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none transition-colors" placeholder="e.g., 1000" />
-            </div>
-            <div>
-              <label class="block text-sm font-medium text-gray-700 mb-2">Selling Price (RWF)</label>
-              <input type="number" id="sellingPrice" required min="0" step="0.01" class="input-focus w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none transition-colors" placeholder="e.g., 1500" />
-            </div>
-            <div>
-              <label class="block text-sm font-medium text-gray-700 mb-2">Stock Quantity</label>
-              <input type="number" id="medicineStock" required min="0" class="input-focus w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none transition-colors" placeholder="e.g., 100" />
-            </div>
-            <div>
-              <label class="block text-sm font-medium text-gray-700 mb-2">Supplier</label>
-              <select id="medicineSupplier" class="input-focus w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none transition-colors">
-                <option value="">Select Supplier</option>
-              </select>
-            </div>
-            <div>
-              <label class="block text-sm font-medium text-gray-700 mb-2">Sale Type</label>
-              <select id="saleType" required class="input-focus w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none transition-colors">
-                <option value="">Select Sale Type</option>
-                <option value="Private">Private</option>
-                <option value="Mutuel">Mutuel</option>
-                <option value="Both">Both</option>
-              </select>
-            </div>
-            <div>
-              <label class="block text-sm font-medium text-gray-700 mb-2">Requires Prescription</label>
-              <input type="checkbox" id="requiresPrescription" class="h-4 w-4 text-green-600 focus:ring-green-500 border-gray-300 rounded" />
-            </div>
-            <div>
-              <label class="block text-sm font-medium text-gray-700 mb-2">Expiry Date</label>
-              <input type="date" id="medicineExpiry" class="input-focus w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none transition-colors" />
-            </div>
-            <div>
-              <label class="block text-sm font-medium text-gray-700 mb-2">Batch Number</label>
-              <input type="text" id="batchNumber" class="input-focus w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none transition-colors" placeholder="e.g., BATCH001" />
-            </div>
-            <div>
-              <label class="block text-sm font-medium text-gray-700 mb-2">Manufacturer</label>
-              <input type="text" id="manufacturer" class="input-focus w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none transition-colors" placeholder="e.g., Pfizer" />
-            </div>
-            <div>
-              <label class="block text-sm font-medium text-gray-700 mb-2">Min Stock Level</label>
-              <input type="number" id="minStockLevel" min="0" class="input-focus w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none transition-colors" placeholder="e.g., 10" />
+          </div>
+
+          <!-- Form Actions -->
+          <div class="flex justify-end space-x-4 pt-6 border-t">
+            <button type="button" onclick="closeMedicineModal()" class="px-6 py-2 text-gray-600 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors">
+              Cancel
+            </button>
+            <button type="submit" id="saveMedicineBtn" class="px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors flex items-center">
+              <span class="btn-text">Save Item</span>
+              <div class="loading-spinner hidden ml-2">
+                <i class="fas fa-spinner fa-spin"></i>
+              </div>
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
             </div>
             <div>
               <label class="block text-sm font-medium text-gray-700 mb-2">Max Stock Level</label>
@@ -776,14 +1222,25 @@
       }
 
       function setupEventListeners() {
-        // Existing event listeners
-        document.getElementById("addMedicineBtn").addEventListener("click", () => openMedicineModal());
+        // Category-specific add button event listeners
+        document.getElementById("addMedicineBtn").addEventListener("click", () => openMedicineModal(null, "Medicines"));
+        document.getElementById("addSupplyBtn").addEventListener("click", () => openMedicineModal(null, "Supplies"));
+        document.getElementById("addEquipmentBtn").addEventListener("click", () => openMedicineModal(null, "Equipment"));
+        document.getElementById("addOtherBtn").addEventListener("click", () => openMedicineModal(null, "Others"));
+        
+        // Modal and form event listeners
         document.getElementById("closeMedicineModal").addEventListener("click", closeMedicineModal);
         document.getElementById("cancelMedicine").addEventListener("click", closeMedicineModal);
         document.getElementById("medicineForm").addEventListener("submit", saveMedicine);
         document.getElementById("medicineSearch").addEventListener("input", renderMedicines);
         document.getElementById("categoryFilter").addEventListener("change", renderMedicines);
         document.getElementById("exportBtn").addEventListener("click", exportToExcel);
+
+        // Category guide toggle
+        document.getElementById("toggleCategoriesGuide").addEventListener("click", toggleCategoriesGuide);
+        
+        // Category selection handler for form
+        document.getElementById("medicineCategory").addEventListener("change", handleCategorySelection);
 
         // Import event listeners
         const importBtn = document.getElementById("importBtn");
@@ -1196,56 +1653,114 @@
         document.getElementById("importModal").classList.remove("show");
       }
 
-      // Rest of the existing functions (renderMedicines, openMedicineModal, etc.) remain the same
+      // Updated function to render medicines in category-specific tables
       async function renderMedicines() {
-        const tbody = document.getElementById("medicinesTable");
         const searchTerm = document.getElementById("medicineSearch").value.toLowerCase();
         const categoryFilter = document.getElementById("categoryFilter").value;
-        tbody.innerHTML = '<tr><td colspan="9" class="px-6 py-4 text-center text-gray-500">Loading medicines...</td></tr>';
+
+        // Clear all category tables
+        const categoryTables = ['medicinesTable', 'suppliesTable', 'equipmentTable', 'othersTable'];
+        categoryTables.forEach(tableId => {
+          const tbody = document.getElementById(tableId);
+          if (tbody) {
+            tbody.innerHTML = '<tr><td colspan="9" class="px-6 py-4 text-center text-gray-500">Loading...</td></tr>';
+          }
+        });
 
         try {
           const medicines = await fetchMedicines();
-          let filteredMedicines = medicines.filter(m => 
-            (m.medicine_code.toLowerCase().includes(searchTerm) ||
-             m.name.toLowerCase().includes(searchTerm) ||
-             m.category_name.toLowerCase().includes(searchTerm)) &&
-            (!categoryFilter || m.category_id === parseInt(categoryFilter))
-          );
+          
+          // Group medicines by category
+          const categorizedMedicines = {
+            'Medicines': [],
+            'Supplies': [],
+            'Equipment': [],
+            'Others': []
+          };
 
-          if (filteredMedicines.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="9" class="px-6 py-4 text-center text-gray-500">No medicines found.</td></tr>';
-            return;
-          }
+          // Filter and categorize medicines
+          medicines.forEach(medicine => {
+            const matchesSearch = medicine.medicine_code.toLowerCase().includes(searchTerm) ||
+                                 medicine.name.toLowerCase().includes(searchTerm) ||
+                                 medicine.category_name.toLowerCase().includes(searchTerm);
+            
+            // Determine category based on category_name or category_id
+            let category = 'Others'; // default
+            
+            if (medicine.category_name) {
+              const categoryName = medicine.category_name.toLowerCase();
+              if (categoryName.includes('medicine') || categoryName.includes('drug') || categoryName.includes('tablet') || categoryName.includes('syrup')) {
+                category = 'Medicines';
+              } else if (categoryName.includes('supply') || categoryName.includes('consumable') || categoryName.includes('disposable')) {
+                category = 'Supplies';
+              } else if (categoryName.includes('equipment') || categoryName.includes('device') || categoryName.includes('machine') || categoryName.includes('instrument')) {
+                category = 'Equipment';
+              }
+            }
+            
+            const matchesCategory = !categoryFilter || category === categoryFilter;
+            
+            if (matchesSearch && matchesCategory) {
+              categorizedMedicines[category].push(medicine);
+            }
+          });
 
-          tbody.innerHTML = filteredMedicines.map(medicine => {
-            const stockClass = medicine.stock <= medicine.min_stock_level ? "text-red-600 font-semibold" : medicine.stock <= medicine.min_stock_level * 2 ? "text-yellow-600" : "text-green-600";
-            const expiryDate = medicine.expiry_date ? new Date(medicine.expiry_date) : null;
-            const today = new Date();
-            const daysUntilExpiry = expiryDate ? Math.ceil((expiryDate - today) / (1000 * 60 * 60 * 24)) : null;
-            const expiryClass = daysUntilExpiry <= 0 ? "text-red-600" : daysUntilExpiry <= 30 ? "text-yellow-600" : "text-gray-900";
-            return `
-              <tr class="hover:bg-gray-50">
-                <td class="px-6 py-4 whitespace-nowrap text-gray-900">${medicine.medicine_code}</td>
-                <td class="px-6 py-4 whitespace-nowrap font-medium text-gray-900">${medicine.name}</td>
-                <td class="px-6 py-4 whitespace-nowrap"><span class="px-2 py-1 text-xs font-semibold rounded-full bg-blue-100 text-blue-800">${medicine.category_name}</span></td>
-                <td class="px-6 py-4 whitespace-nowrap"><span class="${stockClass}">${medicine.stock}</span> ${medicine.stock <= medicine.min_stock_level ? '<i class="fas fa-exclamation-triangle ml-1 text-red-500"></i>' : ""}</td>
-                <td class="px-6 py-4 whitespace-nowrap ${expiryClass}">${medicine.expiry_date || "N/A"} ${daysUntilExpiry <= 0 ? '<i class="fas fa-times-circle ml-1 text-red-500"></i>' : daysUntilExpiry <= 30 ? '<i class="fas fa-clock ml-1 text-orange-500"></i>' : ""}</td>
-                <td class="px-6 py-4 whitespace-nowrap text-gray-900">${formatCurrency(medicine.selling_price)}</td>
-                <td class="px-6 py-4 whitespace-nowrap text-gray-600">${medicine.supplier_name || "N/A"}</td>
-                <td class="px-6 py-4 whitespace-nowrap"><span class="px-2 py-1 text-xs font-semibold rounded-full ${medicine.sale_type === "Private" ? "bg-purple-100 text-purple-800" : medicine.sale_type === "Mutuel" ? "bg-green-100 text-green-800" : "bg-blue-100 text-blue-800"}">${medicine.sale_type}</span></td>
-                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                  <button onclick="editMedicine(${medicine.id})" class="text-indigo-600 hover:text-indigo-900 mr-3"><i class="fas fa-edit"></i></button>
-                  <button onclick="archiveMedicineLocal(${medicine.id})" class="text-red-600 hover:text-red-900"><i class="fas fa-trash"></i></button>
-                </td>
-              </tr>
-            `;
-          }).join("");
+          // Render each category table
+          renderCategoryTable('medicinesTable', categorizedMedicines['Medicines'], 'medicines');
+          renderCategoryTable('suppliesTable', categorizedMedicines['Supplies'], 'supplies');
+          renderCategoryTable('equipmentTable', categorizedMedicines['Equipment'], 'equipment');
+          renderCategoryTable('othersTable', categorizedMedicines['Others'], 'others');
 
-          checkForNotifications(filteredMedicines);
+          // Check for notifications across all categories
+          const allFilteredMedicines = Object.values(categorizedMedicines).flat();
+          checkForNotifications(allFilteredMedicines);
+          
         } catch (error) {
           console.error("Error loading medicines:", error);
-          tbody.innerHTML = '<tr><td colspan="9" class="px-6 py-4 text-center text-red-500">Error loading medicines. Please try again.</td></tr>';
+          categoryTables.forEach(tableId => {
+            const tbody = document.getElementById(tableId);
+            if (tbody) {
+              tbody.innerHTML = '<tr><td colspan="9" class="px-6 py-4 text-center text-red-500">Error loading data. Please try again.</td></tr>';
+            }
+          });
         }
+      }
+
+      // Helper function to render individual category tables
+      function renderCategoryTable(tableId, medicines, categoryType) {
+        const tbody = document.getElementById(tableId);
+        if (!tbody) return;
+
+        if (medicines.length === 0) {
+          tbody.innerHTML = `<tr><td colspan="9" class="px-6 py-4 text-center text-gray-500">No ${categoryType} found.</td></tr>`;
+          return;
+        }
+
+        tbody.innerHTML = medicines.map(medicine => {
+          const stockClass = medicine.stock <= medicine.min_stock_level ? "text-red-600 font-semibold" : medicine.stock <= medicine.min_stock_level * 2 ? "text-yellow-600" : "text-green-600";
+          const expiryDate = medicine.expiry_date ? new Date(medicine.expiry_date) : null;
+          const today = new Date();
+          const daysUntilExpiry = expiryDate ? Math.ceil((expiryDate - today) / (1000 * 60 * 60 * 24)) : null;
+          const expiryClass = daysUntilExpiry <= 0 ? "text-red-600" : daysUntilExpiry <= 30 ? "text-yellow-600" : "text-gray-900";
+          
+          return `
+            <tr class="hover:bg-gray-50">
+              <td class="px-6 py-4 whitespace-nowrap text-gray-900">${medicine.medicine_code}</td>
+              <td class="px-6 py-4 whitespace-nowrap font-medium text-gray-900">${medicine.name}</td>
+              <td class="px-6 py-4 whitespace-nowrap"><span class="px-2 py-1 text-xs font-semibold rounded-full bg-blue-100 text-blue-800">${medicine.category_name}</span></td>
+              <td class="px-6 py-4 whitespace-nowrap"><span class="${stockClass}">${medicine.stock}</span> ${medicine.stock <= medicine.min_stock_level ? '<i class="fas fa-exclamation-triangle ml-1 text-red-500"></i>' : ""}</td>
+              <td class="px-6 py-4 whitespace-nowrap ${expiryClass}">${medicine.expiry_date || "N/A"} ${daysUntilExpiry <= 0 ? '<i class="fas fa-times-circle ml-1 text-red-500"></i>' : daysUntilExpiry <= 30 ? '<i class="fas fa-clock ml-1 text-orange-500"></i>' : ""}</td>
+              <td class="px-6 py-4 whitespace-nowrap text-gray-900">${formatCurrency(medicine.selling_price)}</td>
+              <td class="px-6 py-4 whitespace-nowrap text-gray-600">${medicine.supplier_name || "N/A"}</td>
+              <td class="px-6 py-4 whitespace-nowrap"><span class="px-2 py-1 text-xs font-semibold rounded-full ${medicine.sale_type === "Private" ? "bg-purple-100 text-purple-800" : medicine.sale_type === "Mutuel" ? "bg-green-100 text-green-800" : "bg-blue-100 text-blue-800"}">${medicine.sale_type}</span></td>
+              <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                <button onclick="editMedicine(${medicine.id})" class="text-indigo-600 hover:text-indigo-900 mr-3"><i class="fas fa-edit"></i></button>
+                <button onclick="archiveMedicineLocal(${medicine.id})" class="text-red-600 hover:text-red-900"><i class="fas fa-trash"></i></button>
+              </td>
+            </tr>
+          `;
+        }).join("");
+      }
       }
 
       function checkForNotifications(medicines) {
@@ -1267,7 +1782,7 @@
           showNotification(`📦 ${lowStockCount} medicine(s) have low stock!`, "warning", document.getElementById("notificationContainer"));
       }
 
-      async function openMedicineModal(medicineId = null) {
+      async function openMedicineModal(medicineId = null, category = null) {
         const modal = document.getElementById("medicineModal");
         const title = document.getElementById("medicineModalTitle");
         const form = document.getElementById("medicineForm");
@@ -1277,7 +1792,7 @@
         modal.classList.add("show");
         
         if (medicineId) {
-          title.textContent = "Edit Medicine";
+          title.textContent = "Edit Inventory Item";
           try {
             const medicine = (await fetchMedicines()).find(m => m.id === medicineId);
             if (medicine) {
@@ -1308,14 +1823,98 @@
             return;
           }
         } else {
-          title.textContent = "Add Medicine";
+          // Add mode - set title and category based on the category
+          const categoryTitles = {
+            'Medicines': 'Add New Medicine',
+            'Supplies': 'Add New Supply',
+            'Equipment': 'Add New Equipment',
+            'Others': 'Add New Item'
+          };
+          title.textContent = categoryTitles[category] || 'Add New Inventory Item';
+          
           document.getElementById("medicineCode").value = `MED${new Date().getFullYear()}${String(Math.floor(Math.random() * 10000)).padStart(4, "0")}`;
+          
+          // Pre-select the category if provided
+          if (category) {
+            // Map category names to category IDs (assuming these exist in your category dropdown)
+            const categoryMap = {
+              'Medicines': '1',
+              'Supplies': '2', 
+              'Equipment': '3',
+              'Others': '4'
+            };
+            const categorySelect = document.getElementById("medicineCategory");
+            if (categorySelect && categoryMap[category]) {
+              categorySelect.value = category; // Use category name directly
+            }
+            // Show relevant fields immediately
+            toggleCategoryFields(category);
+          }
+        }
+        
+        // Also show/hide category-specific fields based on current selection
+        const currentCategory = document.getElementById("medicineCategory").value;
+        if (currentCategory) {
+          toggleCategoryFields(currentCategory);
         }
       }
 
       function closeMedicineModal() {
         document.getElementById("medicineModal").classList.remove("show");
         currentEditId = null;
+      }
+
+      // Function to show/hide category-specific fields
+      function toggleCategoryFields(category) {
+        // Hide all category-specific field sections
+        const categoryFields = document.querySelectorAll('.category-fields');
+        categoryFields.forEach(section => {
+          section.classList.add('hidden');
+        });
+
+        // Show relevant fields based on selected category
+        switch(category) {
+          case 'Medicines':
+            document.getElementById('medicinesFields').classList.remove('hidden');
+            // Update modal title
+            document.getElementById('medicineModalTitle').textContent = '💊 Add New Medicine';
+            // Show category description
+            updateCategoryDescription('Pharmaceutical products intended to diagnose, treat, cure, or prevent disease. Includes tablets, syrups, injections, and other medicinal preparations.');
+            break;
+            
+          case 'Supplies':
+            document.getElementById('suppliesFields').classList.remove('hidden');
+            document.getElementById('medicineModalTitle').textContent = '🧴 Add New Supply';
+            updateCategoryDescription('Consumable medical items used in treatment but are not medicines. Includes gloves, masks, syringes, and other disposable items.');
+            break;
+            
+          case 'Equipment':
+            document.getElementById('equipmentFields').classList.remove('hidden');
+            document.getElementById('medicineModalTitle').textContent = '🩺 Add New Equipment';
+            updateCategoryDescription('Reusable medical devices or tools used for diagnosis, monitoring, or treatment. Includes stethoscopes, thermometers, and other medical instruments.');
+            break;
+            
+          case 'Others':
+            document.getElementById('othersFields').classList.remove('hidden');
+            document.getElementById('medicineModalTitle').textContent = '🛍️ Add New Item';
+            updateCategoryDescription('Non-medical items and supplements including health supplements, cosmetics, baby care products, and personal care items.');
+            break;
+            
+          default:
+            document.getElementById('medicineModalTitle').textContent = 'Add New Inventory Item';
+            updateCategoryDescription('');
+        }
+      }
+
+      // Function to update category description
+      function updateCategoryDescription(description) {
+        const descriptionDiv = document.getElementById('categoryDescription');
+        if (description) {
+          descriptionDiv.textContent = description;
+          descriptionDiv.classList.remove('hidden');
+        } else {
+          descriptionDiv.classList.add('hidden');
+        }
       }
 
       async function saveMedicine(e) {
@@ -1328,44 +1927,90 @@
         btnText.textContent = "Saving...";
         spinner.classList.remove("hidden");
 
+        // Get the selected category to determine which fields to collect
+        const selectedCategory = document.getElementById("medicineCategory").value;
+
+        // Base data common to all categories
         const medicineData = {
           medicine_code: document.getElementById("medicineCode").value,
           name: document.getElementById("medicineName").value,
-          generic_name: document.getElementById("genericName").value || null,
-          brand_name: document.getElementById("brandName").value || null,
-          category_id: parseInt(document.getElementById("medicineCategory").value) || null,
-          dosage_form: document.getElementById("dosageForm").value || null,
-          strength: document.getElementById("strength").value || null,
+          category_name: selectedCategory, // Store category name instead of ID
           unit: document.getElementById("unit").value || null,
           cost_price: parseFloat(document.getElementById("costPrice").value) || 0,
           selling_price: parseFloat(document.getElementById("sellingPrice").value),
           stock: parseInt(document.getElementById("medicineStock").value) || 0,
           supplier_id: parseInt(document.getElementById("medicineSupplier").value) || null,
           sale_type: document.getElementById("saleType").value,
-          requires_prescription: document.getElementById("requiresPrescription").checked,
-          expiry_date: document.getElementById("medicineExpiry").value || null,
-          batch_number: document.getElementById("batchNumber").value || null,
-          manufacturer: document.getElementById("manufacturer").value || null,
           min_stock_level: parseInt(document.getElementById("minStockLevel").value) || 10,
           max_stock_level: parseInt(document.getElementById("maxStockLevel").value) || 1000,
           description: document.getElementById("medicineDescription").value || null,
-          storage_conditions: document.getElementById("storageConditions").value || null,
         };
+
+        // Add category-specific fields based on selected category
+        switch(selectedCategory) {
+          case 'Medicines':
+            Object.assign(medicineData, {
+              generic_name: document.getElementById("genericName").value || null,
+              brand_name: document.getElementById("brandName").value || null,
+              dosage_form: document.getElementById("dosageForm").value || null,
+              strength: document.getElementById("strength").value || null,
+              batch_number: document.getElementById("batchNumber").value || null,
+              manufacturer: document.getElementById("manufacturer").value || null,
+              expiry_date: document.getElementById("medicineExpiry").value || null,
+              storage_conditions: document.getElementById("storageConditions").value || null,
+              requires_prescription: document.getElementById("requiresPrescription").checked,
+            });
+            break;
+
+          case 'Supplies':
+            Object.assign(medicineData, {
+              supply_type: document.getElementById("supplyType").value || null,
+              material: document.getElementById("material").value || null,
+              size_specification: document.getElementById("sizeSpec").value || null,
+              package_quantity: parseInt(document.getElementById("packageQty").value) || null,
+              is_sterile: document.getElementById("isSterile").checked,
+              is_single_use: document.getElementById("isSingleUse").checked,
+            });
+            break;
+
+          case 'Equipment':
+            Object.assign(medicineData, {
+              equipment_type: document.getElementById("equipmentType").value || null,
+              serial_number: document.getElementById("serialNumber").value || null,
+              model_number: document.getElementById("modelNumber").value || null,
+              warranty_expiry: document.getElementById("warrantyExpiry").value || null,
+              maintenance_schedule: document.getElementById("maintenanceSchedule").value || null,
+              last_maintenance_date: document.getElementById("lastMaintenanceDate").value || null,
+              calibration_due_date: document.getElementById("calibrationDue").value || null,
+              requires_calibration: document.getElementById("requiresCalibration").checked,
+            });
+            break;
+
+          case 'Others':
+            Object.assign(medicineData, {
+              item_type: document.getElementById("otherItemType").value || null,
+              target_demographic: document.getElementById("targetDemographic").value || null,
+              shelf_life_months: parseInt(document.getElementById("shelfLife").value) || null,
+              is_otc: document.getElementById("isOTC").checked,
+            });
+            break;
+        }
 
         try {
           if (currentEditId) {
             await updateMedicine(currentEditId, medicineData);
+            showNotification("Item updated successfully!", "success", document.getElementById("notificationContainer"));
           } else {
             await addMedicine(medicineData);
+            showNotification("Item added successfully!", "success", document.getElementById("notificationContainer"));
           }
           renderMedicines();
           closeMedicineModal();
-          showNotification("Medicine saved successfully!", "success", document.getElementById("notificationContainer"));
         } catch (error) {
-          showNotification("Error saving medicine: " + error.message, "error", document.getElementById("notificationContainer"));
+          showNotification("Error saving item: " + error.message, "error", document.getElementById("notificationContainer"));
         } finally {
           saveBtn.disabled = false;
-          btnText.textContent = "Save Medicine";
+          btnText.textContent = "Save Item";
           spinner.classList.add("hidden");
         }
       }
@@ -1550,6 +2195,44 @@
           minimumFractionDigits: 0,
           maximumFractionDigits: 0
         }).format(amount || 0);
+      }
+
+      // Category guide toggle functionality
+      function toggleCategoriesGuide() {
+        const guide = document.getElementById("categoriesGuide");
+        const icon = document.getElementById("categoriesIcon");
+        const button = document.getElementById("toggleCategoriesGuide");
+        
+        if (guide.style.display === "none") {
+          guide.style.display = "block";
+          icon.className = "fas fa-chevron-up";
+          button.innerHTML = '<i class="fas fa-chevron-up" id="categoriesIcon"></i> Hide Guide';
+        } else {
+          guide.style.display = "none";
+          icon.className = "fas fa-chevron-down";
+          button.innerHTML = '<i class="fas fa-chevron-down" id="categoriesIcon"></i> Show Guide';
+        }
+      }
+
+      // Handle category selection in form
+      function handleCategorySelection() {
+        const select = document.getElementById("medicineCategory");
+        const description = document.getElementById("categoryDescription");
+        const selectedValue = select.value;
+        
+        const descriptions = {
+          "Medicines": "💊 Pharmaceutical products requiring expiry tracking, prescription status, and batch numbers. Subject to strict regulations.",
+          "Supplies": "🧴 Consumable medical items used in treatment. Track quantity and sterile vs. non-sterile status.",
+          "Equipment": "🩺 Reusable medical devices for diagnosis and monitoring. Require maintenance schedules and calibration.",
+          "Others": "🛍️ Non-medical items like supplements, cosmetics, and general pharmacy products."
+        };
+        
+        if (selectedValue && descriptions[selectedValue]) {
+          description.textContent = descriptions[selectedValue];
+          description.classList.remove("hidden");
+        } else {
+          description.classList.add("hidden");
+        }
       }
 
       async function fetchMedicines() {
