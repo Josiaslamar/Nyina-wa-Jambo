@@ -126,26 +126,9 @@
                         </div>
                     </div>
 
-                    <!-- Suppliers Table -->
-                    <div class="bg-white rounded-lg shadow-sm overflow-hidden">
-                        <div class="overflow-x-auto">
-                            <table class="min-w-full divide-y divide-gray-200">
-                                <thead class="bg-gray-50">
-                                    <tr>
-                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Code</th>
-                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
-                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Contact</th>
-                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Phone</th>
-                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Email</th>
-                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Location</th>
-                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="suppliersTable" class="bg-white divide-y divide-gray-200">
-                                    <!-- Table content will be loaded here -->
-                                </tbody>
-                            </table>
-                        </div>
+                    <!-- Suppliers Cards -->
+                    <div id="suppliersContainer" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                        <!-- Cards will be loaded here -->
                     </div>
                 </div>
             </main>
@@ -154,7 +137,7 @@
 
     <!-- Supplier Modal -->
     <div id="supplierModal" class="modal">
-        <div class="modal-content">
+        <div class="modal-content max-w-4xl">
             <div class="flex justify-between items-center mb-6">
                 <h2 id="supplierModalTitle" class="text-xl font-semibold">Add Supplier</h2>
                 <button id="closeSupplierModal" class="text-gray-400 hover:text-gray-600">
@@ -162,46 +145,167 @@
                 </button>
             </div>
             <form id="supplierForm">
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-2">Supplier Name</label>
-                        <input type="text" id="supplierName" required class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-primary focus:border-primary" />
-                    </div>
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-2">Supplier Code</label>
-                        <input type="text" id="supplierCode" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-primary focus:border-primary" placeholder="Auto-generated if empty" />
-                    </div>
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-2">Contact Person</label>
-                        <input type="text" id="supplierContactPerson" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-primary focus:border-primary" placeholder="Contact person name" />
-                    </div>
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-2">Phone Number</label>
-                        <input type="tel" id="supplierPhone" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-primary focus:border-primary" placeholder="Phone number" />
-                    </div>
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-2">Email</label>
-                        <input type="email" id="supplierEmail" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-primary focus:border-primary" placeholder="Email address" />
-                    </div>
-                    <div class="md:col-span-2">
-                        <label class="block text-sm font-medium text-gray-700 mb-2">Address</label>
-                        <textarea id="supplierAddress" rows="2" placeholder="Full address" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-primary focus:border-primary"></textarea>
-                    </div>
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-2">City</label>
-                        <input type="text" id="supplierCity" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-primary focus:border-primary" placeholder="City" />
-                    </div>
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-2">Country</label>
-                        <input type="text" id="supplierCountry" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-primary focus:border-primary" placeholder="Country" />
+                <!-- Basic Information Section -->
+                <div class="mb-6">
+                    <h3 class="text-lg font-medium text-gray-900 mb-4 border-b border-gray-200 pb-2">
+                        <i class="fas fa-info-circle mr-2 text-blue-600"></i>Basic Information
+                    </h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Supplier Name *</label>
+                            <input type="text" id="supplierName" required class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500" placeholder="Enter supplier name" />
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Supplier Code</label>
+                            <input type="text" id="supplierCode" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500" placeholder="Auto-generated if empty" />
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Supplier Type</label>
+                            <select id="supplierType" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500">
+                                <option value="">Select Type</option>
+                                <option value="Pharmaceutical">Pharmaceutical</option>
+                                <option value="Medical Equipment">Medical Equipment</option>
+                                <option value="General">General</option>
+                                <option value="Laboratory">Laboratory</option>
+                                <option value="Consumables">Consumables</option>
+                            </select>
+                        </div>
                     </div>
                 </div>
-                <div class="flex justify-end space-x-4 mt-6">
-                    <button type="button" id="cancelSupplier" class="px-4 py-2 text-gray-600 hover:text-gray-800">
-                        Cancel
+
+                <!-- Contact Information Section -->
+                <div class="mb-6">
+                    <h3 class="text-lg font-medium text-gray-900 mb-4 border-b border-gray-200 pb-2">
+                        <i class="fas fa-address-book mr-2 text-green-600"></i>Contact Information
+                    </h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Contact Person</label>
+                            <input type="text" id="supplierContactPerson" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500" placeholder="Contact person name" />
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Phone Number</label>
+                            <input type="tel" id="supplierPhone" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500" placeholder="e.g., +250 XXX XXX XXX" />
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Email Address</label>
+                            <input type="email" id="supplierEmail" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500" placeholder="supplier@example.com" />
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Status</label>
+                            <select id="supplierStatus" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500">
+                                <option value="true">Active</option>
+                                <option value="false">Inactive</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Address Information Section -->
+                <div class="mb-6">
+                    <h3 class="text-lg font-medium text-gray-900 mb-4 border-b border-gray-200 pb-2">
+                        <i class="fas fa-map-marker-alt mr-2 text-red-600"></i>Address Information
+                    </h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div class="md:col-span-2">
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Street Address</label>
+                            <textarea id="supplierAddress" rows="2" placeholder="Enter full street address" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500"></textarea>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">City</label>
+                            <input type="text" id="supplierCity" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500" placeholder="City" />
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Country</label>
+                            <select id="supplierCountry" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500">
+                                <option value="">Select Country</option>
+                                <option value="Rwanda">Rwanda</option>
+                                <option value="Uganda">Uganda</option>
+                                <option value="Kenya">Kenya</option>
+                                <option value="Tanzania">Tanzania</option>
+                                <option value="Burundi">Burundi</option>
+                                <option value="DRC">Democratic Republic of Congo</option>
+                                <option value="Other">Other</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Business Information Section -->
+                <div class="mb-6">
+                    <h3 class="text-lg font-medium text-gray-900 mb-4 border-b border-gray-200 pb-2">
+                        <i class="fas fa-building mr-2 text-purple-600"></i>Business Information
+                    </h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">License Number</label>
+                            <input type="text" id="supplierLicense" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500" placeholder="Business license number" />
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Tax ID</label>
+                            <input type="text" id="supplierTaxId" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500" placeholder="Tax identification number" />
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Rating (1-5)</label>
+                            <select id="supplierRating" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500">
+                                <option value="">No Rating</option>
+                                <option value="1">⭐ 1 Star</option>
+                                <option value="2">⭐⭐ 2 Stars</option>
+                                <option value="3">⭐⭐⭐ 3 Stars</option>
+                                <option value="4">⭐⭐⭐⭐ 4 Stars</option>
+                                <option value="5">⭐⭐⭐⭐⭐ 5 Stars</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Financial Information Section -->
+                <div class="mb-6">
+                    <h3 class="text-lg font-medium text-gray-900 mb-4 border-b border-gray-200 pb-2">
+                        <i class="fas fa-dollar-sign mr-2 text-yellow-600"></i>Financial Information
+                    </h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Credit Limit (RWF)</label>
+                            <input type="number" id="supplierCreditLimit" step="0.01" min="0" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500" placeholder="0.00" />
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Current Balance (RWF)</label>
+                            <input type="number" id="supplierBalance" step="0.01" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500" placeholder="0.00" />
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Payment Terms</label>
+                            <select id="supplierPaymentTerms" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500">
+                                <option value="">Select Terms</option>
+                                <option value="Cash on Delivery">Cash on Delivery</option>
+                                <option value="Net 7">Net 7 Days</option>
+                                <option value="Net 15">Net 15 Days</option>
+                                <option value="Net 30">Net 30 Days</option>
+                                <option value="Net 60">Net 60 Days</option>
+                                <option value="Custom">Custom Terms</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Notes Section -->
+                <div class="mb-6">
+                    <h3 class="text-lg font-medium text-gray-900 mb-4 border-b border-gray-200 pb-2">
+                        <i class="fas fa-sticky-note mr-2 text-orange-600"></i>Additional Notes
+                    </h3>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Notes</label>
+                        <textarea id="supplierNotes" rows="3" placeholder="Any additional notes about this supplier..." class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500"></textarea>
+                    </div>
+                </div>
+
+                <!-- Action Buttons -->
+                <div class="flex justify-end space-x-4 pt-4 border-t border-gray-200">
+                    <button type="button" id="cancelSupplier" class="px-6 py-2 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-gray-500">
+                        <i class="fas fa-times mr-2"></i>Cancel
                     </button>
-                    <button type="submit" class="bg-primary text-white px-6 py-2 rounded-md hover:bg-green-600">
-                        Save Supplier
+                    <button type="submit" class="bg-green-600 text-white px-6 py-2 rounded-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500">
+                        <i class="fas fa-save mr-2"></i>Save Supplier
                     </button>
                 </div>
             </form>
@@ -255,10 +359,16 @@
                     }
 
                     const adminElements = document.querySelectorAll('.admin-only');
-                    adminElements.forEach(el => el.style.display = (user.role === 'admin') ? 'flex' : 'none');
+                    adminElements.forEach(el => {
+                      el.style.setProperty('display', (user.role === 'admin') ? 'flex' : 'none', 'important');
+                    });
                     
                     const receptionistElements = document.querySelectorAll('.receptionist-only');
-                    receptionistElements.forEach(el => el.style.display = (user.role === 'receptionist' || user.role === 'admin') ? 'flex' : 'none');
+                    receptionistElements.forEach(el => {
+                      el.style.setProperty('display', 
+                        (user.role === 'receptionist' || user.role === 'admin') ? 'flex' : 'none', 
+                        'important');
+                    });
                 } else {
                     document.getElementById('currentUser').textContent = 'Guest';
                     document.getElementById('userInfo').textContent = 'Guest User';
@@ -306,10 +416,10 @@
         }
 
         async function renderSuppliers() {
-            const tbody = document.getElementById("suppliersTable");
+            const container = document.getElementById("suppliersContainer");
             const searchTerm = document.getElementById("supplierSearch").value.toLowerCase();
 
-            tbody.innerHTML = '<tr><td colspan="6" class="px-6 py-4 text-center text-gray-500">Loading suppliers...</td></tr>';
+            container.innerHTML = '<div class="col-span-full flex justify-center items-center py-12"><div class="text-center"><div class="animate-spin rounded-full h-12 w-12 border-b-2 border-green-600 mx-auto"></div><p class="mt-4 text-gray-500">Loading suppliers...</p></div></div>';
 
             try {
                 const suppliers = await fetchSuppliers();
@@ -318,31 +428,187 @@
                     (s.supplier_code && s.supplier_code.toLowerCase().includes(searchTerm)) ||
                     (s.contact_person && s.contact_person.toLowerCase().includes(searchTerm)) ||
                     (s.phone && s.phone.includes(searchTerm)) ||
-                    (s.email && s.email.toLowerCase().includes(searchTerm))
+                    (s.email && s.email.toLowerCase().includes(searchTerm)) ||
+                    (s.supplier_type && s.supplier_type.toLowerCase().includes(searchTerm)) ||
+                    (s.license_number && s.license_number.toLowerCase().includes(searchTerm)) ||
+                    (s.tax_id && s.tax_id.toLowerCase().includes(searchTerm))
                 );
 
                 if (filteredSuppliers.length === 0) {
-                    tbody.innerHTML = '<tr><td colspan="6" class="px-6 py-4 text-center text-gray-500">No suppliers found.</td></tr>';
+                    container.innerHTML = `
+                        <div class="col-span-full flex justify-center items-center py-12">
+                            <div class="text-center">
+                                <i class="fas fa-search text-4xl text-gray-300 mb-4"></i>
+                                <p class="text-gray-500 text-lg">No suppliers found</p>
+                                <p class="text-gray-400 text-sm">Try adjusting your search criteria</p>
+                            </div>
+                        </div>
+                    `;
                     return;
                 }
 
-                tbody.innerHTML = filteredSuppliers.map(supplier => `
-                    <tr class="hover:bg-gray-50">
-                        <td class="px-6 py-4 whitespace-nowrap"><div class="text-sm font-mono text-gray-600">${supplier.supplier_code}</div></td>
-                        <td class="px-6 py-4 whitespace-nowrap"><div class="font-medium text-gray-900">${supplier.name}</div></td>
-                        <td class="px-6 py-4 whitespace-nowrap text-gray-900">${supplier.contact_person || 'N/A'}</td>
-                        <td class="px-6 py-4 whitespace-nowrap text-gray-900">${supplier.phone || 'N/A'}</td>
-                        <td class="px-6 py-4 whitespace-nowrap text-gray-900">${supplier.email || 'N/A'}</td>
-                        <td class="px-6 py-4 whitespace-nowrap text-gray-900">${supplier.city && supplier.country ? `${supplier.city}, ${supplier.country}` : supplier.city || supplier.country || 'N/A'}</td>
-                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                            <button onclick="editSupplier(${supplier.id})" class="text-indigo-600 hover:text-indigo-900 mr-3"><i class="fas fa-edit"></i></button>
-                            <button onclick="deleteSupplierLocal(${supplier.id})" class="text-red-600 hover:text-red-900"><i class="fas fa-trash"></i></button>
-                        </td>
-                    </tr>
+                const formatCurrency = (amount) => {
+                    return new Intl.NumberFormat('en-RW', {
+                        style: 'currency',
+                        currency: 'RWF',
+                        minimumFractionDigits: 0
+                    }).format(parseFloat(amount) || 0);
+                };
+
+                const formatDate = (dateString) => {
+                    if (!dateString) return 'N/A';
+                    try {
+                        return new Date(dateString).toLocaleDateString('en-US', {
+                            year: 'numeric',
+                            month: 'short',
+                            day: 'numeric'
+                        });
+                    } catch (e) {
+                        return 'N/A';
+                    }
+                };
+
+                const getRatingStars = (rating) => {
+                    if (!rating) return '<span class="text-gray-400 text-sm">No rating</span>';
+                    const stars = Math.round(parseFloat(rating));
+                    let starsHtml = '';
+                    for (let i = 1; i <= 5; i++) {
+                        if (i <= stars) {
+                            starsHtml += '<i class="fas fa-star text-yellow-400"></i>';
+                        } else {
+                            starsHtml += '<i class="far fa-star text-gray-300"></i>';
+                        }
+                    }
+                    return starsHtml + ` <span class="text-xs text-gray-500 ml-1">(${rating})</span>`;
+                };
+
+                container.innerHTML = filteredSuppliers.map(supplier => `
+                    <div class="bg-white rounded-lg shadow-md hover:shadow-lg transition-all duration-300 border border-gray-200 hover:border-green-300">
+                        <!-- Card Header -->
+                        <div class="px-6 py-4 border-b border-gray-100">
+                            <div class="flex justify-between items-start">
+                                <div class="flex-1">
+                                    <h3 class="text-lg font-semibold text-gray-900 mb-1">${supplier.name}</h3>
+                                    <div class="flex items-center gap-3">
+                                        <span class="text-sm font-mono text-gray-500 bg-gray-100 px-2 py-1 rounded">${supplier.supplier_code || 'N/A'}</span>
+                                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${supplier.supplier_type ? 'bg-blue-100 text-blue-800' : 'bg-gray-100 text-gray-500'}">
+                                            ${supplier.supplier_type || 'General'}
+                                        </span>
+                                    </div>
+                                </div>
+                                <div class="flex items-center gap-2">
+                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${supplier.is_active ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}">
+                                        <span class="w-1.5 h-1.5 mr-1.5 rounded-full ${supplier.is_active ? 'bg-green-400' : 'bg-red-400'}"></span>
+                                        ${supplier.is_active ? 'Active' : 'Inactive'}
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Card Content -->
+                        <div class="px-6 py-4">
+                            <!-- Contact Information -->
+                            <div class="grid grid-cols-1 gap-3 mb-4">
+                                <div class="flex items-center text-sm">
+                                    <i class="fas fa-user w-4 text-gray-400 mr-2"></i>
+                                    <span class="text-gray-600">Contact:</span>
+                                    <span class="ml-2 text-gray-900">${supplier.contact_person || 'N/A'}</span>
+                                </div>
+                                <div class="flex items-center text-sm">
+                                    <i class="fas fa-phone w-4 text-gray-400 mr-2"></i>
+                                    <span class="text-gray-600">Phone:</span>
+                                    ${supplier.phone ? `<a href="tel:${supplier.phone}" class="ml-2 text-blue-600 hover:text-blue-800">${supplier.phone}</a>` : '<span class="ml-2 text-gray-400">N/A</span>'}
+                                </div>
+                                <div class="flex items-center text-sm">
+                                    <i class="fas fa-envelope w-4 text-gray-400 mr-2"></i>
+                                    <span class="text-gray-600">Email:</span>
+                                    ${supplier.email ? `<a href="mailto:${supplier.email}" class="ml-2 text-blue-600 hover:text-blue-800 truncate">${supplier.email}</a>` : '<span class="ml-2 text-gray-400">N/A</span>'}
+                                </div>
+                                <div class="flex items-center text-sm">
+                                    <i class="fas fa-map-marker-alt w-4 text-gray-400 mr-2"></i>
+                                    <span class="text-gray-600">Location:</span>
+                                    <span class="ml-2 text-gray-900">${supplier.city && supplier.country ? `${supplier.city}, ${supplier.country}` : supplier.city || supplier.country || 'N/A'}</span>
+                                </div>
+                                ${supplier.address ? `
+                                <div class="flex items-start text-sm ml-6">
+                                    <span class="text-xs text-gray-500">${supplier.address}</span>
+                                </div>
+                                ` : ''}
+                            </div>
+
+                            <!-- Business Information -->
+                            <div class="border-t border-gray-100 pt-4 mb-4">
+                                <div class="grid grid-cols-2 gap-4 text-sm">
+                                    <div>
+                                        <span class="text-gray-600 block">License #</span>
+                                        <span class="font-mono ${supplier.license_number ? 'text-gray-900' : 'text-gray-400'}">${supplier.license_number || 'N/A'}</span>
+                                    </div>
+                                    <div>
+                                        <span class="text-gray-600 block">Tax ID</span>
+                                        <span class="font-mono ${supplier.tax_id ? 'text-gray-900' : 'text-gray-400'}">${supplier.tax_id || 'N/A'}</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Financial Information -->
+                            <div class="border-t border-gray-100 pt-4 mb-4">
+                                <div class="grid grid-cols-2 gap-4 text-sm">
+                                    <div>
+                                        <span class="text-gray-600 block">Credit Limit</span>
+                                        <span class="font-semibold ${parseFloat(supplier.credit_limit) > 0 ? 'text-green-600' : 'text-gray-400'}">${formatCurrency(supplier.credit_limit)}</span>
+                                    </div>
+                                    <div>
+                                        <span class="text-gray-600 block">Current Balance</span>
+                                        <span class="font-semibold ${parseFloat(supplier.current_balance) > 0 ? 'text-red-600' : parseFloat(supplier.current_balance) < 0 ? 'text-green-600' : 'text-gray-600'}">${formatCurrency(supplier.current_balance)}</span>
+                                    </div>
+                                </div>
+                                ${supplier.payment_terms ? `
+                                <div class="mt-3">
+                                    <span class="text-gray-600 text-sm block">Payment Terms</span>
+                                    <span class="text-sm text-gray-900">${supplier.payment_terms}</span>
+                                </div>
+                                ` : ''}
+                            </div>
+
+                            <!-- Rating and Date -->
+                            <div class="border-t border-gray-100 pt-4">
+                                <div class="flex justify-between items-center">
+                                    <div>
+                                        <span class="text-gray-600 text-sm block mb-1">Rating</span>
+                                        <div class="flex items-center">${getRatingStars(supplier.rating)}</div>
+                                    </div>
+                                    <div class="text-right">
+                                        <span class="text-gray-600 text-sm block">Created</span>
+                                        <span class="text-sm text-gray-900">${formatDate(supplier.created_at)}</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Card Actions -->
+                        <div class="px-6 py-3 bg-gray-50 border-t border-gray-100 flex justify-end gap-2">
+                            <button onclick="editSupplier(${supplier.id})" class="inline-flex items-center px-3 py-1.5 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500" title="Edit Supplier">
+                                <i class="fas fa-edit mr-1"></i>
+                                Edit
+                            </button>
+                            <button onclick="deleteSupplierLocal(${supplier.id})" class="inline-flex items-center px-3 py-1.5 border border-red-300 shadow-sm text-sm font-medium rounded-md text-red-700 bg-white hover:bg-red-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500" title="Delete Supplier">
+                                <i class="fas fa-trash mr-1"></i>
+                                Delete
+                            </button>
+                        </div>
+                    </div>
                 `).join("");
             } catch (error) {
                 console.error('Error loading suppliers:', error);
-                tbody.innerHTML = '<tr><td colspan="6" class="px-6 py-4 text-center text-red-500">Error loading suppliers. Please try again.</td></tr>';
+                container.innerHTML = `
+                    <div class="col-span-full flex justify-center items-center py-12">
+                        <div class="text-center">
+                            <i class="fas fa-exclamation-triangle text-4xl text-red-300 mb-4"></i>
+                            <p class="text-red-500 text-lg">Error loading suppliers</p>
+                            <p class="text-gray-400 text-sm">Please try again later</p>
+                        </div>
+                    </div>
+                `;
             }
         }
 
@@ -357,14 +623,34 @@
                 try {
                     const supplier = (await fetchSuppliers()).find(s => s.id === supplierId);
                     if (supplier) {
+                        // Basic Information
                         document.getElementById("supplierName").value = supplier.name;
                         document.getElementById("supplierCode").value = supplier.supplier_code || "";
+                        document.getElementById("supplierType").value = supplier.supplier_type || "";
+                        
+                        // Contact Information
                         document.getElementById("supplierContactPerson").value = supplier.contact_person || "";
                         document.getElementById("supplierPhone").value = supplier.phone || "";
                         document.getElementById("supplierEmail").value = supplier.email || "";
+                        document.getElementById("supplierStatus").value = supplier.is_active ? "true" : "false";
+                        
+                        // Address Information
                         document.getElementById("supplierAddress").value = supplier.address || "";
                         document.getElementById("supplierCity").value = supplier.city || "";
                         document.getElementById("supplierCountry").value = supplier.country || "";
+                        
+                        // Business Information
+                        document.getElementById("supplierLicense").value = supplier.license_number || "";
+                        document.getElementById("supplierTaxId").value = supplier.tax_id || "";
+                        document.getElementById("supplierRating").value = supplier.rating || "";
+                        
+                        // Financial Information
+                        document.getElementById("supplierCreditLimit").value = supplier.credit_limit || 0;
+                        document.getElementById("supplierBalance").value = supplier.current_balance || 0;
+                        document.getElementById("supplierPaymentTerms").value = supplier.payment_terms || "";
+                        
+                        // Notes
+                        document.getElementById("supplierNotes").value = supplier.notes || "";
                     }
                 } catch (error) {
                     showNotification('Error loading supplier data.', 'error');
@@ -373,6 +659,11 @@
             } else {
                 title.textContent = "Add Supplier";
                 form.reset();
+                // Set default values for new suppliers
+                document.getElementById("supplierStatus").value = "true";
+                document.getElementById("supplierCreditLimit").value = "0";
+                document.getElementById("supplierBalance").value = "0";
+                document.getElementById("supplierCountry").value = "Rwanda";
             }
             modal.classList.add("show");
         }
@@ -396,27 +687,49 @@
             }
             
             const supplierData = {
-                name: document.getElementById("supplierName").value,
+                // Basic Information
+                name: document.getElementById("supplierName").value.trim(),
                 supplier_code: supplierCode,
-                contact_person: document.getElementById("supplierContactPerson").value,
-                phone: document.getElementById("supplierPhone").value,
-                email: document.getElementById("supplierEmail").value,
-                address: document.getElementById("supplierAddress").value,
-                city: document.getElementById("supplierCity").value,
-                country: document.getElementById("supplierCountry").value
+                supplier_type: document.getElementById("supplierType").value || null,
+                
+                // Contact Information
+                contact_person: document.getElementById("supplierContactPerson").value.trim() || null,
+                phone: document.getElementById("supplierPhone").value.trim() || null,
+                email: document.getElementById("supplierEmail").value.trim() || null,
+                is_active: document.getElementById("supplierStatus").value === "true",
+                
+                // Address Information
+                address: document.getElementById("supplierAddress").value.trim() || null,
+                city: document.getElementById("supplierCity").value.trim() || null,
+                country: document.getElementById("supplierCountry").value || null,
+                
+                // Business Information
+                license_number: document.getElementById("supplierLicense").value.trim() || null,
+                tax_id: document.getElementById("supplierTaxId").value.trim() || null,
+                rating: document.getElementById("supplierRating").value ? parseFloat(document.getElementById("supplierRating").value) : null,
+                
+                // Financial Information
+                credit_limit: parseFloat(document.getElementById("supplierCreditLimit").value) || 0,
+                current_balance: parseFloat(document.getElementById("supplierBalance").value) || 0,
+                payment_terms: document.getElementById("supplierPaymentTerms").value || null,
+                
+                // Notes
+                notes: document.getElementById("supplierNotes").value.trim() || null
             };
 
             try {
                 if (currentEditId) {
                     await updateSupplier(currentEditId, supplierData);
+                    showNotification("Supplier updated successfully!", "success");
                 } else {
                     await addSupplier(supplierData);
+                    showNotification("Supplier added successfully!", "success");
                 }
                 renderSuppliers();
                 closeSupplierModal();
-                showNotification("Supplier saved successfully!", "success");
             } catch (error) {
-                showNotification("Error saving supplier.", "error");
+                console.error('Error saving supplier:', error);
+                showNotification("Error saving supplier: " + (error.message || "Unknown error"), "error");
             }
         }
 
@@ -579,6 +892,11 @@
         .notification.warning { background-color: #f59e0b; }
         .notification.error { background-color: #ef4444; }
         .notification.info { background-color: #3b82f6; }
+
+        /* Role-based visibility */
+        .admin-only { display: none !important; }
+        .receptionist-only { display: none !important; }
+        .customer-only { display: none !important; }
     </style>
 </body>
 </html>

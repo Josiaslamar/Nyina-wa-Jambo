@@ -33,59 +33,35 @@
           </a>
         </div>
         <nav class="mt-6">
-          <a
-            href="dashboard.html"
-            class="flex items-center py-3 px-6 text-gray-300 hover:bg-green-600 hover:text-white transition-colors"
-          >
+          <a href="dashboard.html" class="flex items-center py-3 px-6 text-gray-300 hover:bg-green-600 hover:text-white transition-colors">
             <i class="fas fa-tachometer-alt w-6 text-center"></i>
             <span class="ml-4">Dashboard</span>
           </a>
-          <a
-            href="medicines.html"
-            class="flex items-center py-3 px-6 text-gray-300 hover:bg-green-600 hover:text-white transition-colors receptionist-only"
-          >
+          <a href="medicines.html" class="flex items-center py-3 px-6 text-gray-300 hover:bg-green-600 hover:text-white transition-colors receptionist-only">
             <i class="fas fa-capsules w-6 text-center"></i>
             <span class="ml-4">Medicines</span>
           </a>
-          <a
-            href="suppliers.html"
-            class="flex items-center py-3 px-6 text-gray-300 hover:bg-green-600 hover:text-white transition-colors admin-only"
-          >
+          <a href="suppliers.html" class="flex items-center py-3 px-6 text-gray-300 hover:bg-green-600 hover:text-white transition-colors admin-only">
             <i class="fas fa-truck w-6 text-center"></i>
             <span class="ml-4">Suppliers</span>
           </a>
-          <a
-            href="customers.html"
-            class="flex items-center py-3 px-6 text-gray-300 hover:bg-green-600 hover:text-white transition-colors"
-          >
+          <a href="customers.html" class="flex items-center py-3 px-6 text-gray-300 hover:bg-green-600 hover:text-white transition-colors">
             <i class="fas fa-users w-6 text-center"></i>
             <span class="ml-4">Customers</span>
           </a>
-          <a
-            href="orders.html"
-            class="flex items-center py-3 px-6 text-gray-300 hover:bg-green-600 hover:text-white transition-colors receptionist-only"
-          >
+          <a href="orders.html" class="flex items-center py-3 px-6 text-gray-300 hover:bg-green-600 hover:text-white transition-colors receptionist-only">
             <i class="fas fa-shopping-cart w-6 text-center"></i>
             <span class="ml-4">Orders</span>
           </a>
-          <a
-            href="user-management.html"
-            class="flex items-center py-3 px-6 text-gray-300 hover:bg-green-600 hover:text-white transition-colors admin-only"
-          >
+          <a href="user-management.html" class="flex items-center py-3 px-6 text-gray-300 hover:bg-green-600 hover:text-white transition-colors admin-only">
             <i class="fas fa-user-cog w-6 text-center"></i>
             <span class="ml-4">User Management</span>
           </a>
-          <a
-            href="reports.html"
-            class="flex items-center py-3 px-6 text-gray-300 hover:bg-green-600 hover:text-white transition-colors admin-only"
-          >
+          <a href="reports.html" class="flex items-center py-3 px-6 text-gray-300 hover:bg-green-600 hover:text-white transition-colors admin-only">
             <i class="fas fa-chart-line w-6 text-center"></i>
             <span class="ml-4">Reports</span>
           </a>
-          <a
-            href="cash-book.html"
-            class="flex items-center py-3 px-6 bg-green-600 text-white admin-only"
-          >
+          <a href="cash-book.html" class="flex items-center py-3 px-6 bg-green-600 text-white admin-only">
             <i class="fas fa-book w-6 text-center"></i>
             <span class="ml-4">Cash Book</span>
           </a>
@@ -186,11 +162,13 @@
                       <i class="fas fa-coins text-green-500 text-2xl"></i>
                     </div>
                     <div class="ml-4">
-                      <p class="text-sm font-medium text-gray-500">Cash In Hand</p>
+                      <p class="text-sm font-medium text-gray-500">
+                        Cash In Hand
+                      </p>
                       <p
                         id="cashInHand"
                         class="text-2xl font-semibold text-gray-900"
-                      >
+                    >
                         0 RWF
                       </p>
                     </div>
@@ -205,7 +183,9 @@
                       <i class="fas fa-arrow-up text-blue-500 text-2xl"></i>
                     </div>
                     <div class="ml-4">
-                      <p class="text-sm font-medium text-gray-500">Total Cash In</p>
+                      <p class="text-sm font-medium text-gray-500">
+                        Total Cash In
+                      </p>
                       <p
                         id="totalCashIn"
                         class="text-2xl font-semibold text-gray-900"
@@ -224,7 +204,9 @@
                       <i class="fas fa-arrow-down text-red-500 text-2xl"></i>
                     </div>
                     <div class="ml-4">
-                      <p class="text-sm font-medium text-gray-500">Total Cash Out</p>
+                      <p class="text-sm font-medium text-gray-500">
+                        Total Cash Out
+                      </p>
                       <p
                         id="totalCashOut"
                         class="text-2xl font-semibold text-gray-900"
@@ -243,7 +225,9 @@
                       <i class="fas fa-calendar text-purple-500 text-2xl"></i>
                     </div>
                     <div class="ml-4">
-                      <p class="text-sm font-medium text-gray-500">Today's Entries</p>
+                      <p class="text-sm font-medium text-gray-500">
+                        Today's Entries
+                      </p>
                       <p
                         id="todayEntries"
                         class="text-2xl font-semibold text-gray-900"
@@ -309,45 +293,46 @@
                 <table class="min-w-full divide-y divide-gray-200">
                   <thead class="bg-gray-50">
                     <tr>
-                      <th
-                        class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                      >
+                      <th rowspan="2" class="px-3 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider border-r border-gray-200">
                         Date
                       </th>
-                      <th
-                        class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                      >
-                        Description
+                      <th rowspan="2" class="px-3 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider border-r border-gray-200">
+                        Ticket Moderator
                       </th>
-                      <th
-                        class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                      >
-                        Type
+                      <th rowspan="2" class="px-3 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider border-r border-gray-200">
+                        Pharmacie
                       </th>
-                      <th
-                        class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                      >
-                        Category
+                      <th rowspan="2" class="px-3 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider border-r border-gray-200">
+                        Laboratoire
                       </th>
-                      <th
-                        class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                      >
-                        Cash In
+                      <th rowspan="2" class="px-3 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider border-r border-gray-200">
+                        General
                       </th>
-                      <th
-                        class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                      >
+                      <th rowspan="2" class="px-3 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider border-r border-gray-200">
+                        Other
+                      </th>
+                      <th rowspan="2" class="px-3 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider border-r border-gray-200">
+                        Total Cash In
+                      </th>
+                      <th colspan="2" class="px-3 py-2 text-center text-xs font-medium text-gray-500 uppercase tracking-wider border-r border-gray-200">
                         Cash Out
                       </th>
-                      <th
-                        class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                      >
+                      <th rowspan="2" class="px-3 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider border-r border-gray-200">
+                        Total Cash Out
+                      </th>
+                      <th rowspan="2" class="px-3 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider border-r border-gray-200">
                         Balance
                       </th>
-                      <th
-                        class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                      >
+                      <th rowspan="2" class="px-3 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                         Actions
+                      </th>
+                    </tr>
+                    <tr>
+                      <th class="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider border-r border-l border-gray-200">
+                        Depense
+                      </th>
+                      <th class="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider border-r border-gray-200">
+                        Credit
                       </th>
                     </tr>
                   </thead>
@@ -363,8 +348,12 @@
 
             <!-- Cash Flow Chart -->
             <div class="bg-white rounded-lg shadow-sm p-6 mt-6">
-              <h3 class="text-lg font-bold text-gray-800 mb-4">Cash Flow Trend</h3>
-              <canvas id="cashFlowChart" width="400" height="200"></canvas>
+              <h3 class="text-lg font-bold text-gray-800 mb-4">
+                Cash Flow Trend
+              </h3>
+              <div class="chart-container">
+                <canvas id="cashFlowChart"></canvas>
+              </div>
             </div>
           </div>
         </main>
@@ -375,7 +364,9 @@
     <div id="cashEntryModal" class="modal">
       <div class="modal-content">
         <div class="flex justify-between items-center mb-6">
-          <h2 id="cashEntryModalTitle" class="text-xl font-semibold">Add Cash Entry</h2>
+          <h2 id="cashEntryModalTitle" class="text-xl font-semibold">
+            Add Cash Entry
+          </h2>
           <button
             id="closeCashEntryModal"
             class="text-gray-400 hover:text-gray-600"
@@ -398,61 +389,115 @@
             </div>
             <div>
               <label class="block text-sm font-medium text-gray-700 mb-2"
-                >Transaction Type</label
-              >
-              <select
-                id="transactionType"
-                required
-                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-primary focus:border-primary"
-              >
-                <option value="">Select Type</option>
-                <option value="cash_in">Cash In</option>
-                <option value="cash_out">Cash Out</option>
-              </select>
-            </div>
-            <div>
-              <label class="block text-sm font-medium text-gray-700 mb-2"
-                >Amount (RWF)</label
+                >Ticket Moderator</label
               >
               <input
                 type="number"
-                id="entryAmount"
-                required
+                id="ticketModerator"
+                placeholder="0.00"
+                step="0.01"
+                min="0"
+                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-primary focus:border-primary"
+              />
+            </div>
+            
+            <!-- Cash In Categories -->
+            <div class="md:col-span-2">
+              <h4 class="text-lg font-medium text-gray-700 mb-3 border-b pb-2">Cash In Categories</h4>
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-2"
+                >Pharmacie (RWF)</label
+              >
+              <input
+                type="number"
+                id="pharmacieAmount"
                 min="0"
                 step="0.01"
+                placeholder="0"
                 class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-primary focus:border-primary"
               />
             </div>
             <div>
               <label class="block text-sm font-medium text-gray-700 mb-2"
-                >Category</label
+                >Laboratoire (RWF)</label
               >
-              <select
-                id="entryCategory"
-                required
+              <input
+                type="number"
+                id="laboratoireAmount"
+                min="0"
+                step="0.01"
+                placeholder="0"
                 class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-primary focus:border-primary"
-              >
-                <option value="">Select Category</option>
-                <option value="sales">Sales</option>
-                <option value="purchase">Purchase</option>
-                <option value="expenses">Expenses</option>
-                <option value="salary">Salary</option>
-                <option value="rent">Rent</option>
-                <option value="utilities">Utilities</option>
-                <option value="loan">Loan</option>
-                <option value="other">Other</option>
-              </select>
+              />
             </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-2"
+                >General (RWF)</label
+              >
+              <input
+                type="number"
+                id="generalAmount"
+                min="0"
+                step="0.01"
+                placeholder="0"
+                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-primary focus:border-primary"
+              />
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-2"
+                >Other Cash In (RWF)</label
+              >
+              <input
+                type="number"
+                id="otherCashInAmount"
+                min="0"
+                step="0.01"
+                placeholder="0"
+                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-primary focus:border-primary"
+              />
+            </div>
+            
+            <!-- Cash Out Categories -->
+            <div class="md:col-span-2">
+              <h4 class="text-lg font-medium text-gray-700 mb-3 border-b pb-2 mt-4">Cash Out Categories</h4>
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-2"
+                >Depense (RWF)</label
+              >
+              <input
+                type="number"
+                id="depenseAmount"
+                min="0"
+                step="0.01"
+                placeholder="0"
+                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-primary focus:border-primary"
+              />
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-2"
+                >Credit (RWF)</label
+              >
+              <input
+                type="number"
+                id="creditAmount"
+                min="0"
+                step="0.01"
+                placeholder="0"
+                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-primary focus:border-primary"
+              />
+            </div>
+            
             <div class="md:col-span-2">
               <label class="block text-sm font-medium text-gray-700 mb-2"
-                >Description</label
+                >Notes/Description</label
               >
               <textarea
-                id="entryDescription"
-                required
+                id="entryNotes"
                 rows="3"
                 class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-primary focus:border-primary"
-                placeholder="Enter transaction description..."
+                placeholder="Enter any additional notes..."
               ></textarea>
             </div>
             <div class="md:col-span-2">
@@ -505,27 +550,36 @@
       }
 
       document.addEventListener("DOMContentLoaded", async function () {
-        if (!(await isAuthenticated())) {
-          window.location.href = "login.html";
-          return;
-        }
+        try {
+          if (!(await isAuthenticated())) {
+            window.location.href = "login.html";
+            return;
+          }
 
-        const user = await getUserProfile();
-        if (!user || user.role !== "admin") {
-          showNotification(
-            "Access denied. Admin privileges required.",
-            "error"
-          );
-          setTimeout(() => logout(), 2000);
-          return;
-        }
+          const user = await getUserProfile();
+          if (!user || user.role !== "admin") {
+            showNotification(
+              "Access denied. Admin privileges required.",
+              "error"
+            );
+            setTimeout(() => logout(), 2000);
+            return;
+          }
 
-        await updateNavigation();
-        setupEventListeners();
-        initializeDates();
-        await loadCashBookData();
-        await updateCashSummary();
-        createCashFlowChart();
+          await updateNavigation();
+          setupEventListeners();
+          initializeDates();
+          await loadCashBookData();
+          await updateCashSummary();
+
+          // Create chart after a small delay to ensure DOM is ready
+          setTimeout(() => {
+            createCashFlowChart();
+          }, 100);
+        } catch (error) {
+          console.error("Error initializing cash book page:", error);
+          showNotification("Error loading page. Please refresh.", "error");
+        }
       });
 
       async function updateNavigation() {
@@ -547,19 +601,17 @@
             }
 
             const adminElements = document.querySelectorAll(".admin-only");
-            adminElements.forEach(
-              (el) => (el.style.display = user.role === "admin" ? "flex" : "none")
-            );
+            adminElements.forEach((el) => {
+              el.style.setProperty('display', user.role === "admin" ? "flex" : "none", 'important');
+            });
 
             const receptionistElements =
               document.querySelectorAll(".receptionist-only");
-            receptionistElements.forEach(
-              (el) =>
-                (el.style.display =
-                  user.role === "receptionist" || user.role === "admin"
-                    ? "flex"
-                    : "none")
-            );
+            receptionistElements.forEach((el) => {
+              el.style.setProperty('display', 
+                user.role === "receptionist" || user.role === "admin" ? "flex" : "none", 
+                'important');
+            });
           }
         } catch (error) {
           console.error("Error updating navigation:", error);
@@ -649,35 +701,97 @@
 
       async function fetchCashBookEntries() {
         // Simulate cash book entries - replace with actual Supabase query
+        const today = new Date();
+        const getDateString = (daysAgo) => {
+          const date = new Date(today);
+          date.setDate(date.getDate() - daysAgo);
+          return date.toISOString().split("T")[0];
+        };
+
         return [
           {
             id: 1,
-            date: "2025-09-08",
-            description: "Daily sales collection",
-            type: "cash_in",
-            category: "sales",
-            amount: 250000,
-            reference: "SALE-001",
+            date: getDateString(0), // Today
+            ticket_moderator: 150.00,
+            pharmacie: 250000,
+            laboratoire: 50000,
+            general: 30000,
+            other_cash_in: 20000,
+            total_cash_in: 350000,
+            depense: 150000,
+            credit: 0,
+            total_cash_out: 150000,
+            balance: 200000,
+            notes: "Daily sales and purchases",
+            reference: "TXN-001",
             created_at: new Date().toISOString(),
           },
           {
             id: 2,
-            date: "2025-09-08",
-            description: "Medicine purchase from supplier",
-            type: "cash_out",
-            category: "purchase",
-            amount: 150000,
-            reference: "PUR-001",
+            date: getDateString(1), // Yesterday
+            ticket_moderator: 200.00,
+            pharmacie: 180000,
+            laboratoire: 75000,
+            general: 45000,
+            other_cash_in: 0,
+            total_cash_in: 300000,
+            depense: 80000,
+            credit: 25000,
+            total_cash_out: 105000,
+            balance: 195000,
+            notes: "Medicine sales and lab supplies",
+            reference: "TXN-002",
             created_at: new Date().toISOString(),
           },
           {
             id: 3,
-            date: "2025-09-07",
-            description: "Rent payment",
-            type: "cash_out",
-            category: "rent",
-            amount: 80000,
-            reference: "RENT-SEP",
+            date: getDateString(2), // 2 days ago
+            ticket_moderator: 100.00,
+            pharmacie: 320000,
+            laboratoire: 60000,
+            general: 25000,
+            other_cash_in: 15000,
+            total_cash_in: 420000,
+            depense: 200000,
+            credit: 50000,
+            total_cash_out: 250000,
+            balance: 170000,
+            notes: "High sales day with staff payments",
+            reference: "TXN-003",
+            created_at: new Date().toISOString(),
+          },
+          {
+            id: 4,
+            date: getDateString(3), // 3 days ago
+            ticket_moderator: 300.00,
+            pharmacie: 290000,
+            laboratoire: 40000,
+            general: 35000,
+            other_cash_in: 10000,
+            total_cash_in: 375000,
+            depense: 120000,
+            credit: 30000,
+            total_cash_out: 150000,
+            balance: 225000,
+            notes: "Regular operations",
+            reference: "TXN-004",
+            created_at: new Date().toISOString(),
+          },
+          {
+            id: 5,
+            date: getDateString(4), // 4 days ago
+            ticket_moderator: 250.00,
+            pharmacie: 275000,
+            laboratoire: 85000,
+            general: 20000,
+            other_cash_in: 5000,
+            total_cash_in: 385000,
+            depense: 380000,
+            credit: 75000,
+            total_cash_out: 455000,
+            balance: -70000,
+            notes: "Large supplier payment day",
+            reference: "TXN-005",
             created_at: new Date().toISOString(),
           },
         ];
@@ -703,59 +817,46 @@
 
         if (filteredEntries.length === 0) {
           tbody.innerHTML =
-            '<tr><td colspan="8" class="px-6 py-4 text-center text-gray-500">No cash book entries found.</td></tr>';
+            '<tr><td colspan="12" class="px-3 py-4 text-center text-gray-500">No cash book entries found.</td></tr>';
           return;
         }
 
-        let runningBalance = 0;
-        // Calculate running balance (should start from beginning of time, but simplified here)
-        const startBalance = allCashEntries
-          .filter((e) => e.date < (dateFrom || "1900-01-01"))
-          .reduce((sum, entry) => {
-            return entry.type === "cash_in"
-              ? sum + entry.amount
-              : sum - entry.amount;
-          }, 0);
-
-        runningBalance = startBalance;
-
         tbody.innerHTML = filteredEntries
           .map((entry) => {
-            const cashIn = entry.type === "cash_in" ? entry.amount : 0;
-            const cashOut = entry.type === "cash_out" ? entry.amount : 0;
-            runningBalance += cashIn - cashOut;
-
-            const typeClass =
-              entry.type === "cash_in"
-                ? "bg-green-100 text-green-800"
-                : "bg-red-100 text-red-800";
-
             return `
                     <tr class="hover:bg-gray-50">
-                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                        <td class="px-3 py-4 whitespace-nowrap text-sm text-gray-900 border-r border-gray-200">
                             ${new Date(entry.date).toLocaleDateString()}
                         </td>
-                        <td class="px-6 py-4 text-sm text-gray-900">${
-                          entry.description
-                        }</td>
-                        <td class="px-6 py-4 whitespace-nowrap">
-                            <span class="px-2 py-1 text-xs font-semibold rounded-full ${typeClass}">
-                                ${entry.type.replace("_", " ").toUpperCase()}
-                            </span>
+                        <td class="px-3 py-4 whitespace-nowrap text-sm text-gray-900 border-r border-gray-200">
+                            ${formatCurrency(entry.ticket_moderator || 0)}
                         </td>
-                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 capitalize">
-                            ${entry.category}
+                        <td class="px-3 py-4 whitespace-nowrap text-sm text-gray-900 border-r border-gray-200">
+                            ${entry.pharmacie ? formatCurrency(entry.pharmacie) : "-"}
                         </td>
-                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                            ${cashIn > 0 ? formatCurrency(cashIn) : "-"}
+                        <td class="px-3 py-4 whitespace-nowrap text-sm text-gray-900 border-r border-gray-200">
+                            ${entry.laboratoire ? formatCurrency(entry.laboratoire) : "-"}
                         </td>
-                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                            ${cashOut > 0 ? formatCurrency(cashOut) : "-"}
+                        <td class="px-3 py-4 whitespace-nowrap text-sm text-gray-900 border-r border-gray-200">
+                            ${entry.general ? formatCurrency(entry.general) : "-"}
                         </td>
-                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium ${
-                          runningBalance >= 0 ? "text-green-600" : "text-red-600"
-                        }">
-                            ${formatCurrency(runningBalance)}
+                        <td class="px-3 py-4 whitespace-nowrap text-sm text-gray-900 border-r border-gray-200">
+                            ${entry.other_cash_in ? formatCurrency(entry.other_cash_in) : "-"}
+                        </td>
+                        <td class="px-3 py-4 whitespace-nowrap text-sm font-medium text-green-600 border-r border-gray-200">
+                            ${formatCurrency(entry.total_cash_in)}
+                        </td>
+                        <td class="px-3 py-4 whitespace-nowrap text-sm text-gray-900 border-r border-gray-200">
+                            ${entry.depense ? formatCurrency(entry.depense) : "-"}
+                        </td>
+                        <td class="px-3 py-4 whitespace-nowrap text-sm text-gray-900 border-r border-gray-200">
+                            ${entry.credit ? formatCurrency(entry.credit) : "-"}
+                        </td>
+                        <td class="px-3 py-4 whitespace-nowrap text-sm font-medium text-red-600 border-r border-gray-200">
+                            ${formatCurrency(entry.total_cash_out)}
+                        </td>
+                        <td class="px-3 py-4 whitespace-nowrap text-sm font-bold ${entry.balance >= 0 ? "text-green-600" : "text-red-600"} border-r border-gray-200">
+                            ${formatCurrency(entry.balance)}
                         </td>
                         <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
                             <button onclick="editCashEntry(${
@@ -787,13 +888,19 @@
           );
         });
 
-        const totalCashIn = filteredEntries
-          .filter((e) => e.type === "cash_in")
-          .reduce((sum, e) => sum + e.amount, 0);
+        const totalCashIn = filteredEntries.reduce((sum, entry) => {
+          const pharmacie = parseFloat(entry.pharmacie) || 0;
+          const laboratoire = parseFloat(entry.laboratoire) || 0;
+          const general = parseFloat(entry.general) || 0;
+          const otherCashIn = parseFloat(entry.other_cash_in) || 0;
+          return sum + pharmacie + laboratoire + general + otherCashIn;
+        }, 0);
 
-        const totalCashOut = filteredEntries
-          .filter((e) => e.type === "cash_out")
-          .reduce((sum, e) => sum + e.amount, 0);
+        const totalCashOut = filteredEntries.reduce((sum, entry) => {
+          const depense = parseFloat(entry.depense) || 0;
+          const credit = parseFloat(entry.credit) || 0;
+          return sum + depense + credit;
+        }, 0);
 
         const cashInHand = totalCashIn - totalCashOut;
 
@@ -822,10 +929,14 @@
           const entry = allCashEntries.find((e) => e.id === entryId);
           if (entry) {
             document.getElementById("entryDate").value = entry.date;
-            document.getElementById("transactionType").value = entry.type;
-            document.getElementById("entryAmount").value = entry.amount;
-            document.getElementById("entryCategory").value = entry.category;
-            document.getElementById("entryDescription").value = entry.description;
+            document.getElementById("ticketModerator").value = entry.ticket_moderator || 0;
+            document.getElementById("pharmacieAmount").value = entry.pharmacie || 0;
+            document.getElementById("laboratoireAmount").value = entry.laboratoire || 0;
+            document.getElementById("generalAmount").value = entry.general || 0;
+            document.getElementById("otherCashInAmount").value = entry.other_cash_in || 0;
+            document.getElementById("depenseAmount").value = entry.depense || 0;
+            document.getElementById("creditAmount").value = entry.credit || 0;
+            document.getElementById("entryNotes").value = entry.notes || "";
             document.getElementById("entryReference").value = entry.reference || "";
           }
         } else {
@@ -847,12 +958,30 @@
       async function saveCashEntry(e) {
         e.preventDefault();
 
+        const pharmacie = parseFloat(document.getElementById("pharmacieAmount").value) || 0;
+        const laboratoire = parseFloat(document.getElementById("laboratoireAmount").value) || 0;
+        const general = parseFloat(document.getElementById("generalAmount").value) || 0;
+        const otherCashIn = parseFloat(document.getElementById("otherCashInAmount").value) || 0;
+        const depense = parseFloat(document.getElementById("depenseAmount").value) || 0;
+        const credit = parseFloat(document.getElementById("creditAmount").value) || 0;
+
+        const totalCashIn = pharmacie + laboratoire + general + otherCashIn;
+        const totalCashOut = depense + credit;
+        const balance = totalCashIn - totalCashOut;
+
         const entryData = {
           date: document.getElementById("entryDate").value,
-          type: document.getElementById("transactionType").value,
-          amount: parseFloat(document.getElementById("entryAmount").value),
-          category: document.getElementById("entryCategory").value,
-          description: document.getElementById("entryDescription").value,
+          ticket_moderator: parseFloat(document.getElementById("ticketModerator").value) || 0,
+          pharmacie: pharmacie,
+          laboratoire: laboratoire,
+          general: general,
+          other_cash_in: otherCashIn,
+          total_cash_in: totalCashIn,
+          depense: depense,
+          credit: credit,
+          total_cash_out: totalCashOut,
+          balance: balance,
+          notes: document.getElementById("entryNotes").value,
           reference: document.getElementById("entryReference").value || null,
         };
 
@@ -863,7 +992,10 @@
               (e) => e.id === currentEditId
             );
             if (index !== -1) {
-              allCashEntries[index] = { ...allCashEntries[index], ...entryData };
+              allCashEntries[index] = {
+                ...allCashEntries[index],
+                ...entryData,
+              };
             }
             showNotification("Cash entry updated successfully!", "success");
           } else {
@@ -913,80 +1045,279 @@
       }
 
       function createCashFlowChart() {
-        const ctx = document.getElementById("cashFlowChart").getContext("2d");
-
-        // Group entries by date
-        const dailyData = {};
-        allCashEntries.forEach((entry) => {
-          if (!dailyData[entry.date]) {
-            dailyData[entry.date] = { cashIn: 0, cashOut: 0 };
+        try {
+          const ctx = document.getElementById("cashFlowChart");
+          if (!ctx) {
+            console.error("Canvas element not found");
+            return;
           }
-          if (entry.type === "cash_in") {
-            dailyData[entry.date].cashIn += entry.amount;
-          } else {
-            dailyData[entry.date].cashOut += entry.amount;
+
+          const context = ctx.getContext("2d");
+          if (!context) {
+            console.error("Could not get canvas context");
+            return;
           }
-        });
 
-        const dates = Object.keys(dailyData).sort();
-        const cashInData = dates.map((date) => dailyData[date].cashIn);
-        const cashOutData = dates.map((date) => dailyData[date].cashOut);
+          // If no data, create a simple placeholder chart
+          if (!allCashEntries || allCashEntries.length === 0) {
+            if (cashFlowChart) {
+              cashFlowChart.destroy();
+            }
 
-        if (cashFlowChart) {
-          cashFlowChart.destroy();
+            cashFlowChart = new Chart(context, {
+              type: "line",
+              data: {
+                labels: ["No Data"],
+                datasets: [
+                  {
+                    label: "Cash In",
+                    data: [0],
+                    borderColor: "#10b981",
+                    backgroundColor: "rgba(16, 185, 129, 0.1)",
+                    tension: 0.4,
+                    fill: true,
+                  },
+                  {
+                    label: "Cash Out",
+                    data: [0],
+                    borderColor: "#ef4444",
+                    backgroundColor: "rgba(239, 68, 68, 0.1)",
+                    tension: 0.4,
+                    fill: true,
+                  },
+                ],
+              },
+              options: {
+                responsive: true,
+                maintainAspectRatio: false, // Changed from true to false
+                plugins: {
+                  title: {
+                    display: true,
+                    text: "Cash Flow Trend",
+                    font: {
+                      size: 14,
+                    },
+                  },
+                  legend: {
+                    display: true,
+                    position: "top",
+                    labels: {
+                      usePointStyle: true,
+                      padding: 20,
+                    },
+                  },
+                  tooltip: {
+                    callbacks: {
+                      label: function (context) {
+                        return (
+                          context.dataset.label +
+                          ": " +
+                          formatCurrency(context.parsed.y)
+                        );
+                      },
+                    },
+                  },
+                },
+                scales: {
+                  x: {
+                    display: true,
+                    title: {
+                      display: true,
+                      text: "Date",
+                    },
+                  },
+                  y: {
+                    beginAtZero: true,
+                    display: true,
+                    title: {
+                      display: true,
+                      text: "Amount (RWF)",
+                    },
+                    ticks: {
+                      callback: function (value) {
+                        return formatCurrency(value);
+                      },
+                      maxTicksLimit: 8,
+                    },
+                  },
+                },
+              },
+            });
+
+            return;
+          }
+
+          // Group entries by date
+          const dailyData = {};
+          allCashEntries.forEach((entry) => {
+            if (entry && entry.date) {
+              if (!dailyData[entry.date]) {
+                dailyData[entry.date] = { cashIn: 0, cashOut: 0 };
+              }
+              
+              // Calculate cash in (pharmacie + laboratoire + general + other_cash_in)
+              const cashIn = (parseFloat(entry.pharmacie) || 0) + 
+                            (parseFloat(entry.laboratoire) || 0) + 
+                            (parseFloat(entry.general) || 0) + 
+                            (parseFloat(entry.other_cash_in) || 0);
+              
+              // Calculate cash out (depense + credit)
+              const cashOut = (parseFloat(entry.depense) || 0) + 
+                             (parseFloat(entry.credit) || 0);
+              
+              dailyData[entry.date].cashIn += cashIn;
+              dailyData[entry.date].cashOut += cashOut;
+            }
+          });
+
+          const dates = Object.keys(dailyData).sort();
+
+          // If no valid dates, show empty chart
+          if (dates.length === 0) {
+            dates.push(new Date().toISOString().split("T")[0]);
+            dailyData[dates[0]] = { cashIn: 0, cashOut: 0 };
+          }
+
+          const cashInData = dates.map((date) => dailyData[date]?.cashIn || 0);
+          const cashOutData = dates.map(
+            (date) => dailyData[date]?.cashOut || 0
+          );
+
+          if (cashFlowChart) {
+            cashFlowChart.destroy();
+          }
+
+          cashFlowChart = new Chart(context, {
+            type: "line",
+            data: {
+              labels: dates.map((date) => {
+                try {
+                  return new Date(date).toLocaleDateString();
+                } catch (e) {
+                  return date;
+                }
+              }),
+              datasets: [
+                {
+                  label: "Cash In",
+                  data: cashInData,
+                  borderColor: "#10b981",
+                  backgroundColor: "rgba(16, 185, 129, 0.1)",
+                  tension: 0.4,
+                  fill: true,
+                  pointBackgroundColor: "#10b981",
+                  pointBorderColor: "#059669",
+                  pointHoverBackgroundColor: "#059669",
+                },
+                {
+                  label: "Cash Out",
+                  data: cashOutData,
+                  borderColor: "#ef4444",
+                  backgroundColor: "rgba(239, 68, 68, 0.1)",
+                  tension: 0.4,
+                  fill: true,
+                  pointBackgroundColor: "#ef4444",
+                  pointBorderColor: "#dc2626",
+                  pointHoverBackgroundColor: "#dc2626",
+                },
+              ],
+            },
+            options: {
+              responsive: true,
+              maintainAspectRatio: false,
+              aspectRatio: 2,
+              layout: {
+                padding: {
+                  top: 10,
+                  bottom: 10,
+                  left: 10,
+                  right: 10,
+                },
+              },
+              interaction: {
+                intersect: false,
+                mode: "index",
+              },
+              scales: {
+                x: {
+                  display: true,
+                  title: {
+                    display: true,
+                    text: "Date",
+                  },
+                  grid: {
+                    display: true,
+                    color: "rgba(0, 0, 0, 0.1)",
+                  },
+                },
+                y: {
+                  beginAtZero: true,
+                  display: true,
+                  title: {
+                    display: true,
+                    text: "Amount (RWF)",
+                  },
+                  grid: {
+                    display: true,
+                    color: "rgba(0, 0, 0, 0.1)",
+                  },
+                  ticks: {
+                    callback: function (value) {
+                      return formatCurrency(value);
+                    },
+                    maxTicksLimit: 8,
+                  },
+                },
+              },
+              plugins: {
+                title: {
+                  display: true,
+                  text: "Cash Flow Trend",
+                  font: {
+                    size: 14,
+                  },
+                },
+                legend: {
+                  display: true,
+                  position: "top",
+                  labels: {
+                    usePointStyle: true,
+                    padding: 20,
+                  },
+                },
+                tooltip: {
+                  callbacks: {
+                    label: function (context) {
+                      return (
+                        context.dataset.label +
+                        ": " +
+                        formatCurrency(context.parsed.y)
+                      );
+                    },
+                  },
+                },
+              },
+            },
+          });
+        } catch (error) {
+          console.error("Error creating cash flow chart:", error);
+          showNotification(
+            "Error creating chart. Chart functionality may be limited.",
+            "warning"
+          );
         }
-
-        cashFlowChart = new Chart(ctx, {
-          type: "line",
-          data: {
-            labels: dates.map((date) => new Date(date).toLocaleDateString()),
-            datasets: [
-              {
-                label: "Cash In",
-                data: cashInData,
-                borderColor: "#10b981",
-                backgroundColor: "rgba(16, 185, 129, 0.1)",
-                tension: 0.4,
-                fill: true,
-              },
-              {
-                label: "Cash Out",
-                data: cashOutData,
-                borderColor: "#ef4444",
-                backgroundColor: "rgba(239, 68, 68, 0.1)",
-                tension: 0.4,
-                fill: true,
-              },
-            ],
-          },
-          options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            scales: {
-              y: {
-                beginAtZero: true,
-                ticks: {
-                  callback: function (value) {
-                    return formatCurrency(value);
-                  },
-                },
-              },
-            },
-            plugins: {
-              tooltip: {
-                callbacks: {
-                  label: function (context) {
-                    return context.dataset.label + ": " + formatCurrency(context.parsed.y);
-                  },
-                },
-              },
-            },
-          },
-        });
       }
 
+      
       function updateCashFlowChart() {
-        createCashFlowChart();
+        try {
+          // Small delay to ensure data has been updated
+          setTimeout(() => {
+            createCashFlowChart();
+          }, 50);
+        } catch (error) {
+          console.error("Error updating cash flow chart:", error);
+        }
       }
 
       async function exportCashBook() {
@@ -1006,7 +1337,9 @@
 
           // Create a new workbook
           const workbook = new ExcelJS.Workbook();
-          const sheetName = `Cash_Book_${new Date().toISOString().split("T")[0]}`;
+          const sheetName = `Cash_Book_${
+            new Date().toISOString().split("T")[0]
+          }`;
           const worksheet = workbook.addWorksheet(sheetName);
 
           // Define header row
@@ -1114,7 +1447,10 @@
           );
         } catch (error) {
           console.error("Export error:", error);
-          showNotification("Error exporting cash book. Please try again.", "error");
+          showNotification(
+            "Error exporting cash book. Please try again.",
+            "error"
+          );
         }
       }
 
@@ -1207,6 +1543,36 @@
       .notification.info {
         background-color: #3b82f6;
       }
+
+  .chart-container {
+  position: relative;
+  height: 400px !important;
+  width: 100%;
+  overflow: hidden;
+}
+
+#cashFlowChart {
+  height: 400px !important;
+  max-height: 400px !important;
+  width: 100% !important;
+  max-width: 100% !important;
+}
+
+canvas#cashFlowChart {
+  height: 400px !important;
+  max-height: 400px !important;
+}
+
+/* Role-based visibility */
+.admin-only {
+  display: none !important;
+}
+.receptionist-only {
+  display: none !important;
+}
+.customer-only {
+  display: none !important;
+}
     </style>
   </body>
 </html>

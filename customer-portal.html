@@ -374,6 +374,7 @@
                     <div class="flex justify-between items-start mb-2">
                         <div>
                             <h4 class="font-medium text-gray-900">${medicine.name}</h4>
+                            ${medicine.strength ? `<p class="text-sm text-gray-500">${medicine.strength}</p>` : ''}
                             <p class="text-sm text-gray-600">${medicine.category || 'N/A'}</p>
                         </div>
                         <div class="text-right">
@@ -395,6 +396,7 @@
             const searchTerm = document.getElementById('medicineSearch').value.toLowerCase();
             const filtered = availableMedicines.filter(medicine =>
                 medicine.name.toLowerCase().includes(searchTerm) ||
+                (medicine.strength && medicine.strength.toLowerCase().includes(searchTerm)) ||
                 (medicine.category && medicine.category.toLowerCase().includes(searchTerm)) ||
                 (medicine.description && medicine.description.toLowerCase().includes(searchTerm))
             );

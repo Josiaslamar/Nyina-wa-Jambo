@@ -109,16 +109,16 @@
         padding: 2rem;
         color: #6b7280;
       }
-      
+
       /* Notification dropdown styles */
       .notification-item {
         transition: background-color 0.15s ease;
       }
-      
+
       .notification-item:hover {
         background-color: #f9fafb !important;
       }
-      
+
       .line-clamp-2 {
         display: -webkit-box;
         -webkit-line-clamp: 2;
@@ -126,17 +126,18 @@
         -webkit-box-orient: vertical;
         overflow: hidden;
       }
-      
+
       /* Notification badge animation */
       @keyframes pulse {
-        0%, 100% {
+        0%,
+        100% {
           opacity: 1;
         }
         50% {
           opacity: 0.5;
         }
       }
-      
+
       .animate-pulse {
         animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
       }
@@ -163,6 +164,17 @@
       .cash-session-unbalanced {
         background-color: #fef2f2;
         border-left: 4px solid #ef4444;
+      }
+
+      /* Role-based visibility */
+      .admin-only {
+        display: none !important;
+      }
+      .receptionist-only {
+        display: none !important;
+      }
+      .customer-only {
+        display: none !important;
       }
     </style>
   </head>
@@ -260,32 +272,32 @@
           <h1 class="text-xl font-semibold text-gray-800 hidden lg:block">
             Dashboard
           </h1>
-          <div class="flex items-center space-x-4"> 
-          <div class="relative">
-            <button id="userAvatar" class="flex items-center space-x-2">
-              <img src="" alt="User Avatar" class="w-10 h-10 rounded-full" />
-              <span
-                id="currentUser"
-                class="text-gray-700 font-medium hidden md:block"
-              ></span>
-            </button>
-            <div
-              id="userDropdown"
-              class="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg z-50 hidden"
-            >
-              <div class="py-1">
-                <div class="px-4 py-2 text-sm text-gray-500 border-b">
-                  <span id="userInfo"></span>
+          <div class="flex items-center space-x-4">
+            <div class="relative">
+              <button id="userAvatar" class="flex items-center space-x-2">
+                <img src="" alt="User Avatar" class="w-10 h-10 rounded-full" />
+                <span
+                  id="currentUser"
+                  class="text-gray-700 font-medium hidden md:block"
+                ></span>
+              </button>
+              <div
+                id="userDropdown"
+                class="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg z-50 hidden"
+              >
+                <div class="py-1">
+                  <div class="px-4 py-2 text-sm text-gray-500 border-b">
+                    <span id="userInfo"></span>
+                  </div>
+                  <button
+                    onclick="logout()"
+                    class="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                  >
+                    <i class="fas fa-sign-out-alt mr-2"></i>Logout
+                  </button>
                 </div>
-                <button
-                  onclick="logout()"
-                  class="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                >
-                  <i class="fas fa-sign-out-alt mr-2"></i>Logout
-                </button>
               </div>
             </div>
-          </div>
           </div>
         </header>
 
@@ -300,7 +312,7 @@
     </div>
 
     <!-- Add User Modal -->
-    <div id="addUserModal" class="modal">
+    <!-- <div id="addUserModal" class="modal">
       <div class="bg-white rounded-lg shadow-xl p-6 w-full max-w-md">
         <h2 class="text-xl font-bold text-gray-800 mb-4">Add New User</h2>
         <form id="addUserForm" class="space-y-4">
@@ -404,7 +416,7 @@
           </div>
         </form>
       </div>
-    </div>
+    </div> -->
 
     <script>
       // Optimized authentication check
@@ -422,7 +434,7 @@
           return true;
         } catch (error) {
           console.error("Auth check error:", error.message);
-          return false; 
+          return false;
         }
       }
 
@@ -445,65 +457,65 @@
       // formatCurrency function available from supabase.js
 
       // Add User Modal Functions
-      function openAddUserModal(event) {
-        if (event) {
-          event.preventDefault();
-          event.stopPropagation();
-        }
-        console.log("Opening Add User Modal"); // Debugging
-        const modal = document.getElementById("addUserModal");
-        if (modal) {
-          modal.classList.add("show");
-        } else {
-          console.error("Add User Modal not found");
-          showError("Error: Add User Modal not found");
-        }
-      }
+      // function openAddUserModal(event) {
+      //   if (event) {
+      //     event.preventDefault();
+      //     event.stopPropagation();
+      //   }
+      //   console.log("Opening Add User Modal"); // Debugging
+      //   const modal = document.getElementById("addUserModal");
+      //   if (modal) {
+      //     modal.classList.add("show");
+      //   } else {
+      //     console.error("Add User Modal not found");
+      //     showError("Error: Add User Modal not found");
+      //   }
+      // }
 
-      function closeAddUserModal() {
-        console.log("Closing Add User Modal"); // Debugging
-        const modal = document.getElementById("addUserModal");
-        if (modal) {
-          modal.classList.remove("show");
-          document.getElementById("addUserForm").reset();
-        }
-      }
+      // function closeAddUserModal() {
+      //   console.log("Closing Add User Modal"); // Debugging
+      //   const modal = document.getElementById("addUserModal");
+      //   if (modal) {
+      //     modal.classList.remove("show");
+      //     document.getElementById("addUserForm").reset();
+      //   }
+      // }
 
       // In your dashboard.html, update the handleAddUser function:
-      async function handleAddUser(event) {
-        event.preventDefault();
+      // async function handleAddUser(event) {
+      //   event.preventDefault();
 
-        const form = document.getElementById("addUserForm");
-        const fullName = form.querySelector("#fullName").value.trim();
-        const username = form.querySelector("#username").value.trim();
-        const email = form.querySelector("#email").value.trim();
-        const password = form.querySelector("#password").value;
-        const role = form.querySelector("#role").value;
-        const phone = form.querySelector("#phone").value.trim() || null;
-        const address = form.querySelector("#address").value.trim() || null;
+      //   const form = document.getElementById("addUserForm");
+      //   const fullName = form.querySelector("#fullName").value.trim();
+      //   const username = form.querySelector("#username").value.trim();
+      //   const email = form.querySelector("#email").value.trim();
+      //   const password = form.querySelector("#password").value;
+      //   const role = form.querySelector("#role").value;
+      //   const phone = form.querySelector("#phone").value.trim() || null;
+      //   const address = form.querySelector("#address").value.trim() || null;
 
-        try {
-          // This now calls your Edge Function
-          const newUser = await adminCreateUser(
-            email,
-            password,
-            fullName,
-            role,
-            {
-              username,
-              phone,
-              address,
-            }
-          );
+      //   try {
+      //     // This now calls your Edge Function
+      //     const newUser = await adminCreateUser(
+      //       email,
+      //       password,
+      //       fullName,
+      //       role,
+      //       {
+      //         username,
+      //         phone,
+      //         address,
+      //       }
+      //     );
 
-          showSuccess(`User ${fullName} added successfully!`);
-          closeAddUserModal();
-          await loadDashboardContent(); // Refresh dashboard
-        } catch (error) {
-          console.error("Add user error:", error);
-          showError("Failed to add user: " + error.message);
-        }
-      }
+      //     showSuccess(`User ${fullName} added successfully!`);
+      //     closeAddUserModal();
+      //     await loadDashboardContent(); // Refresh dashboard
+      //   } catch (error) {
+      //     console.error("Add user error:", error);
+      //     showError("Failed to add user: " + error.message);
+      //   }
+      // }
 
       document.addEventListener("DOMContentLoaded", async function () {
         try {
@@ -569,16 +581,23 @@
             // Show/hide menu items based on role
             const adminElements = document.querySelectorAll(".admin-only");
             adminElements.forEach((el) => {
-              el.style.display = user.role === "admin" ? "flex" : "none";
+              el.style.setProperty(
+                "display",
+                user.role === "admin" ? "flex" : "none",
+                "important"
+              );
             });
 
             const receptionistElements =
               document.querySelectorAll(".receptionist-only");
             receptionistElements.forEach((el) => {
-              el.style.display =
+              el.style.setProperty(
+                "display",
                 user.role === "receptionist" || user.role === "admin"
                   ? "flex"
-                  : "none";
+                  : "none",
+                "important"
+              );
             });
           } else {
             document.getElementById("currentUser").textContent = "Guest";
@@ -677,30 +696,35 @@
               cashSession = cashData?.[0] || null;
 
               // Get analytics data
-              const [peakHours, medicinePerformance, customerFlow, weeklyPerformance] = await Promise.all([
-                getPeakHoursAnalysis(7).catch(err => {
-                  console.warn('Peak hours analysis failed:', err);
+              const [
+                peakHours,
+                medicinePerformance,
+                customerFlow,
+                weeklyPerformance,
+              ] = await Promise.all([
+                getPeakHoursAnalysis(7).catch((err) => {
+                  console.warn("Peak hours analysis failed:", err);
                   return [];
                 }),
-                getMedicineDispensingPerformance(7).catch(err => {
-                  console.warn('Medicine dispensing performance failed:', err);
+                getMedicineDispensingPerformance(7).catch((err) => {
+                  console.warn("Medicine dispensing performance failed:", err);
                   return [];
                 }),
-                getCustomerFlowAnalysis(7).catch(err => {
-                  console.warn('Customer flow analysis failed:', err);
+                getCustomerFlowAnalysis(7).catch((err) => {
+                  console.warn("Customer flow analysis failed:", err);
                   return [];
                 }),
-                getWeeklyPerformanceSummary().catch(err => {
-                  console.warn('Weekly performance summary failed:', err);
+                getWeeklyPerformanceSummary().catch((err) => {
+                  console.warn("Weekly performance summary failed:", err);
                   return null;
-                })
+                }),
               ]);
 
               analyticsData = {
                 peakHours: peakHours || [],
                 medicinePerformance: medicinePerformance || [],
                 customerFlow: customerFlow || [],
-                weeklyPerformance: weeklyPerformance || null
+                weeklyPerformance: weeklyPerformance || null,
               };
             }
           } catch (posError) {
@@ -709,7 +733,7 @@
 
           // Generate POS Analytics HTML
           const posAnalyticsHtml = "";
-            /*
+          /*
             user.role === "admin" || user.role === "receptionist"
               ? `
             <div class="bg-white p-6 rounded-xl shadow-lg mb-8">
@@ -813,35 +837,52 @@
 
           // Generate analytics statistics HTML for admin and receptionist
           const analyticsStatsHtml =
-            (user.role === "admin" || user.role === "receptionist") && analyticsData
+            (user.role === "admin" || user.role === "receptionist") &&
+            analyticsData
               ? `
             <div class="bg-white p-6 rounded-xl shadow-lg mb-8">
               <h2 class="text-xl font-bold text-gray-800 mb-6">Analytics Insights (Last 7 Days)</h2>
               
               <!-- Weekly Performance Summary -->
-              ${analyticsData.weeklyPerformance && analyticsData.weeklyPerformance.sales_data ? `
+              ${
+                analyticsData.weeklyPerformance &&
+                analyticsData.weeklyPerformance.sales_data
+                  ? `
               <div class="bg-gradient-to-r from-blue-50 to-indigo-50 p-4 rounded-lg mb-6">
                 <h3 class="text-lg font-semibold text-gray-800 mb-3">Weekly Summary</h3>
                 <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
                   <div class="text-center">
-                    <p class="text-2xl font-bold text-blue-600">${analyticsData.weeklyPerformance.sales_data.total_orders || 0}</p>
+                    <p class="text-2xl font-bold text-blue-600">${
+                      analyticsData.weeklyPerformance.sales_data.total_orders ||
+                      0
+                    }</p>
                     <p class="text-sm text-gray-600">Total Orders</p>
                   </div>
                   <div class="text-center">
-                    <p class="text-2xl font-bold text-green-600">${formatCurrency(analyticsData.weeklyPerformance.sales_data.total_revenue || 0)}</p>
+                    <p class="text-2xl font-bold text-green-600">${formatCurrency(
+                      analyticsData.weeklyPerformance.sales_data
+                        .total_revenue || 0
+                    )}</p>
                     <p class="text-sm text-gray-600">Total Revenue</p>
                   </div>
                   <div class="text-center">
-                    <p class="text-2xl font-bold text-purple-600">${Math.round(analyticsData.weeklyPerformance.sales_data.avg_order_value || 0)}</p>
+                    <p class="text-2xl font-bold text-purple-600">${Math.round(
+                      analyticsData.weeklyPerformance.sales_data
+                        .avg_order_value || 0
+                    )}</p>
                     <p class="text-sm text-gray-600">Avg Order Value</p>
                   </div>
                   <div class="text-center">
-                    <p class="text-2xl font-bold text-orange-600">${analyticsData.weeklyPerformance.top_medicines.length || 0}</p>
+                    <p class="text-2xl font-bold text-orange-600">${
+                      analyticsData.weeklyPerformance.top_medicines.length || 0
+                    }</p>
                     <p class="text-sm text-gray-600">Top Medicines</p>
                   </div>
                 </div>
               </div>
-              ` : ''}
+              `
+                  : ""
+              }
 
               <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 <!-- Peak Hours Analysis -->
@@ -851,19 +892,31 @@
                     Peak Hours Analysis
                   </h4>
                   <div class="space-y-2 max-h-40 overflow-y-auto">
-                    ${analyticsData.peakHours.length > 0 ? 
-                      analyticsData.peakHours.slice(0, 5).map(hour => `
+                    ${
+                      analyticsData.peakHours.length > 0
+                        ? analyticsData.peakHours
+                            .slice(0, 5)
+                            .map(
+                              (hour) => `
                         <div class="flex justify-between items-center text-sm">
-                          <span>${hour.hour_of_day || hour.hour || 0}:00 - ${(hour.hour_of_day || hour.hour || 0) + 1}:00</span>
+                          <span>${hour.hour_of_day || hour.hour || 0}:00 - ${
+                                (hour.hour_of_day || hour.hour || 0) + 1
+                              }:00</span>
                           <div class="flex items-center space-x-2">
-                            <span class="text-gray-600">${Math.round(hour.average_orders || hour.order_count || 0)} avg orders</span>
+                            <span class="text-gray-600">${Math.round(
+                              hour.average_orders || hour.order_count || 0
+                            )} avg orders</span>
                             <span class="px-2 py-1 bg-blue-100 text-blue-800 rounded text-xs">
-                              ${formatCurrency(hour.average_revenue || hour.revenue || 0)}
+                              ${formatCurrency(
+                                hour.average_revenue || hour.revenue || 0
+                              )}
                             </span>
                           </div>
                         </div>
-                      `).join('') : 
-                      '<p class="text-gray-500 text-sm">No peak hours data available</p>'
+                      `
+                            )
+                            .join("")
+                        : '<p class="text-gray-500 text-sm">No peak hours data available</p>'
                     }
                   </div>
                 </div>
@@ -875,28 +928,40 @@
                     Top Dispensed Medicines
                   </h4>
                   <div class="space-y-2 max-h-40 overflow-y-auto">
-                    ${analyticsData.medicinePerformance.length > 0 ? 
-                      analyticsData.medicinePerformance.slice(0, 5).map(med => `
+                    ${
+                      analyticsData.medicinePerformance.length > 0
+                        ? analyticsData.medicinePerformance
+                            .slice(0, 5)
+                            .map(
+                              (med) => `
                         <div class="flex justify-between items-center text-sm">
                           <div class="flex flex-col max-w-40">
-                            <span class="font-medium text-sm leading-tight">${med.medicine_name || 'Unknown'}</span>
+                            <span class="font-medium text-sm leading-tight">${
+                              med.medicine_name || "Unknown"
+                            }</span>
                           </div>
                           <div class="flex items-center space-x-2">
-                            <span class="text-gray-600">${med.total_dispensed || 0} units</span>
+                            <span class="text-gray-600">${
+                              med.total_dispensed || 0
+                            } units</span>
                             <span class="px-2 py-1 bg-green-100 text-green-800 rounded text-xs">
                               ${(med.error_rate || 0).toFixed(1)}% error rate
                             </span>
                           </div>
                         </div>
-                      `).join('') : 
-                      '<p class="text-gray-500 text-sm">No dispensing data available</p>'
+                      `
+                            )
+                            .join("")
+                        : '<p class="text-gray-500 text-sm">No dispensing data available</p>'
                     }
                   </div>
                 </div>
               </div>
 
               <!-- Customer Flow Insights -->
-              ${analyticsData.customerFlow.length > 0 ? `
+              ${
+                analyticsData.customerFlow.length > 0
+                  ? `
               <div class="mt-6 bg-gradient-to-r from-purple-50 to-pink-50 p-4 rounded-lg">
                 <h4 class="font-semibold text-gray-800 mb-3 flex items-center">
                   <i class="fas fa-users text-purple-500 mr-2"></i>
@@ -904,24 +969,55 @@
                 </h4>
                 <div class="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
                   <div class="text-center">
-                    <p class="text-lg font-bold text-purple-600">${analyticsData.customerFlow.reduce((sum, flow) => sum + (flow.customer_count || 0), 0)}</p>
+                    <p class="text-lg font-bold text-purple-600">${analyticsData.customerFlow.reduce(
+                      (sum, flow) => sum + (flow.customer_count || 0),
+                      0
+                    )}</p>
                     <p class="text-gray-600">Total Customers</p>
                   </div>
                   <div class="text-center">
-                    <p class="text-lg font-bold text-purple-600">${analyticsData.customerFlow.length > 0 ? Math.round(analyticsData.customerFlow.reduce((sum, flow) => sum + (flow.average_wait_time || 0), 0) / analyticsData.customerFlow.length) : 0}s</p>
+                    <p class="text-lg font-bold text-purple-600">${
+                      analyticsData.customerFlow.length > 0
+                        ? Math.round(
+                            analyticsData.customerFlow.reduce(
+                              (sum, flow) =>
+                                sum + (flow.average_wait_time || 0),
+                              0
+                            ) / analyticsData.customerFlow.length
+                          )
+                        : 0
+                    }s</p>
                     <p class="text-gray-600">Avg Wait Time</p>
                   </div>
                   <div class="text-center">
-                    <p class="text-lg font-bold text-purple-600">${analyticsData.customerFlow.length > 0 ? analyticsData.customerFlow.reduce((peak, flow) => (flow.customer_count || 0) > (peak.customer_count || 0) ? flow : peak, {}).hour || 'N/A' : 'N/A'}:00</p>
+                    <p class="text-lg font-bold text-purple-600">${
+                      analyticsData.customerFlow.length > 0
+                        ? analyticsData.customerFlow.reduce(
+                            (peak, flow) =>
+                              (flow.customer_count || 0) >
+                              (peak.customer_count || 0)
+                                ? flow
+                                : peak,
+                            {}
+                          ).hour || "N/A"
+                        : "N/A"
+                    }:00</p>
                     <p class="text-gray-600">Peak Hour</p>
                   </div>
                   <div class="text-center">
-                    <p class="text-lg font-bold text-purple-600">${formatCurrency(analyticsData.customerFlow.reduce((sum, flow) => sum + (flow.revenue || 0), 0))}</p>
+                    <p class="text-lg font-bold text-purple-600">${formatCurrency(
+                      analyticsData.customerFlow.reduce(
+                        (sum, flow) => sum + (flow.revenue || 0),
+                        0
+                      )
+                    )}</p>
                     <p class="text-gray-600">Flow Revenue</p>
                   </div>
                 </div>
               </div>
-              ` : ''}
+              `
+                  : ""
+              }
 
               <div class="mt-4 text-center">
                 <a href="reports.html" class="text-blue-600 hover:text-blue-800 text-sm font-medium">
@@ -941,10 +1037,16 @@
                 <div class="p-4 bg-white rounded-lg shadow-sm low-stock flex justify-between items-center mb-2">
                   <div class="flex flex-col">
                     <span class="font-medium">${item.name}</span>
-                    ${item.strength ? `<span class="text-xs text-gray-500">${item.strength}</span>` : ''}
+                    ${
+                      item.strength
+                        ? `<span class="text-xs text-gray-500">${item.strength}</span>`
+                        : ""
+                    }
                   </div>
                   <div class="flex items-center space-x-2">
-                    <span class="text-sm text-gray-600">Stock: ${item.stock}</span>
+                    <span class="text-sm text-gray-600">Stock: ${
+                      item.stock
+                    }</span>
                     <span class="text-sm font-semibold text-red-600 bg-red-100 px-2 py-1 rounded">Low Stock</span>
                   </div>
                 </div>
@@ -959,7 +1061,9 @@
             .map(
               (order) => `
             <div class="p-3 bg-gray-50 rounded-lg flex justify-between items-center">
-              <span class="text-sm font-medium">Order #${order.id || 'N/A'}</span>
+              <span class="text-sm font-medium">Order #${
+                order.id || "N/A"
+              }</span>
               <div class="flex items-center space-x-2">
                 <span class="text-sm font-medium">${formatCurrency(
                   order.total_amount || 0
@@ -1105,10 +1209,7 @@
                     <p class="text-sm font-medium text-gray-600">Add Medicine</p>
                   </button>
                   
-                  <button id="addUserButton" class="p-4 border-2 border-dashed border-gray-300 rounded-lg hover:border-yellow-500 hover:bg-yellow-50 transition-colors admin-only">
-                    <i class="fas fa-user-plus text-2xl text-gray-400 mb-2"></i>
-                    <p class="text-sm font-medium text-gray-600">Add User</p>
-                  </button>
+                  
                   <button class="p-4 border-2 border-dashed border-gray-300 rounded-lg hover:border-orange-500 hover:bg-orange-50 transition-colors admin-only" onclick="window.location.href='reports.html'">
                     <i class="fas fa-chart-bar text-2xl text-gray-400 mb-2"></i>
                     <p class="text-sm font-medium text-gray-600">View Reports</p>
@@ -1123,7 +1224,10 @@
               </div>
             </div>
           `;
-
+          // <button id="addUserButton" class="p-4 border-2 border-dashed border-gray-300 rounded-lg hover:border-yellow-500 hover:bg-yellow-50 transition-colors admin-only">
+          //                     <i class="fas fa-user-plus text-2xl text-gray-400 mb-2"></i>
+          //                     <p class="text-sm font-medium text-gray-600">Add User</p>
+          //                   </button>
           dashboardPage.innerHTML = dashboardHtml;
 
           setTimeout(() => {
@@ -1191,8 +1295,8 @@
             userDropdown.classList.add("hidden");
           }
           // Close add user modal when clicking outside
-          const addUserModal = document.getElementById("addUserModal");
-          const addUserButton = document.getElementById("addUserButton");
+          // const addUserModal = document.getElementById("addUserModal");
+          // const addUserButton = document.getElementById("addUserButton");
           if (
             addUserModal &&
             addUserModal.classList.contains("show") &&
@@ -1220,16 +1324,23 @@
         // Show/hide menu items based on role
         const adminElements = document.querySelectorAll(".admin-only");
         adminElements.forEach((el) => {
-          el.style.display = user.role === "admin" ? "flex" : "none";
+          el.style.setProperty(
+            "display",
+            user.role === "admin" ? "flex" : "none",
+            "important"
+          );
         });
 
         const receptionistElements =
           document.querySelectorAll(".receptionist-only");
         receptionistElements.forEach((el) => {
-          el.style.display =
+          el.style.setProperty(
+            "display",
             user.role === "receptionist" || user.role === "admin"
               ? "flex"
-              : "none";
+              : "none",
+            "important"
+          );
         });
       }
 

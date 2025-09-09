@@ -32,63 +32,40 @@
           </a>
         </div>
         <nav class="mt-6">
-          <a
-            href="dashboard.html"
-            class="flex items-center py-3 px-6 text-gray-300 hover:bg-green-600 hover:text-white transition-colors"
-          >
+          <a href="dashboard.html" class="flex items-center py-3 px-6 text-gray-300 hover:bg-green-600 hover:text-white transition-colors">
             <i class="fas fa-tachometer-alt w-6 text-center"></i>
             <span class="ml-4">Dashboard</span>
           </a>
-          <a
-            href="medicines.html"
-            class="flex items-center py-3 px-6 text-gray-300 hover:bg-green-600 hover:text-white transition-colors receptionist-only"
-          >
+          <a href="medicines.html" class="flex items-center py-3 px-6 text-gray-300 hover:bg-green-600 hover:text-white transition-colors receptionist-only">
             <i class="fas fa-capsules w-6 text-center"></i>
             <span class="ml-4">Medicines</span>
           </a>
-          <a
-            href="suppliers.html"
-            class="flex items-center py-3 px-6 text-gray-300 hover:bg-green-600 hover:text-white transition-colors admin-only"
-          >
+          <a href="suppliers.html" class="flex items-center py-3 px-6 text-gray-300 hover:bg-green-600 hover:text-white transition-colors admin-only">
             <i class="fas fa-truck w-6 text-center"></i>
             <span class="ml-4">Suppliers</span>
           </a>
-          <a
-            href="customers.html"
-            class="flex items-center py-3 px-6 bg-green-600 text-white receptionist-only"
-          >
+          <a href="customers.html" class="flex items-center py-3 px-6 bg-green-600 text-white">
             <i class="fas fa-users w-6 text-center"></i>
             <span class="ml-4">Customers</span>
           </a>
-          <a
-            href="orders.html"
-            class="flex items-center py-3 px-6 text-gray-300 hover:bg-green-600 hover:text-white transition-colors receptionist-only"
-          >
+          <a href="orders.html" class="flex items-center py-3 px-6 text-gray-300 hover:bg-green-600 hover:text-white transition-colors receptionist-only">
             <i class="fas fa-shopping-cart w-6 text-center"></i>
             <span class="ml-4">Orders</span>
           </a>
-          <a
-            href="reports.html"
-            class="flex items-center py-3 px-6 text-gray-300 hover:bg-green-600 hover:text-white transition-colors admin-only"
-          >
-            <i class="fas fa-chart-line w-6 text-center"></i>
-            <span class="ml-4">Reports</span>
-          </a>
-          <a
-            href="cash-book.html"
-            class="flex items-center py-3 px-6 text-gray-300 hover:bg-green-600 hover:text-white transition-colors admin-only"
-          >
-            <i class="fas fa-book w-6 text-center"></i>
-            <span class="ml-4">Cash Book</span>
-          </a>
-          <a
-            href="user-management.html"
-            class="flex items-center py-3 px-6 text-gray-300 hover:bg-green-600 hover:text-white transition-colors admin-only"
-          >
+          <a href="user-management.html" class="flex items-center py-3 px-6 text-gray-300 hover:bg-green-600 hover:text-white transition-colors admin-only">
             <i class="fas fa-user-cog w-6 text-center"></i>
             <span class="ml-4">User Management</span>
           </a>
+          <a href="reports.html" class="flex items-center py-3 px-6 text-gray-300 hover:bg-green-600 hover:text-white transition-colors admin-only">
+            <i class="fas fa-chart-line w-6 text-center"></i>
+            <span class="ml-4">Reports</span>
+          </a>
+          <a href="cash-book.html" class="flex items-center py-3 px-6 text-gray-300 hover:bg-green-600 hover:text-white transition-colors admin-only">
+            <i class="fas fa-book w-6 text-center"></i>
+            <span class="ml-4">Cash Book</span>
+          </a>
         </nav>
+         
         <div class="mt-auto p-6 bottom-0">
           <button
             onclick="logout()"
@@ -410,20 +387,17 @@
             }
 
             const adminElements = document.querySelectorAll(".admin-only");
-            adminElements.forEach(
-              (el) =>
-                (el.style.display = user.role === "admin" ? "flex" : "none")
-            );
+            adminElements.forEach((el) => {
+              el.style.setProperty('display', user.role === "admin" ? "flex" : "none", 'important');
+            });
 
             const receptionistElements =
               document.querySelectorAll(".receptionist-only");
-            receptionistElements.forEach(
-              (el) =>
-                (el.style.display =
-                  user.role === "receptionist" || user.role === "admin"
-                    ? "flex"
-                    : "none")
-            );
+            receptionistElements.forEach((el) => {
+              el.style.setProperty('display', 
+                user.role === "receptionist" || user.role === "admin" ? "flex" : "none", 
+                'important');
+            });
           } else {
             document.getElementById("currentUser").textContent = "Guest";
             document.getElementById("userInfo").textContent = "Guest User";
@@ -792,6 +766,17 @@
       .hover\:bg-green-600:hover {
         background-color: #15803d;
       } /* Green-700 */
+
+      /* Role-based visibility */
+      .admin-only {
+        display: none !important;
+      }
+      .receptionist-only {
+        display: none !important;
+      }
+      .customer-only {
+        display: none !important;
+      }
 
       .modal {
         display: none;

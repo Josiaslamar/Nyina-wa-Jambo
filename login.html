@@ -133,9 +133,7 @@
             <a href="#about" class="hover:text-green-200 transition-colors">
               <i class="fas fa-info-circle mr-2"></i>About
             </a>
-            <a href="#contact" class="hover:text-green-200 transition-colors">
-              <i class="fas fa-phone mr-2"></i>Contact
-            </a>
+           
           </div>
         </nav>
       </div>
@@ -227,13 +225,25 @@
         </form>       
         
         <!-- Footer Links -->
-        <div class="mt-8 text-center">
+        <div class="mt-8 text-center space-y-3">
           <a
             href="index.html"
-            class="text-sm text-gray-600 hover:text-green-600 transition-colors font-medium"
+            class="block text-sm text-gray-600 hover:text-green-600 transition-colors font-medium"
           >
             <i class="fas fa-arrow-left mr-2"></i>Back to Homepage
           </a>
+          <div class="border-t border-gray-200 pt-3">
+            <p class="text-sm text-gray-600 mb-2">Need help with login?</p>
+            <a
+              href="tel:+250785457178"
+              class="inline-flex items-center text-green-600 hover:text-green-700 transition-colors font-medium text-sm"
+              title="Call Nyina wa Jambo Pharmacy - Technical Support"
+              onclick="handlePhoneCall(event)"
+            >
+              <i class="fas fa-phone mr-2"></i>Call Support: 078-545-7178
+            </a>
+            <p class="text-xs text-gray-500 mt-1">Nyina wa Jambo Pharmacy System</p>
+          </div>
         </div>
       </div>
     </div>
@@ -309,6 +319,35 @@
           loginButtonLoading.classList.add("hidden");
         }
       });
+
+      // Handle phone call with caller identification
+      function handlePhoneCall(event) {
+        // Show caller identification info before making the call
+        const confirmed = confirm(
+          "📞 CALLING NYINA WA JAMBO PHARMACY\n\n" +
+          "🏥 Business: Nyina wa Jambo Pharmacy Management System\n" +
+          "📱 Number: 078-545-7178\n" +
+          "💡 Purpose: Technical Support & Login Assistance\n\n" +
+          "Click OK to proceed with the call, or Cancel to copy the number."
+        );
+        
+        if (!confirmed) {
+          event.preventDefault();
+          // Copy number to clipboard as alternative
+          if (navigator.clipboard) {
+            navigator.clipboard.writeText("0785457178").then(() => {
+              showNotification("Phone number copied to clipboard!", "success");
+            }).catch(() => {
+              showNotification("Phone number: 078-545-7178", "info");
+            });
+          } else {
+            showNotification("Phone number: 078-545-7178", "info");
+          }
+        } else {
+          // Let the tel: link proceed normally
+          showNotification("Connecting to Nyina wa Jambo Pharmacy Support...", "info");
+        }
+      }
 
       document.addEventListener("DOMContentLoaded", async function () {
         try {

@@ -506,20 +506,17 @@
             }
 
             const adminElements = document.querySelectorAll(".admin-only");
-            adminElements.forEach(
-              (el) =>
-                (el.style.display = user.role === "admin" ? "flex" : "none")
-            );
+            adminElements.forEach((el) => {
+              el.style.setProperty('display', user.role === "admin" ? "flex" : "none", 'important');
+            });
 
             const receptionistElements =
               document.querySelectorAll(".receptionist-only");
-            receptionistElements.forEach(
-              (el) =>
-                (el.style.display =
-                  user.role === "receptionist" || user.role === "admin"
-                    ? "flex"
-                    : "none")
-            );
+            receptionistElements.forEach((el) => {
+              el.style.setProperty('display', 
+                user.role === "receptionist" || user.role === "admin" ? "flex" : "none", 
+                'important');
+            });
           } else {
             document.getElementById("currentUser").textContent = "Guest";
             document.getElementById("userInfo").textContent = "Guest User";
@@ -836,7 +833,7 @@
                                 med.selling_price || med.price
                               }" data-name="${med.name}" data-stock="${
                                 med.stock
-                              }">${med.name} - ${Math.round(
+                              }">${med.name}${med.strength ? ' (' + med.strength + ')' : ''} - ${Math.round(
                                 med.selling_price || med.price || 0
                               ).toLocaleString()} RWF (Stock: ${
                                 med.stock || 0
@@ -1001,7 +998,7 @@
                                     med.stock
                                   }" ${
                                     med.id == item.medicineId ? "selected" : ""
-                                  }>${med.name} - ${Math.round(
+                                  }>${med.name}${med.strength ? ' (' + med.strength + ')' : ''} - ${Math.round(
                                     med.selling_price || med.price || 0
                                   ).toLocaleString()} RWF (Stock: ${
                                     med.stock || 0
@@ -1213,6 +1210,7 @@
                                     <thead class="bg-gray-50">
                                         <tr>
                                             <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Medicine</th>
+                                            <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Strength</th>
                                             <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Quantity</th>
                                             <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Unit Price</th>
                                             <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Total</th>
@@ -1225,6 +1223,9 @@
                                             <tr class="border-t border-gray-200">
                                                 <td class="px-4 py-2">${
                                                   item.medicine_name
+                                                }</td>
+                                                <td class="px-4 py-2">${
+                                                  item.medicines?.strength || 'N/A'
                                                 }</td>
                                                 <td class="px-4 py-2">${
                                                   item.quantity
@@ -1319,117 +1320,127 @@
       }
 
       // Add this script tag to your HTML head section:
-async function exportToExcel() {
-  try {
-    const orders = await fetchOrders();
-    if (orders.length === 0) {
-      showNotification("No orders to export.", "info");
-      return;
-    }
+      async function exportToExcel() {
+        try {
+          const orders = await fetchOrders();
+          if (orders.length === 0) {
+            showNotification("No orders to export.", "info");
+            return;
+          }
 
-    if (typeof ExcelJS === "undefined") {
-      showNotification("ExcelJS library not loaded. Please refresh the page.", "error");
-      return;
-    }
+          if (typeof ExcelJS === "undefined") {
+            showNotification(
+              "ExcelJS library not loaded. Please refresh the page.",
+              "error"
+            );
+            return;
+          }
 
-    // Create a new workbook and worksheet
-    const workbook = new ExcelJS.Workbook();
-    const sheetName = `Orders_${new Date().toISOString().split("T")[0]}`;
-    const worksheet = workbook.addWorksheet(sheetName);
+          // Create a new workbook and worksheet
+          const workbook = new ExcelJS.Workbook();
+          const sheetName = `Orders_${new Date().toISOString().split("T")[0]}`;
+          const worksheet = workbook.addWorksheet(sheetName);
 
-    // Define header row
-    const headers = [
-      "Order Number",
-      "Customer",
-      "Date",
-      "Total (RWF)",
-      "Status",
-      "Items Count",
-      "Served By",
-    ];
-    worksheet.addRow(headers);
+          // Define header row
+          const headers = [
+            "Order Number",
+            "Customer",
+            "Date",
+            "Total (RWF)",
+            "Status",
+            "Items Count",
+            "Served By",
+          ];
+          worksheet.addRow(headers);
 
-    // Add orders
-    orders.forEach((order) => {
-      worksheet.addRow([
-        order.order_number || "#" + order.id,
-        order.customer_name || "N/A",
-        order.order_date || new Date(order.created_at).toISOString().split("T")[0],
-        Math.round(order.total_amount || 0),
-        order.status.charAt(0).toUpperCase() + order.status.slice(1),
-        order.items_count || 0,
-        order.served_by_name || "Unknown",
-      ]);
-    });
+          // Add orders
+          orders.forEach((order) => {
+            worksheet.addRow([
+              order.order_number || "#" + order.id,
+              order.customer_name || "N/A",
+              order.order_date ||
+                new Date(order.created_at).toISOString().split("T")[0],
+              Math.round(order.total_amount || 0),
+              order.status.charAt(0).toUpperCase() + order.status.slice(1),
+              order.items_count || 0,
+              order.served_by_name || "Unknown",
+            ]);
+          });
 
-    // Style header row
-    const headerRow = worksheet.getRow(1);
-    headerRow.eachCell((cell) => {
-      cell.font = { bold: true };
-      cell.alignment = { vertical: "middle", horizontal: "center" };
-      cell.fill = {
-        type: "pattern",
-        pattern: "solid",
-        fgColor: { argb: "FFD9D9D9" }, // light gray background
-      };
-      cell.border = {
-        top: { style: "thin" },
-        left: { style: "thin" },
-        bottom: { style: "thin" },
-        right: { style: "thin" },
-      };
-    });
-    headerRow.height = 25;
+          // Style header row
+          const headerRow = worksheet.getRow(1);
+          headerRow.eachCell((cell) => {
+            cell.font = { bold: true };
+            cell.alignment = { vertical: "middle", horizontal: "center" };
+            cell.fill = {
+              type: "pattern",
+              pattern: "solid",
+              fgColor: { argb: "FFD9D9D9" }, // light gray background
+            };
+            cell.border = {
+              top: { style: "thin" },
+              left: { style: "thin" },
+              bottom: { style: "thin" },
+              right: { style: "thin" },
+            };
+          });
+          headerRow.height = 25;
 
-    // Style all data rows
-    worksheet.eachRow((row, rowNumber) => {
-      row.eachCell((cell) => {
-        cell.border = {
-          top: { style: "thin" },
-          left: { style: "thin" },
-          bottom: { style: "thin" },
-          right: { style: "thin" },
-        };
-        cell.alignment = { vertical: "middle", horizontal: "left" };
-      });
-      if (rowNumber > 1) {
-        row.height = 18;
+          // Style all data rows
+          worksheet.eachRow((row, rowNumber) => {
+            row.eachCell((cell) => {
+              cell.border = {
+                top: { style: "thin" },
+                left: { style: "thin" },
+                bottom: { style: "thin" },
+                right: { style: "thin" },
+              };
+              cell.alignment = { vertical: "middle", horizontal: "left" };
+            });
+            if (rowNumber > 1) {
+              row.height = 18;
+            }
+          });
+
+          // Set column widths
+          worksheet.columns = [
+            { width: 18 },
+            { width: 25 },
+            { width: 12 },
+            { width: 15 },
+            { width: 12 },
+            { width: 12 },
+            { width: 20 },
+          ];
+
+          // Enable autofilter
+          worksheet.autoFilter = {
+            from: "A1",
+            to: "G1",
+          };
+
+          // Generate filename
+          const now = new Date();
+          const dateStr = now.toISOString().split("T")[0];
+          const timeStr = now.toTimeString().split(" ")[0].replace(/:/g, "-");
+          const filename = `orders_export_${dateStr}_${timeStr}.xlsx`;
+
+          // Write file (ExcelJS → Blob → saveAs)
+          const buffer = await workbook.xlsx.writeBuffer();
+          saveAs(new Blob([buffer]), filename);
+
+          showNotification(
+            `Orders exported successfully as ${filename}!`,
+            "success"
+          );
+        } catch (error) {
+          console.error("Export error:", error);
+          showNotification(
+            "Error exporting orders. Please try again.",
+            "error"
+          );
+        }
       }
-    });
-
-    // Set column widths
-    worksheet.columns = [
-      { width: 18 },
-      { width: 25 },
-      { width: 12 },
-      { width: 15 },
-      { width: 12 },
-      { width: 12 },
-      { width: 20 },
-    ];
-
-    // Enable autofilter
-    worksheet.autoFilter = {
-      from: "A1",
-      to: "G1",
-    };
-
-    // Generate filename
-    const now = new Date();
-    const dateStr = now.toISOString().split("T")[0];
-    const timeStr = now.toTimeString().split(" ")[0].replace(/:/g, "-");
-    const filename = `orders_export_${dateStr}_${timeStr}.xlsx`;
-
-    // Write file (ExcelJS → Blob → saveAs)
-    const buffer = await workbook.xlsx.writeBuffer();
-    saveAs(new Blob([buffer]), filename);
-
-    showNotification(`Orders exported successfully as ${filename}!`, "success");
-  } catch (error) {
-    console.error("Export error:", error);
-    showNotification("Error exporting orders. Please try again.", "error");
-  }
-}
 
       function showNewCustomerForm() {
         const customerName = prompt("Enter customer name:");
@@ -1602,6 +1613,17 @@ async function exportToExcel() {
       .btn-action:hover {
         transform: translateY(-1px);
         box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+      }
+
+      /* Role-based visibility */
+      .admin-only {
+        display: none !important;
+      }
+      .receptionist-only {
+        display: none !important;
+      }
+      .customer-only {
+        display: none !important;
       }
     </style>
   </body>

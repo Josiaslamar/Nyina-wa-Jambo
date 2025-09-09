@@ -621,7 +621,7 @@ async function processStockOut(
 async function fetchStockMovements() {
   const { data, error } = await supabase
     .from("stock_movements")
-    .select("*, medicines(name), suppliers(name)")
+    .select("*, medicines(name, strength), suppliers(name)")
     .eq("is_active", true)
     .order("movement_date", { ascending: false });
   if (error) throw new Error(`Stock movements fetch error: ${error.message}`);
@@ -1580,8 +1580,52 @@ function convertToCSV(data) {
   return csvContent;
 }
 
+// Check daily notification limits based on priority
+async function checkNotificationLimits(priority) {
+  try {
+    const today = new Date().toISOString().split('T')[0]; // Get today's date in YYYY-MM-DD format
+
+    // Define limits
+    const limits = {
+      'urgent': 3,    // Critical notifications: 3 per day
+      'high': 3,      // Critical notifications: 3 per day
+      'medium': 2,    // Medium notifications: 2 per day
+      'low': 10,      // Low priority: 10 per day (reasonable limit)
+      'normal': 5     // Normal: 5 per day
+    };
+
+    const limit = limits[priority] || 5;
+
+    // Count notifications created today with this priority
+    const { data: todaysNotifications, error } = await supabase
+      .from('notifications')
+      .select('id')
+      .eq('priority', priority)
+      .gte('created_at', `${today}T00:00:00.000Z`)
+      .lt('created_at', `${today}T23:59:59.999Z`);
+
+    if (error) {
+      console.error('Error checking notification limits:', error);
+      return true; // Allow notification if we can't check limits
+    }
+
+    const count = todaysNotifications ? todaysNotifications.length : 0;
+    return count < limit;
+  } catch (error) {
+    console.error('Error in checkNotificationLimits:', error);
+    return true; // Allow notification if there's an error
+  }
+}
+
 async function createNotification(notificationData) {
   try {
+    // Check daily limits based on priority
+    const canCreate = await checkNotificationLimits(notificationData.priority || 'low');
+    if (!canCreate) {
+      console.log(`Daily limit reached for ${notificationData.priority || 'low'} priority notifications`);
+      return null; // Silently skip creating notification
+    }
+
     const { data, error } = await supabase
       .from("notifications")
       .insert([{
@@ -1591,7 +1635,7 @@ async function createNotification(notificationData) {
         target_role: notificationData.targetRole || 'admin',
         related_to: notificationData.relatedTo || 'medicine',
         related_id: notificationData.relatedId,
-        priority: notificationData.priority || 'normal',
+        priority: notificationData.priority || 'low',
         action_required: notificationData.actionRequired || false,
         action_url: notificationData.actionUrl
       }])
@@ -1602,6 +1646,214 @@ async function createNotification(notificationData) {
   } catch (error) {
     console.error('Error creating notification:', error);
     throw error;
+  }
+}
+
+// Helper function to create notifications for both admins and receptionists
+async function createNotificationForStaff(notificationData) {
+  try {
+    // Create notification for admin
+    const adminNotification = await createNotification({
+      ...notificationData,
+      targetRole: 'admin'
+    });
+
+    // Create notification for receptionist
+    const receptionistNotification = await createNotification({
+      ...notificationData,
+      targetRole: 'receptionist'
+    });
+
+    return { adminNotification, receptionistNotification };
+  } catch (error) {
+    console.error('Error creating staff notifications:', error);
+    throw error;
+  }
+}
+
+// Function to check and create automatic notifications for low stock and expiring medicines
+async function checkAndCreateStockNotifications() {
+  try {
+    // Check for low stock medicines
+    const lowStockMedicines = await getLowStockMedicines();
+    if (lowStockMedicines.length > 0) {
+      // Check if we already have a recent notification for low stock
+      const { data: recentNotifications } = await supabase
+        .from('notifications')
+        .select('id')
+        .eq('related_to', 'stock')
+        .eq('notification_type', 'warning')
+        .gte('created_at', new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString()) // Last 24 hours
+        .limit(1);
+
+      if (!recentNotifications || recentNotifications.length === 0) {
+        await createNotificationForStaff({
+          title: 'Low Stock Alert',
+          message: `${lowStockMedicines.length} medicine${lowStockMedicines.length > 1 ? 's are' : ' is'} running low on stock`,
+          type: 'warning',
+          relatedTo: 'stock',
+          priority: 'high',
+          actionUrl: 'medicines.html'
+        });
+      }
+    }
+
+    // Check for expiring medicines (within 30 days)
+    const expiringMedicines = await getExpiringMedicines(30);
+    if (expiringMedicines.length > 0) {
+      // Check if we already have a recent notification for expiring medicines
+      const { data: recentExpiryNotifications } = await supabase
+        .from('notifications')
+        .select('id')
+        .eq('related_to', 'expiry')
+        .eq('notification_type', 'warning')
+        .gte('created_at', new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString()) // Last 24 hours
+        .limit(1);
+
+      if (!recentExpiryNotifications || recentExpiryNotifications.length === 0) {
+        await createNotificationForStaff({
+          title: 'Medicine Expiry Alert',
+          message: `${expiringMedicines.length} medicine${expiringMedicines.length > 1 ? 's are' : ' is'} expiring within 30 days`,
+          type: 'warning',
+          relatedTo: 'expiry',
+          priority: 'medium',
+          actionUrl: 'medicines.html'
+        });
+      }
+    }
+
+    return { lowStock: lowStockMedicines.length, expiring: expiringMedicines.length };
+  } catch (error) {
+    console.error('Error checking stock notifications:', error);
+    return { lowStock: 0, expiring: 0 };
+  }
+}
+
+// Fetch all notifications with pagination
+async function fetchAllNotifications(page = 1, limit = 50, filters = {}) {
+  try {
+    const user = await getCurrentUser();
+    if (!user) return { notifications: [], total: 0 };
+
+    const userProfile = await getUserProfile();
+    if (!userProfile) return { notifications: [], total: 0 };
+
+    let query = supabase
+      .from('notifications')
+      .select('*', { count: 'exact' })
+      .eq('target_role', userProfile.role)
+      .order('created_at', { ascending: false });
+
+    // Apply filters
+    if (filters.priority) {
+      query = query.eq('priority', filters.priority);
+    }
+    if (filters.type) {
+      query = query.eq('notification_type', filters.type);
+    }
+    if (filters.isRead !== undefined) {
+      query = query.eq('is_read', filters.isRead);
+    }
+    if (filters.dateFrom) {
+      query = query.gte('created_at', filters.dateFrom);
+    }
+    if (filters.dateTo) {
+      query = query.lt('created_at', filters.dateTo);
+    }
+
+    // Apply pagination
+    const from = (page - 1) * limit;
+    const to = from + limit - 1;
+    query = query.range(from, to);
+
+    const { data, error, count } = await query;
+
+    if (error) throw new Error(`Fetch notifications error: ${error.message}`);
+
+    return {
+      notifications: data || [],
+      total: count || 0,
+      page,
+      limit,
+      totalPages: Math.ceil((count || 0) / limit)
+    };
+  } catch (error) {
+    console.error('Error fetching all notifications:', error);
+    return { notifications: [], total: 0, page, limit, totalPages: 0 };
+  }
+}
+
+// Mark notification as read
+async function markNotificationAsRead(notificationId) {
+  try {
+    const { error } = await supabase
+      .from('notifications')
+      .update({ is_read: true, read_at: new Date().toISOString() })
+      .eq('id', notificationId);
+
+    if (error) throw new Error(`Mark as read error: ${error.message}`);
+  } catch (error) {
+    console.error('Error marking notification as read:', error);
+    throw error;
+  }
+}
+
+// Get notification statistics
+async function getNotificationStats() {
+  try {
+    const user = await getCurrentUser();
+    if (!user) return {};
+
+    const userProfile = await getUserProfile();
+    if (!userProfile) return {};
+
+    const today = new Date().toISOString().split('T')[0];
+
+    // Get today's notifications count by priority
+    const { data: todayStats, error: todayError } = await supabase
+      .from('notifications')
+      .select('priority')
+      .eq('target_role', userProfile.role)
+      .gte('created_at', `${today}T00:00:00.000Z`)
+      .lt('created_at', `${today}T23:59:59.999Z`);
+
+    if (todayError) {
+      console.error('Error fetching today stats:', todayError);
+    }
+
+    // Get unread count
+    const { count: unreadCount, error: unreadError } = await supabase
+      .from('notifications')
+      .select('*', { count: 'exact', head: true })
+      .eq('target_role', userProfile.role)
+      .eq('is_read', false);
+
+    if (unreadError) {
+      console.error('Error fetching unread count:', unreadError);
+    }
+
+    // Count by priority
+    const priorityCounts = {};
+    if (todayStats) {
+      todayStats.forEach(notification => {
+        priorityCounts[notification.priority] = (priorityCounts[notification.priority] || 0) + 1;
+      });
+    }
+
+    return {
+      todayByPriority: priorityCounts,
+      unreadCount: unreadCount || 0,
+      limits: {
+        urgent: 3,
+        high: 3,
+        medium: 2,
+        low: 10,
+        normal: 5
+      }
+    };
+  } catch (error) {
+    console.error('Error getting notification stats:', error);
+    return {};
   }
 }
 
@@ -1745,16 +1997,15 @@ async function addOrder(orderData) {
           );
         } catch (stockError) {
           console.warn(`Stock update warning for medicine ${medicine.medicineId}: ${stockError.message}`);
-          // Create notification for stock issues
-          await createNotification({
+          // Create notification for stock issues for both admin and receptionist
+            await createNotificationForStaff({
             title: 'Stock Update Warning',
             message: `Stock update failed for order ${orderNumber}: ${stockError.message}`,
             type: 'warning',
-            targetRole: 'admin',
             relatedTo: 'order',
             relatedId: order.id,
             priority: 'normal'
-          }).catch(err => console.warn('Notification creation failed:', err));
+            }).catch(err => console.warn('Notification creation failed:', err));
         }
       }
     }
@@ -1823,7 +2074,7 @@ async function getOrderDetails(id) {
     // Fetch order items
     const { data: items, error: itemsError } = await supabase
       .from("order_items")
-      .select("*")
+      .select("*, medicines(strength)")
       .eq("order_id", id)
       .eq("is_active", true);
     
@@ -1855,3 +2106,13 @@ async function getOrderDetails(id) {
     throw error;
   }
 }
+
+// =============================================
+// EXPORT FUNCTIONS TO WINDOW
+// =============================================
+
+// Make notification functions globally available
+window.fetchAllNotifications = fetchAllNotifications;
+window.markNotificationAsRead = markNotificationAsRead;
+window.getNotificationStats = getNotificationStats;
+window.checkNotificationLimits = checkNotificationLimits;

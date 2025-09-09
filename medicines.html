@@ -176,6 +176,17 @@
         border-color: #10b981;
         background-color: #ecfdf5;
       }
+
+      /* Role-based visibility */
+      .admin-only {
+        display: none !important;
+      }
+      .receptionist-only {
+        display: none !important;
+      }
+      .customer-only {
+        display: none !important;
+      }
     </style>
   </head>
   <body class="min-h-screen bg-gray-100">
@@ -210,10 +221,7 @@
             <i class="fas fa-shopping-cart w-6 text-center"></i>
             <span class="ml-4">Orders</span>
           </a>
-          <a
-            href="user-management.html"
-            class="flex items-center py-3 px-6 text-gray-300 hover:bg-green-600 hover:text-white transition-colors admin-only"
-          >
+          <a href="user-management.html" class="flex items-center py-3 px-6 text-gray-300 hover:bg-green-600 hover:text-white transition-colors admin-only">
             <i class="fas fa-user-cog w-6 text-center"></i>
             <span class="ml-4">User Management</span>
           </a>
@@ -748,8 +756,14 @@
               avatarImg.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(profile.full_name || 'User')}&background=16a34a&color=fff&bold=true`;
             }
             
-            document.querySelectorAll(".admin-only").forEach(el => el.style.display = profile.role === "admin" ? "flex" : "none");
-            document.querySelectorAll(".receptionist-only").forEach(el => el.style.display = profile.role === "admin" || profile.role === "receptionist" ? "flex" : "none");
+            document.querySelectorAll(".admin-only").forEach(el => {
+              el.style.setProperty('display', profile.role === "admin" ? "flex" : "none", 'important');
+            });
+            document.querySelectorAll(".receptionist-only").forEach(el => {
+              el.style.setProperty('display', 
+                profile.role === "admin" || profile.role === "receptionist" ? "flex" : "none", 
+                'important');
+            });
           } else {
             document.getElementById("currentUser").textContent = 'Guest';
             document.getElementById("userInfo").textContent = 'Guest User';

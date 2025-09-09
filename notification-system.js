@@ -132,6 +132,12 @@ class NotificationSystem {
       markAllRead.addEventListener('click', () => this.markAllAsRead());
     }
 
+    // Add view all notifications handler
+    const viewAllBtn = document.getElementById('viewAllNotifications');
+    if (viewAllBtn) {
+      viewAllBtn.addEventListener('click', () => this.showAllNotificationsModal());
+    }
+
     // Close dropdown when clicking outside
     document.addEventListener('click', (e) => {
       if (notificationDropdown && 
@@ -260,10 +266,348 @@ class NotificationSystem {
     }
   }
 
-  // Start periodic updates
+  // Show all notifications modal
+  async showAllNotificationsModal() {
+    try {
+      // Close the dropdown first
+      const notificationDropdown = document.getElementById('notificationDropdown');
+      if (notificationDropdown) {
+        notificationDropdown.classList.add('hidden');
+      }
+
+      // Create modal HTML
+      const modalHTML = `
+        <div id="notificationsModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
+          <div class="relative top-20 mx-auto p-5 border w-11/12 max-w-4xl shadow-lg rounded-md bg-white">
+            <div class="flex justify-between items-center mb-4">
+              <h3 class="text-lg font-bold text-gray-900">All Notifications</h3>
+              <button id="closeNotificationsModal" class="text-gray-400 hover:text-gray-600">
+                <i class="fas fa-times text-xl"></i>
+              </button>
+            </div>
+
+            <!-- Filters -->
+            <div class="mb-4 flex flex-wrap gap-2">
+              <select id="priorityFilter" class="border rounded px-3 py-1 text-sm">
+                <option value="">All Priorities</option>
+                <option value="urgent">Urgent</option>
+                <option value="high">High</option>
+                <option value="medium">Medium</option>
+                <option value="low">Low</option>
+                <option value="normal">Normal</option>
+              </select>
+              <select id="typeFilter" class="border rounded px-3 py-1 text-sm">
+                <option value="">All Types</option>
+                <option value="error">Error</option>
+                <option value="warning">Warning</option>
+                <option value="success">Success</option>
+                <option value="info">Info</option>
+              </select>
+              <select id="readFilter" class="border rounded px-3 py-1 text-sm">
+                <option value="">All Status</option>
+                <option value="false">Unread</option>
+                <option value="true">Read</option>
+              </select>
+              <button id="applyFilters" class="bg-blue-500 text-white px-3 py-1 rounded text-sm hover:bg-blue-600">
+                Apply Filters
+              </button>
+              <button id="clearFilters" class="bg-gray-500 text-white px-3 py-1 rounded text-sm hover:bg-gray-600">
+                Clear
+              </button>
+            </div>
+
+            <!-- Stats -->
+            <div id="notificationStats" class="mb-4 p-3 bg-gray-50 rounded text-sm">
+              Loading stats...
+            </div>
+
+            <!-- Notifications List -->
+            <div id="allNotificationsList" class="max-h-96 overflow-y-auto">
+              <div class="text-center py-8">
+                <i class="fas fa-spinner fa-spin text-2xl text-gray-400"></i>
+                <p class="mt-2 text-gray-500">Loading notifications...</p>
+              </div>
+            </div>
+
+            <!-- Pagination -->
+            <div id="paginationControls" class="mt-4 flex justify-between items-center">
+              <div class="text-sm text-gray-600">
+                <span id="currentPage">1</span> of <span id="totalPages">1</span>
+              </div>
+              <div class="flex gap-2">
+                <button id="prevPage" class="px-3 py-1 border rounded text-sm hover:bg-gray-50 disabled:opacity-50" disabled>
+                  Previous
+                </button>
+                <button id="nextPage" class="px-3 py-1 border rounded text-sm hover:bg-gray-50 disabled:opacity-50">
+                  Next
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      `;
+
+      // Add modal to body
+      document.body.insertAdjacentHTML('beforeend', modalHTML);
+
+      // Setup modal event listeners
+      this.setupModalEventListeners();
+
+      // Load initial data
+      await this.loadAllNotifications();
+      await this.loadNotificationStats();
+
+    } catch (error) {
+      console.error('Error showing notifications modal:', error);
+      if (typeof showError === 'function') {
+        showError('Failed to load notifications');
+      }
+    }
+  }
+
+  // Setup modal event listeners
+  setupModalEventListeners() {
+    const modal = document.getElementById('notificationsModal');
+    const closeBtn = document.getElementById('closeNotificationsModal');
+    const applyFiltersBtn = document.getElementById('applyFilters');
+    const clearFiltersBtn = document.getElementById('clearFilters');
+    const prevPageBtn = document.getElementById('prevPage');
+    const nextPageBtn = document.getElementById('nextPage');
+
+    if (closeBtn) {
+      closeBtn.addEventListener('click', () => this.closeNotificationsModal());
+    }
+
+    if (applyFiltersBtn) {
+      applyFiltersBtn.addEventListener('click', () => this.applyFilters());
+    }
+
+    if (clearFiltersBtn) {
+      clearFiltersBtn.addEventListener('click', () => this.clearFilters());
+    }
+
+    if (prevPageBtn) {
+      prevPageBtn.addEventListener('click', () => this.changePage(-1));
+    }
+
+    if (nextPageBtn) {
+      nextPageBtn.addEventListener('click', () => this.changePage(1));
+    }
+
+    // Close modal when clicking outside
+    if (modal) {
+      modal.addEventListener('click', (e) => {
+        if (e.target === modal) {
+          this.closeNotificationsModal();
+        }
+      });
+    }
+
+    // Close on escape key
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') {
+        this.closeNotificationsModal();
+      }
+    });
+  }
+
+  // Load all notifications with pagination
+  async loadAllNotifications(page = 1) {
+    try {
+      const filters = this.getCurrentFilters();
+      const result = await fetchAllNotifications(page, 20, filters);
+
+      this.currentPage = page;
+      this.totalPages = result.totalPages;
+      this.displayAllNotifications(result.notifications);
+      this.updatePaginationControls(result);
+
+    } catch (error) {
+      console.error('Error loading all notifications:', error);
+      this.showErrorInModal('Failed to load notifications');
+    }
+  }
+
+  // Display all notifications in modal
+  displayAllNotifications(notifications) {
+    const container = document.getElementById('allNotificationsList');
+    if (!container) return;
+
+    if (notifications.length === 0) {
+      container.innerHTML = `
+        <div class="text-center py-8">
+          <i class="fas fa-bell-slash text-3xl text-gray-400"></i>
+          <p class="mt-2 text-gray-500">No notifications found</p>
+        </div>
+      `;
+      return;
+    }
+
+    container.innerHTML = notifications.map(notification => {
+      const isUnread = !notification.is_read;
+      const timeAgo = this.getTimeAgo(notification.created_at);
+      const priorityIcon = this.getPriorityIcon(notification.priority);
+      const typeColor = this.getNotificationTypeColor(notification.notification_type);
+
+      return `
+        <div class="notification-item border-b border-gray-200 p-4 hover:bg-gray-50 cursor-pointer ${isUnread ? 'bg-blue-50' : ''}"
+             data-notification-id="${notification.id}"
+             onclick="notificationSystem.handleModalClick(${notification.id}, '${notification.action_url || ''}')">
+          <div class="flex items-start space-x-3">
+            <div class="flex-shrink-0 mt-1">
+              <i class="fas ${priorityIcon} ${typeColor}"></i>
+            </div>
+            <div class="flex-1 min-w-0">
+              <div class="flex items-center justify-between mb-1">
+                <p class="text-sm font-medium text-gray-900 ${isUnread ? 'font-semibold' : ''}">${notification.title}</p>
+                <span class="text-xs text-gray-500">${timeAgo}</span>
+              </div>
+              <p class="text-sm text-gray-600 mb-2">${notification.message}</p>
+              <div class="flex items-center justify-between">
+                <div class="flex items-center space-x-2">
+                  ${notification.priority === 'urgent' ? '<span class="inline-block px-2 py-1 text-xs bg-red-100 text-red-800 rounded-full">URGENT</span>' : ''}
+                  <span class="text-xs text-gray-500 capitalize">${notification.priority}</span>
+                </div>
+                ${isUnread ? '<div class="w-2 h-2 bg-blue-500 rounded-full"></div>' : ''}
+              </div>
+            </div>
+          </div>
+        </div>
+      `;
+    }).join('');
+  }
+
+  // Handle click in modal
+  async handleModalClick(notificationId, actionUrl) {
+    try {
+      await markNotificationAsRead(notificationId);
+      await this.loadAllNotifications(this.currentPage);
+      await this.loadNotifications(); // Update the dropdown badge
+      
+      if (actionUrl && actionUrl !== '' && actionUrl !== 'null') {
+        this.closeNotificationsModal();
+        window.location.href = actionUrl;
+      }
+    } catch (error) {
+      console.error('Error handling modal notification click:', error);
+    }
+  }
+
+  // Load notification statistics
+  async loadNotificationStats() {
+    try {
+      const stats = await getNotificationStats();
+      const statsContainer = document.getElementById('notificationStats');
+      
+      if (statsContainer && stats.todayByPriority) {
+        const todayCounts = Object.entries(stats.todayByPriority)
+          .map(([priority, count]) => `${priority}: ${count}`)
+          .join(', ');
+        
+        statsContainer.innerHTML = `
+          <div class="grid grid-cols-2 md:grid-cols-4 gap-2 text-xs">
+            <div>Today's notifications: ${todayCounts || 'None'}</div>
+            <div>Unread: ${stats.unreadCount || 0}</div>
+            <div>Limits - Critical: 3/day, Medium: 2/day</div>
+            <div>Last updated: ${new Date().toLocaleTimeString()}</div>
+          </div>
+        `;
+      }
+    } catch (error) {
+      console.error('Error loading notification stats:', error);
+    }
+  }
+
+  // Get current filters from modal
+  getCurrentFilters() {
+    const priorityFilter = document.getElementById('priorityFilter');
+    const typeFilter = document.getElementById('typeFilter');
+    const readFilter = document.getElementById('readFilter');
+
+    const filters = {};
+    
+    if (priorityFilter && priorityFilter.value) {
+      filters.priority = priorityFilter.value;
+    }
+    if (typeFilter && typeFilter.value) {
+      filters.type = typeFilter.value;
+    }
+    if (readFilter && readFilter.value !== '') {
+      filters.isRead = readFilter.value === 'true';
+    }
+
+    return filters;
+  }
+
+  // Apply filters
+  async applyFilters() {
+    await this.loadAllNotifications(1);
+  }
+
+  // Clear filters
+  async clearFilters() {
+    const priorityFilter = document.getElementById('priorityFilter');
+    const typeFilter = document.getElementById('typeFilter');
+    const readFilter = document.getElementById('readFilter');
+
+    if (priorityFilter) priorityFilter.value = '';
+    if (typeFilter) typeFilter.value = '';
+    if (readFilter) readFilter.value = '';
+
+    await this.loadAllNotifications(1);
+  }
+
+  // Change page
+  async changePage(direction) {
+    const newPage = this.currentPage + direction;
+    if (newPage >= 1 && newPage <= this.totalPages) {
+      await this.loadAllNotifications(newPage);
+    }
+  }
+
+  // Update pagination controls
+  updatePaginationControls(result) {
+    const currentPageEl = document.getElementById('currentPage');
+    const totalPagesEl = document.getElementById('totalPages');
+    const prevPageBtn = document.getElementById('prevPage');
+    const nextPageBtn = document.getElementById('nextPage');
+
+    if (currentPageEl) currentPageEl.textContent = result.page;
+    if (totalPagesEl) totalPagesEl.textContent = result.totalPages;
+
+    if (prevPageBtn) {
+      prevPageBtn.disabled = result.page <= 1;
+    }
+    if (nextPageBtn) {
+      nextPageBtn.disabled = result.page >= result.totalPages;
+    }
+  }
+
+  // Show error in modal
+  showErrorInModal(message) {
+    const container = document.getElementById('allNotificationsList');
+    if (container) {
+      container.innerHTML = `
+        <div class="text-center py-8">
+          <i class="fas fa-exclamation-triangle text-2xl text-red-400"></i>
+          <p class="mt-2 text-red-600">${message}</p>
+        </div>
+      `;
+    }
+  }
+
+  // Close notifications modal
+  closeNotificationsModal() {
+    const modal = document.getElementById('notificationsModal');
+    if (modal) {
+      modal.remove();
+    }
+  }
+
+  // Start periodic updates (reduced frequency due to limits)
   startUpdates() {
     this.loadNotifications();
-    this.updateInterval = setInterval(() => this.loadNotifications(), 30000);
+    this.updateInterval = setInterval(() => this.loadNotifications(), 300000); // 5 minutes instead of 30 seconds
   }
 
   // Stop updates
