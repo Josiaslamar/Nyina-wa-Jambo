@@ -37,9 +37,9 @@
             <i class="fas fa-tachometer-alt w-6 text-center"></i>
             <span class="ml-4">Dashboard</span>
           </a>
-          <a href="medicines.html" class="flex items-center py-3 px-6 text-gray-300 hover:bg-green-600 hover:text-white transition-colors receptionist-only">
-            <i class="fas fa-capsules w-6 text-center"></i>
-            <span class="ml-4">Medicines</span>
+          <a href="inventory.html" class="flex items-center py-3 px-6 text-gray-300 hover:bg-green-600 hover:text-white transition-colors receptionist-only">
+            <i class="fas fa-boxes w-6 text-center"></i>
+            <span class="ml-4">Inventory</span>
           </a>
           <a href="suppliers.html" class="flex items-center py-3 px-6 text-gray-300 hover:bg-green-600 hover:text-white transition-colors admin-only">
             <i class="fas fa-truck w-6 text-center"></i>
@@ -689,9 +689,10 @@
 
       async function loadCashBookData() {
         try {
-          // In a real implementation, this would fetch from a cash_book table
-          // For now, we'll simulate with some sample data
-          allCashEntries = await fetchCashBookEntries();
+          const dateFrom = document.getElementById("dateFrom").value;
+          const dateTo = document.getElementById("dateTo").value;
+          
+          allCashEntries = await fetchCashBookEntries(dateFrom, dateTo);
           renderCashBookTable();
         } catch (error) {
           console.error("Error loading cash book data:", error);
@@ -699,121 +700,21 @@
         }
       }
 
-      async function fetchCashBookEntries() {
-        // Simulate cash book entries - replace with actual Supabase query
-        const today = new Date();
-        const getDateString = (daysAgo) => {
-          const date = new Date(today);
-          date.setDate(date.getDate() - daysAgo);
-          return date.toISOString().split("T")[0];
-        };
-
-        return [
-          {
-            id: 1,
-            date: getDateString(0), // Today
-            ticket_moderator: 150.00,
-            pharmacie: 250000,
-            laboratoire: 50000,
-            general: 30000,
-            other_cash_in: 20000,
-            total_cash_in: 350000,
-            depense: 150000,
-            credit: 0,
-            total_cash_out: 150000,
-            balance: 200000,
-            notes: "Daily sales and purchases",
-            reference: "TXN-001",
-            created_at: new Date().toISOString(),
-          },
-          {
-            id: 2,
-            date: getDateString(1), // Yesterday
-            ticket_moderator: 200.00,
-            pharmacie: 180000,
-            laboratoire: 75000,
-            general: 45000,
-            other_cash_in: 0,
-            total_cash_in: 300000,
-            depense: 80000,
-            credit: 25000,
-            total_cash_out: 105000,
-            balance: 195000,
-            notes: "Medicine sales and lab supplies",
-            reference: "TXN-002",
-            created_at: new Date().toISOString(),
-          },
-          {
-            id: 3,
-            date: getDateString(2), // 2 days ago
-            ticket_moderator: 100.00,
-            pharmacie: 320000,
-            laboratoire: 60000,
-            general: 25000,
-            other_cash_in: 15000,
-            total_cash_in: 420000,
-            depense: 200000,
-            credit: 50000,
-            total_cash_out: 250000,
-            balance: 170000,
-            notes: "High sales day with staff payments",
-            reference: "TXN-003",
-            created_at: new Date().toISOString(),
-          },
-          {
-            id: 4,
-            date: getDateString(3), // 3 days ago
-            ticket_moderator: 300.00,
-            pharmacie: 290000,
-            laboratoire: 40000,
-            general: 35000,
-            other_cash_in: 10000,
-            total_cash_in: 375000,
-            depense: 120000,
-            credit: 30000,
-            total_cash_out: 150000,
-            balance: 225000,
-            notes: "Regular operations",
-            reference: "TXN-004",
-            created_at: new Date().toISOString(),
-          },
-          {
-            id: 5,
-            date: getDateString(4), // 4 days ago
-            ticket_moderator: 250.00,
-            pharmacie: 275000,
-            laboratoire: 85000,
-            general: 20000,
-            other_cash_in: 5000,
-            total_cash_in: 385000,
-            depense: 380000,
-            credit: 75000,
-            total_cash_out: 455000,
-            balance: -70000,
-            notes: "Large supplier payment day",
-            reference: "TXN-005",
-            created_at: new Date().toISOString(),
-          },
-        ];
-      }
-
       function renderCashBookTable() {
         const tbody = document.getElementById("cashBookTable");
         const dateFrom = document.getElementById("dateFrom").value;
         const dateTo = document.getElementById("dateTo").value;
-        const typeFilter = document.getElementById("transactionFilter").value;
 
         let filteredEntries = allCashEntries.filter((entry) => {
-          const entryDate = entry.date;
+          const entryDate = entry.entry_date;
           const matchesDate =
             (!dateFrom || entryDate >= dateFrom) &&
             (!dateTo || entryDate <= dateTo);
-          const matchesType = !typeFilter || entry.type === typeFilter;
-          return matchesDate && matchesType;
+          return matchesDate;
         });
 
         // Sort by date (newest first)
-        filteredEntries.sort((a, b) => new Date(b.date) - new Date(a.date));
+        filteredEntries.sort((a, b) => new Date(b.entry_date) - new Date(a.entry_date));
 
         if (filteredEntries.length === 0) {
           tbody.innerHTML =
@@ -826,7 +727,7 @@
             return `
                     <tr class="hover:bg-gray-50">
                         <td class="px-3 py-4 whitespace-nowrap text-sm text-gray-900 border-r border-gray-200">
-                            ${new Date(entry.date).toLocaleDateString()}
+                            ${new Date(entry.entry_date).toLocaleDateString()}
                         </td>
                         <td class="px-3 py-4 whitespace-nowrap text-sm text-gray-900 border-r border-gray-200">
                             ${formatCurrency(entry.ticket_moderator || 0)}
@@ -877,45 +778,65 @@
       }
 
       async function updateCashSummary() {
-        const dateFrom = document.getElementById("dateFrom").value;
-        const dateTo = document.getElementById("dateTo").value;
+        try {
+          const dateFrom = document.getElementById("dateFrom").value;
+          const dateTo = document.getElementById("dateTo").value;
 
-        const filteredEntries = allCashEntries.filter((entry) => {
-          const entryDate = entry.date;
-          return (
-            (!dateFrom || entryDate >= dateFrom) &&
-            (!dateTo || entryDate <= dateTo)
-          );
-        });
+          // Get statistics from the database
+          const stats = await getCashBookStats(dateFrom, dateTo);
+          
+          if (stats) {
+            document.getElementById("cashInHand").textContent = 
+              formatCurrency(stats.totals?.net_balance || 0);
+            document.getElementById("totalCashIn").textContent = 
+              formatCurrency(stats.totals?.total_cash_in || 0);
+            document.getElementById("totalCashOut").textContent = 
+              formatCurrency(stats.totals?.total_cash_out || 0);
+            document.getElementById("todayEntries").textContent = 
+              stats.today?.entries_count || 0;
+          } else {
+            // Fallback calculation from loaded entries
+            const filteredEntries = allCashEntries.filter((entry) => {
+              const entryDate = entry.entry_date;
+              return (
+                (!dateFrom || entryDate >= dateFrom) &&
+                (!dateTo || entryDate <= dateTo)
+              );
+            });
 
-        const totalCashIn = filteredEntries.reduce((sum, entry) => {
-          const pharmacie = parseFloat(entry.pharmacie) || 0;
-          const laboratoire = parseFloat(entry.laboratoire) || 0;
-          const general = parseFloat(entry.general) || 0;
-          const otherCashIn = parseFloat(entry.other_cash_in) || 0;
-          return sum + pharmacie + laboratoire + general + otherCashIn;
-        }, 0);
+            const totalCashIn = filteredEntries.reduce((sum, entry) => {
+              const pharmacie = parseFloat(entry.pharmacie) || 0;
+              const laboratoire = parseFloat(entry.laboratoire) || 0;
+              const general = parseFloat(entry.general) || 0;
+              const otherCashIn = parseFloat(entry.other_cash_in) || 0;
+              return sum + pharmacie + laboratoire + general + otherCashIn;
+            }, 0);
 
-        const totalCashOut = filteredEntries.reduce((sum, entry) => {
-          const depense = parseFloat(entry.depense) || 0;
-          const credit = parseFloat(entry.credit) || 0;
-          return sum + depense + credit;
-        }, 0);
+            const totalCashOut = filteredEntries.reduce((sum, entry) => {
+              const depense = parseFloat(entry.depense) || 0;
+              const credit = parseFloat(entry.credit) || 0;
+              return sum + depense + credit;
+            }, 0);
 
-        const cashInHand = totalCashIn - totalCashOut;
+            const cashInHand = totalCashIn - totalCashOut;
 
-        const today = new Date().toISOString().split("T")[0];
-        const todayEntries = filteredEntries.filter(
-          (e) => e.date === today
-        ).length;
+            const today = new Date().toISOString().split("T")[0];
+            const todayEntries = filteredEntries.filter(
+              (e) => e.entry_date === today
+            ).length;
 
-        document.getElementById("cashInHand").textContent =
-          formatCurrency(cashInHand);
-        document.getElementById("totalCashIn").textContent =
-          formatCurrency(totalCashIn);
-        document.getElementById("totalCashOut").textContent =
-          formatCurrency(totalCashOut);
-        document.getElementById("todayEntries").textContent = todayEntries;
+            document.getElementById("cashInHand").textContent =
+              formatCurrency(cashInHand);
+            document.getElementById("totalCashIn").textContent =
+              formatCurrency(totalCashIn);
+            document.getElementById("totalCashOut").textContent =
+              formatCurrency(totalCashOut);
+            document.getElementById("todayEntries").textContent = todayEntries;
+          }
+        } catch (error) {
+          console.error("Error updating cash summary:", error);
+          showNotification("Error updating cash summary", "error");
+        }
       }
 
       function openCashEntryModal(entryId = null) {
@@ -928,7 +849,7 @@
           title.textContent = "Edit Cash Entry";
           const entry = allCashEntries.find((e) => e.id === entryId);
           if (entry) {
-            document.getElementById("entryDate").value = entry.date;
+            document.getElementById("entryDate").value = entry.entry_date;
             document.getElementById("ticketModerator").value = entry.ticket_moderator || 0;
             document.getElementById("pharmacieAmount").value = entry.pharmacie || 0;
             document.getElementById("laboratoireAmount").value = entry.laboratoire || 0;
@@ -958,29 +879,15 @@
       async function saveCashEntry(e) {
         e.preventDefault();
 
-        const pharmacie = parseFloat(document.getElementById("pharmacieAmount").value) || 0;
-        const laboratoire = parseFloat(document.getElementById("laboratoireAmount").value) || 0;
-        const general = parseFloat(document.getElementById("generalAmount").value) || 0;
-        const otherCashIn = parseFloat(document.getElementById("otherCashInAmount").value) || 0;
-        const depense = parseFloat(document.getElementById("depenseAmount").value) || 0;
-        const credit = parseFloat(document.getElementById("creditAmount").value) || 0;
-
-        const totalCashIn = pharmacie + laboratoire + general + otherCashIn;
-        const totalCashOut = depense + credit;
-        const balance = totalCashIn - totalCashOut;
-
         const entryData = {
           date: document.getElementById("entryDate").value,
-          ticket_moderator: parseFloat(document.getElementById("ticketModerator").value) || 0,
-          pharmacie: pharmacie,
-          laboratoire: laboratoire,
-          general: general,
-          other_cash_in: otherCashIn,
-          total_cash_in: totalCashIn,
-          depense: depense,
-          credit: credit,
-          total_cash_out: totalCashOut,
-          balance: balance,
+          ticketModerator: document.getElementById("ticketModerator").value,
+          pharmacie: document.getElementById("pharmacieAmount").value,
+          laboratoire: document.getElementById("laboratoireAmount").value,
+          general: document.getElementById("generalAmount").value,
+          otherCashIn: document.getElementById("otherCashInAmount").value,
+          depense: document.getElementById("depenseAmount").value,
+          credit: document.getElementById("creditAmount").value,
           notes: document.getElementById("entryNotes").value,
           reference: document.getElementById("entryReference").value || null,
         };
@@ -988,34 +895,21 @@
         try {
           if (currentEditId) {
             // Update existing entry
-            const index = allCashEntries.findIndex(
-              (e) => e.id === currentEditId
-            );
-            if (index !== -1) {
-              allCashEntries[index] = {
-                ...allCashEntries[index],
-                ...entryData,
-              };
-            }
+            await updateCashBookEntry(currentEditId, entryData);
             showNotification("Cash entry updated successfully!", "success");
           } else {
             // Add new entry
-            const newEntry = {
-              id: Date.now(), // In real app, this would be from database
-              ...entryData,
-              created_at: new Date().toISOString(),
-            };
-            allCashEntries.push(newEntry);
+            await addCashBookEntry(entryData);
             showNotification("Cash entry added successfully!", "success");
           }
 
-          renderCashBookTable();
+          await loadCashBookData();
           await updateCashSummary();
           updateCashFlowChart();
           closeCashEntryModal();
         } catch (error) {
           console.error("Error saving cash entry:", error);
-          showNotification("Error saving cash entry", "error");
+          showNotification("Error saving cash entry: " + error.message, "error");
         }
       }
 
@@ -1026,20 +920,20 @@
       async function deleteCashEntry(id) {
         if (confirm("Are you sure you want to delete this cash entry?")) {
           try {
-            allCashEntries = allCashEntries.filter((e) => e.id !== id);
-            renderCashBookTable();
+            await deleteCashBookEntry(id);
+            await loadCashBookData();
             await updateCashSummary();
             updateCashFlowChart();
             showNotification("Cash entry deleted successfully!", "success");
           } catch (error) {
             console.error("Error deleting cash entry:", error);
-            showNotification("Error deleting cash entry", "error");
+            showNotification("Error deleting cash entry: " + error.message, "error");
           }
         }
       }
 
       function applyFilters() {
-        renderCashBookTable();
+        loadCashBookData();
         updateCashSummary();
         updateCashFlowChart();
       }
@@ -1147,32 +1041,21 @@
             return;
           }
 
-          // Group entries by date
-          const dailyData = {};
-          allCashEntries.forEach((entry) => {
-            if (entry && entry.date) {
-              if (!dailyData[entry.date]) {
-                dailyData[entry.date] = { cashIn: 0, cashOut: 0 };
-              }
-              
-              // Calculate cash in (pharmacie + laboratoire + general + other_cash_in)
-              const cashIn = (parseFloat(entry.pharmacie) || 0) + 
-                            (parseFloat(entry.laboratoire) || 0) + 
-                            (parseFloat(entry.general) || 0) + 
-                            (parseFloat(entry.other_cash_in) || 0);
-              
-              // Calculate cash out (depense + credit)
-              const cashOut = (parseFloat(entry.depense) || 0) + 
-                             (parseFloat(entry.credit) || 0);
-              
-              dailyData[entry.date].cashIn += cashIn;
-              dailyData[entry.date].cashOut += cashOut;
+        // Group entries by date
+        const dailyData = {};
+        allCashEntries.forEach((entry) => {
+          if (entry && entry.entry_date) {
+            if (!dailyData[entry.entry_date]) {
+              dailyData[entry.entry_date] = { cashIn: 0, cashOut: 0 };
             }
-          });
+            
+            // Use the already calculated totals from database
+            dailyData[entry.entry_date].cashIn += parseFloat(entry.total_cash_in || 0);
+            dailyData[entry.entry_date].cashOut += parseFloat(entry.total_cash_out || 0);
+          }
+        });
 
-          const dates = Object.keys(dailyData).sort();
-
-          // If no valid dates, show empty chart
+        const dates = Object.keys(dailyData).sort();          // If no valid dates, show empty chart
           if (dates.length === 0) {
             dates.push(new Date().toISOString().split("T")[0]);
             dailyData[dates[0]] = { cashIn: 0, cashOut: 0 };
@@ -1342,40 +1225,156 @@
           }`;
           const worksheet = workbook.addWorksheet(sheetName);
 
-          // Define header row
+          // Add title and summary section to match web page
+          const titleRow = worksheet.addRow(['NYINA WA JAMBO PHARMACY - CASH BOOK REPORT']);
+          titleRow.getCell(1).font = { bold: true, size: 16, color: { argb: 'FF1F2937' } };
+          titleRow.getCell(1).alignment = { horizontal: 'center' };
+          worksheet.mergeCells('A1:K1');
+          
+          const dateRow = worksheet.addRow([`Report Date: ${new Date().toLocaleDateString()}`]);
+          dateRow.getCell(1).font = { bold: true, size: 12, color: { argb: 'FF6B7280' } };
+          dateRow.getCell(1).alignment = { horizontal: 'center' };
+          worksheet.mergeCells('A2:K2');
+
+          // Add summary statistics (like the cards on the web page)
+          worksheet.addRow([]); // Empty row for spacing
+          
+          const summaryHeaderRow = worksheet.addRow(['SUMMARY STATISTICS']);
+          summaryHeaderRow.getCell(1).font = { bold: true, size: 14, color: { argb: 'FF1F2937' } };
+          summaryHeaderRow.getCell(1).fill = {
+            type: 'pattern',
+            pattern: 'solid',
+            fgColor: { argb: 'FFF3F4F6' }
+          };
+          worksheet.mergeCells('A4:K4');
+
+          // Calculate totals for summary
+          const totalCashIn = allCashEntries.reduce((sum, entry) => sum + parseFloat(entry.total_cash_in || 0), 0);
+          const totalCashOut = allCashEntries.reduce((sum, entry) => sum + parseFloat(entry.total_cash_out || 0), 0);
+          const cashInHand = totalCashIn - totalCashOut;
+          const todayEntries = allCashEntries.filter(e => e.entry_date === new Date().toISOString().split('T')[0]).length;
+
+          const summaryData = [
+            ['Cash In Hand:', formatCurrencyForExcel(cashInHand), '', 'Total Cash In:', formatCurrencyForExcel(totalCashIn)],
+            ['Total Cash Out:', formatCurrencyForExcel(totalCashOut), '', "Today's Entries:", todayEntries],
+          ];
+
+          summaryData.forEach((rowData, index) => {
+            const row = worksheet.addRow(rowData);
+            row.eachCell((cell, colNumber) => {
+              if (colNumber === 1 || colNumber === 4) { // Labels
+                cell.font = { bold: true, color: { argb: 'FF374151' } };
+              } else if (colNumber === 2 || colNumber === 5) { // Values
+                cell.font = { bold: true, color: { argb: 'FF059669' } };
+              }
+            });
+          });
+
+          // Add spacing before main table
+          worksheet.addRow([]);
+          worksheet.addRow([]);
+
+          // Add main table header
+          const tableHeaderRow = worksheet.addRow(['CASH BOOK ENTRIES']);
+          tableHeaderRow.getCell(1).font = { bold: true, size: 14, color: { argb: 'FF1F2937' } };
+          tableHeaderRow.getCell(1).fill = {
+            type: 'pattern',
+            pattern: 'solid',
+            fgColor: { argb: 'FFF3F4F6' }
+          };
+          worksheet.mergeCells(`A${tableHeaderRow.number}:K${tableHeaderRow.number}`);
+
+          // Define header row to match the web page table exactly (excluding Actions column)
           const headers = [
             "Date",
-            "Description",
-            "Type",
-            "Category",
-            "Cash In (RWF)",
-            "Cash Out (RWF)",
-            "Balance (RWF)",
-            "Reference",
+            "Ticket Moderator",
+            "Pharmacie", 
+            "Laboratoire",
+            "General",
+            "Other",
+            "Total Cash In",
+            "Depense",
+            "Credit", 
+            "Total Cash Out",
+            "Balance"
           ];
-          worksheet.addRow(headers);
+          
+          // Add main header row
+          const mainHeaderRow = worksheet.addRow(headers);
+          
+          // Style the header row to match web design
+          mainHeaderRow.eachCell((cell, colNumber) => {
+            cell.font = { bold: true, color: { argb: 'FFFFFFFF' } };
+            cell.alignment = { vertical: 'middle', horizontal: 'center' };
+            cell.fill = {
+              type: 'pattern',
+              pattern: 'solid',
+              fgColor: { argb: 'FF374151' } // Gray-700 to match web header
+            };
+            cell.border = {
+              top: { style: 'thin', color: { argb: 'FFD1D5DB' } },
+              left: { style: 'thin', color: { argb: 'FFD1D5DB' } },
+              bottom: { style: 'thin', color: { argb: 'FFD1D5DB' } },
+              right: { style: 'thin', color: { argb: 'FFD1D5DB' } }
+            };
+          });
+          mainHeaderRow.height = 35;
 
-          // Calculate running balance and add entries
-          let runningBalance = 0;
+          // Add entries with formatting to match web table
           const sortedEntries = [...allCashEntries].sort(
-            (a, b) => new Date(a.date) - new Date(b.date)
+            (a, b) => new Date(b.entry_date) - new Date(a.entry_date)
           );
 
-          sortedEntries.forEach((entry) => {
-            const cashIn = entry.type === "cash_in" ? entry.amount : 0;
-            const cashOut = entry.type === "cash_out" ? entry.amount : 0;
-            runningBalance += cashIn - cashOut;
-
-            worksheet.addRow([
-              new Date(entry.date).toLocaleDateString(),
-              entry.description,
-              entry.type.replace("_", " ").toUpperCase(),
-              entry.category.charAt(0).toUpperCase() + entry.category.slice(1),
-              cashIn > 0 ? cashIn : "",
-              cashOut > 0 ? cashOut : "",
-              runningBalance,
-              entry.reference || "",
+          sortedEntries.forEach((entry, index) => {
+            const row = worksheet.addRow([
+              new Date(entry.entry_date).toLocaleDateString(),
+              entry.ticket_moderator ? formatCurrencyForExcel(entry.ticket_moderator) : "-",
+              entry.pharmacie ? formatCurrencyForExcel(entry.pharmacie) : "-",
+              entry.laboratoire ? formatCurrencyForExcel(entry.laboratoire) : "-",
+              entry.general ? formatCurrencyForExcel(entry.general) : "-",
+              entry.other_cash_in ? formatCurrencyForExcel(entry.other_cash_in) : "-",
+              formatCurrencyForExcel(entry.total_cash_in),
+              entry.depense ? formatCurrencyForExcel(entry.depense) : "-",
+              entry.credit ? formatCurrencyForExcel(entry.credit) : "-",
+              formatCurrencyForExcel(entry.total_cash_out),
+              formatCurrencyForExcel(entry.balance)
             ]);
+            
+            // Style data rows
+            row.eachCell((cell, colNumber) => {
+              // Alternate row colors like the web table
+              const bgColor = index % 2 === 0 ? 'FFFFFFFF' : 'FFF9FAFB'; // White and gray-50
+              
+              cell.fill = {
+                type: 'pattern',
+                pattern: 'solid',
+                fgColor: { argb: bgColor }
+              };
+              
+              cell.border = {
+                top: { style: 'thin', color: { argb: 'FFE5E7EB' } },
+                left: { style: 'thin', color: { argb: 'FFE5E7EB' } },
+                bottom: { style: 'thin', color: { argb: 'FFE5E7EB' } },
+                right: { style: 'thin', color: { argb: 'FFE5E7EB' } }
+              };
+              
+              cell.alignment = { vertical: 'middle', horizontal: 'left' };
+              
+              // Special formatting for specific columns to match web appearance
+              if (colNumber === 7) { // Total Cash In - green color
+                cell.font = { bold: true, color: { argb: 'FF059669' } }; // Green-600
+              } else if (colNumber === 10) { // Total Cash Out - red color
+                cell.font = { bold: true, color: { argb: 'FFDC2626' } }; // Red-600
+              } else if (colNumber === 11) { // Balance - green or red based on value
+                const balance = parseFloat(entry.balance || 0);
+                cell.font = { 
+                  bold: true, 
+                  color: { argb: balance >= 0 ? 'FF059669' : 'FFDC2626' }
+                };
+              }
+            });
+            
+            row.height = 20;
           });
 
           // Style header row
@@ -1413,22 +1412,26 @@
             }
           });
 
-          // Set column widths
+          // Set column widths to match web table proportions
           worksheet.columns = [
             { width: 12 }, // Date
-            { width: 30 }, // Description
-            { width: 12 }, // Type
-            { width: 15 }, // Category
-            { width: 15 }, // Cash In
-            { width: 15 }, // Cash Out
-            { width: 15 }, // Balance
-            { width: 15 }, // Reference
+            { width: 16 }, // Ticket Moderator
+            { width: 16 }, // Pharmacie
+            { width: 16 }, // Laboratoire
+            { width: 14 }, // General
+            { width: 14 }, // Other
+            { width: 16 }, // Total Cash In
+            { width: 14 }, // Depense
+            { width: 14 }, // Credit
+            { width: 16 }, // Total Cash Out
+            { width: 16 }, // Balance
+            { width: 20 }, // Actions
           ];
 
           // Enable autofilter
           worksheet.autoFilter = {
             from: "A1",
-            to: "H1",
+            to: "L1",
           };
 
           // Generate filename
@@ -1455,6 +1458,10 @@
       }
 
       function formatCurrency(amount) {
+        return Math.round(amount || 0).toLocaleString() + " RWF";
+      }
+
+      function formatCurrencyForExcel(amount) {
         return Math.round(amount || 0).toLocaleString() + " RWF";
       }
 

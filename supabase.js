@@ -522,10 +522,7 @@ async function createOrder(orderData, orderItems) {
 async function updateMedicineStock(
   medicineId,
   newStock,
-  movementType,
-  quantity,
-  reason,
-  notes = null
+  movementData
 ) {
   if (!(await isReceptionist()))
     throw new Error("Permission denied: Staff only");
@@ -542,12 +539,16 @@ async function updateMedicineStock(
   const movement = {
     medicine_id: medicineId,
     medicine_name: medicine.name,
-    movement_type: movementType,
-    quantity,
+    movement_type: movementData.movementType,
+    quantity: movementData.quantity,
     previous_stock: medicine.stock,
     new_stock: newStock,
-    reason,
-    notes,
+    reason: movementData.businessReason,
+    notes: movementData.notes || null,
+    business_impact: movementData.impact,
+    financial_impact: movementData.financialImpact || 0,
+    unit_cost: movementData.unitCost || null,
+    sale_price: movementData.salePrice || null,
     created_by: user?.id,
     movement_date: new Date().toISOString().split("T")[0],
   };
@@ -568,53 +569,51 @@ async function updateMedicineStock(
   return data;
 }
 
-async function processStockIn(
-  medicineId,
-  quantity,
-  reason = "purchase",
-  notes = null
-) {
+async function processStockIn(movementData) {
   const { data: medicine, error } = await supabase
     .from("medicines")
     .select("stock, name")
-    .eq("id", medicineId)
+    .eq("id", movementData.medicineId)
     .eq("is_active", true)
     .single();
   if (error) throw new Error(`Medicine fetch error: ${error.message}`);
+  
   return await updateMedicineStock(
-    medicineId,
-    medicine.stock + quantity,
-    "in",
-    quantity,
-    reason,
-    notes
+    movementData.medicineId,
+    medicine.stock + movementData.quantity,
+    movementData
   );
 }
 
-async function processStockOut(
-  medicineId,
-  quantity,
-  reason = "sale",
-  notes = null
-) {
+async function processStockOut(movementData) {
   const { data: medicine, error } = await supabase
     .from("medicines")
     .select("stock, name")
-    .eq("id", medicineId)
+    .eq("id", movementData.medicineId)
     .eq("is_active", true)
     .single();
   if (error) throw new Error(`Medicine fetch error: ${error.message}`);
-  if (medicine.stock < quantity)
+  
+  // For sales, ensure we have enough stock
+  if (movementData.movementType === 'sale' && medicine.stock < movementData.quantity) {
     throw new Error(
-      `Insufficient stock: ${medicine.name} has ${medicine.stock} units`
+      `Insufficient stock for sale: ${medicine.name} has ${medicine.stock} units, but ${movementData.quantity} units requested`
     );
+  }
+  
+  // For losses (expired, damaged, theft) - allow even if stock goes negative for accountability
+  // This ensures we track all losses even if stock records are inaccurate
+  if (['expired', 'damaged', 'theft'].includes(movementData.movementType)) {
+    // Warn if stock will go negative but still process
+    if (medicine.stock < movementData.quantity) {
+      console.warn(`Warning: ${movementData.movementType} will result in negative stock for ${medicine.name}`);
+    }
+  }
+  
   return await updateMedicineStock(
-    medicineId,
-    medicine.stock - quantity,
-    "out",
-    quantity,
-    reason,
-    notes
+    movementData.medicineId,
+    medicine.stock - movementData.quantity,
+    movementData
   );
 }
 
@@ -1693,7 +1692,7 @@ async function checkAndCreateStockNotifications() {
           type: 'warning',
           relatedTo: 'stock',
           priority: 'high',
-          actionUrl: 'medicines.html'
+          actionUrl: 'inventory.html'
         });
       }
     }
@@ -1717,7 +1716,7 @@ async function checkAndCreateStockNotifications() {
           type: 'warning',
           relatedTo: 'expiry',
           priority: 'medium',
-          actionUrl: 'medicines.html'
+          actionUrl: 'inventory.html'
         });
       }
     }
@@ -1854,6 +1853,279 @@ async function getNotificationStats() {
   } catch (error) {
     console.error('Error getting notification stats:', error);
     return {};
+  }
+}
+
+// =============================================
+// CASH BOOK API FUNCTIONS
+// =============================================
+
+async function fetchCashBookEntries(startDate = null, endDate = null, limit = 100) {
+  if (!(await isAdmin())) throw new Error("Permission denied: Admin only");
+  
+  try {
+    // First, fetch cash book entries
+    let query = supabase
+      .from("cash_book")
+      .select(`
+        id,
+        entry_date,
+        ticket_moderator,
+        pharmacie,
+        laboratoire,
+        general,
+        other_cash_in,
+        total_cash_in,
+        depense,
+        credit,
+        total_cash_out,
+        balance,
+        notes,
+        reference,
+        created_at,
+        created_by
+      `)
+      .eq("is_active", true)
+      .order("entry_date", { ascending: false })
+      .order("created_at", { ascending: false });
+
+    if (startDate) {
+      query = query.gte("entry_date", startDate);
+    }
+    if (endDate) {
+      query = query.lte("entry_date", endDate);
+    }
+    if (limit) {
+      query = query.limit(limit);
+    }
+
+    const { data: cashBookData, error } = await query;
+    
+    if (error) throw new Error(`Cash book fetch error: ${error.message}`);
+    
+    if (!cashBookData || cashBookData.length === 0) {
+      return [];
+    }
+
+    // Get unique created_by user IDs
+    const userIds = [...new Set(cashBookData.map(entry => entry.created_by).filter(Boolean))];
+    
+    // Fetch user profiles for those IDs
+    let userProfiles = {};
+    if (userIds.length > 0) {
+      const { data: profiles, error: profilesError } = await supabase
+        .from("user_profiles")
+        .select("id, full_name")
+        .in("id", userIds);
+      
+      if (profilesError) {
+        console.warn("Could not fetch user profiles:", profilesError.message);
+      } else {
+        // Create a lookup map
+        userProfiles = profiles.reduce((acc, profile) => {
+          acc[profile.id] = profile;
+          return acc;
+        }, {});
+      }
+    }
+    
+    // Transform data to include created_by_name
+    return cashBookData.map(entry => ({
+      ...entry,
+      created_by_name: userProfiles[entry.created_by]?.full_name || 'Unknown'
+    }));
+  } catch (error) {
+    console.error("Error fetching cash book entries:", error);
+    throw error;
+  }
+}
+
+async function addCashBookEntry(entryData) {
+  if (!(await isAdmin())) throw new Error("Permission denied: Admin only");
+  
+  try {
+    const user = await getCurrentUser();
+    
+    const { data, error } = await supabase
+      .from("cash_book")
+      .insert([{
+        entry_date: entryData.date,
+        ticket_moderator: parseFloat(entryData.ticketModerator) || 0,
+        pharmacie: parseFloat(entryData.pharmacie) || 0,
+        laboratoire: parseFloat(entryData.laboratoire) || 0,
+        general: parseFloat(entryData.general) || 0,
+        other_cash_in: parseFloat(entryData.otherCashIn) || 0,
+        depense: parseFloat(entryData.depense) || 0,
+        credit: parseFloat(entryData.credit) || 0,
+        notes: entryData.notes || null,
+        reference: entryData.reference || null,
+        created_by: user?.id
+      }])
+      .select();
+    
+    if (error) throw new Error(`Cash book entry creation error: ${error.message}`);
+    showSuccess("Cash book entry added successfully!");
+    return data[0];
+  } catch (error) {
+    console.error("Error adding cash book entry:", error);
+    throw error;
+  }
+}
+
+async function updateCashBookEntry(id, entryData) {
+  if (!(await isAdmin())) throw new Error("Permission denied: Admin only");
+  
+  try {
+    const user = await getCurrentUser();
+    
+    const { data, error } = await supabase
+      .from("cash_book")
+      .update({
+        entry_date: entryData.date,
+        ticket_moderator: parseFloat(entryData.ticketModerator) || 0,
+        pharmacie: parseFloat(entryData.pharmacie) || 0,
+        laboratoire: parseFloat(entryData.laboratoire) || 0,
+        general: parseFloat(entryData.general) || 0,
+        other_cash_in: parseFloat(entryData.otherCashIn) || 0,
+        depense: parseFloat(entryData.depense) || 0,
+        credit: parseFloat(entryData.credit) || 0,
+        notes: entryData.notes || null,
+        reference: entryData.reference || null,
+        updated_by: user?.id,
+        updated_at: new Date().toISOString()
+      })
+      .eq("id", id)
+      .eq("is_active", true)
+      .select();
+    
+    if (error) throw new Error(`Cash book entry update error: ${error.message}`);
+    showSuccess("Cash book entry updated successfully!");
+    return data[0];
+  } catch (error) {
+    console.error("Error updating cash book entry:", error);
+    throw error;
+  }
+}
+
+async function deleteCashBookEntry(id) {
+  if (!(await isAdmin())) throw new Error("Permission denied: Admin only");
+  
+  try {
+    const user = await getCurrentUser();
+    
+    const { data, error } = await supabase
+      .from("cash_book")
+      .update({
+        is_active: false,
+        updated_by: user?.id,
+        updated_at: new Date().toISOString()
+      })
+      .eq("id", id)
+      .select();
+    
+    if (error) throw new Error(`Cash book entry deletion error: ${error.message}`);
+    showSuccess("Cash book entry deleted successfully!");
+    return data[0];
+  } catch (error) {
+    console.error("Error deleting cash book entry:", error);
+    throw error;
+  }
+}
+
+async function getCashBookStats(startDate = null, endDate = null) {
+  if (!(await isAdmin())) throw new Error("Permission denied: Admin only");
+  
+  try {
+    // Set default dates if not provided
+    if (!startDate) {
+      startDate = new Date();
+      startDate.setDate(startDate.getDate() - 30);
+      startDate = startDate.toISOString().split('T')[0];
+    }
+    if (!endDate) {
+      endDate = new Date().toISOString().split('T')[0];
+    }
+
+    const { data, error } = await supabase.rpc('get_cash_book_stats', {
+      start_date: startDate,
+      end_date: endDate
+    });
+    
+    if (error) {
+      console.warn('RPC function failed, using fallback calculation:', error.message);
+      return await getCashBookStatsFallback(startDate, endDate);
+    }
+    
+    return data;
+  } catch (error) {
+    console.error("Error getting cash book stats:", error);
+    return await getCashBookStatsFallback(startDate, endDate);
+  }
+}
+
+// Fallback function for cash book stats calculation
+async function getCashBookStatsFallback(startDate, endDate) {
+  try {
+    const { data: entries, error } = await supabase
+      .from("cash_book")
+      .select("*")
+      .eq("is_active", true)
+      .gte("entry_date", startDate)
+      .lte("entry_date", endDate);
+    
+    if (error) throw new Error(`Cash book stats error: ${error.message}`);
+    
+    const stats = {
+      period: { start_date: startDate, end_date: endDate },
+      totals: {
+        total_cash_in: 0,
+        total_cash_out: 0,
+        net_balance: 0,
+        entries_count: entries?.length || 0
+      },
+      categories: {
+        pharmacie: 0,
+        laboratoire: 0,
+        general: 0,
+        other_cash_in: 0,
+        depense: 0,
+        credit: 0
+      },
+      today: {
+        entries_count: 0,
+        cash_in: 0,
+        cash_out: 0
+      }
+    };
+    
+    const today = new Date().toISOString().split('T')[0];
+    
+    if (entries && entries.length > 0) {
+      entries.forEach(entry => {
+        stats.totals.total_cash_in += parseFloat(entry.total_cash_in || 0);
+        stats.totals.total_cash_out += parseFloat(entry.total_cash_out || 0);
+        
+        stats.categories.pharmacie += parseFloat(entry.pharmacie || 0);
+        stats.categories.laboratoire += parseFloat(entry.laboratoire || 0);
+        stats.categories.general += parseFloat(entry.general || 0);
+        stats.categories.other_cash_in += parseFloat(entry.other_cash_in || 0);
+        stats.categories.depense += parseFloat(entry.depense || 0);
+        stats.categories.credit += parseFloat(entry.credit || 0);
+        
+        if (entry.entry_date === today) {
+          stats.today.entries_count++;
+          stats.today.cash_in += parseFloat(entry.total_cash_in || 0);
+          stats.today.cash_out += parseFloat(entry.total_cash_out || 0);
+        }
+      });
+      
+      stats.totals.net_balance = stats.totals.total_cash_in - stats.totals.total_cash_out;
+    }
+    
+    return stats;
+  } catch (error) {
+    console.error("Error in fallback cash book stats:", error);
+    throw error;
   }
 }
 

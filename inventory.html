@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Medicines - Nyina wa Jambo Pharmacy</title>
+    <title>Inventory Management - Nyina wa Jambo Pharmacy</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
     <script src="supabase.js"></script>
@@ -250,7 +250,7 @@
             <i class="fas fa-bars text-xl"></i>
           </button>
           <h1 class="text-xl font-semibold text-gray-800 hidden lg:block">
-            Medicines Management
+            Inventory Management
           </h1>
 
           <div class="flex items-center space-x-4">
@@ -288,7 +288,7 @@
                 </div>
                 <div class="flex gap-3">
                   <button id="addMedicineBtn" class="btn-primary">
-                    <i class="fas fa-plus"></i>Add Medicine
+                    <i class="fas fa-plus"></i>Add Inventory Item
                   </button>
                   <button id="importBtn" class="btn-primary admin-only">
                     <i class="fas fa-file-excel"></i>Bulk Import
@@ -348,7 +348,7 @@
     <div id="medicineModal" class="modal">
       <div class="modal-content">
         <div class="flex justify-between items-center mb-6">
-          <h2 id="medicineModalTitle" class="text-xl font-semibold">Add Medicine</h2>
+          <h2 id="medicineModalTitle" class="text-xl font-semibold">Add Inventory Item</h2>
           <button id="closeMedicineModal" class="text-gray-400 hover:text-gray-600">
             <i class="fas fa-times text-xl"></i>
           </button>
